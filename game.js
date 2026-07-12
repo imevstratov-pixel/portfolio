@@ -2,6 +2,26 @@
 // Пробел/тап — прыжок. Собирай уроки, перепрыгивай правки и дедлайны.
 (function () {
   const PAPER = '#FAF8F4', INK = '#111110', RED = '#E63311', SOFT = '#4a4844';
+
+  // ---------- спрайты (Higgsfield paper-collage) ----------
+  // белый фон листов растворяется multiply-наложением на бумагу
+  const charImg = new Image(); charImg.src = 'assets/game/sprites-char.jpg';
+  const itemsImg = new Image(); itemsImg.src = 'assets/game/sprites-items.jpg';
+  // сетки листов: [x0, y0, cellW, cellH, inset]
+  const CHAR_GRID = { x0: 22, y0: 208, cw: (1352 - 22) / 6, ch: 314, inset: 12 };
+  const ITEM_GRID = { x0: 57, y0: 257, cw: (1319 - 57) / 5, ch: 255, inset: 12 };
+  const ITEM_IDX = { book: 0, deadline: 1, edit: 2, slide: 3, bolt: 4 };
+
+  function drawSprite(img, grid, idx, dx, dy, dw, dh, alpha) {
+    const sx = grid.x0 + grid.cw * idx + grid.inset;
+    const sy = grid.y0 + grid.inset;
+    const sw = grid.cw - grid.inset * 2, sh = grid.ch - grid.inset * 2;
+    ctx.save();
+    ctx.globalCompositeOperation = 'multiply';
+    if (alpha != null) ctx.globalAlpha = alpha;
+    ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
+    ctx.restore();
+  }
   const MILESTONES = [
     [26,  'Ускорение ×26 достигнуто'],
     [85,  '85 курсов. Вы — Даниил'],
@@ -34,10 +54,10 @@
   let W = 0, H = 0, GROUND = 0, beltShift = 0;
 
   function reset() {
-    speed = 320; score = 0; boostT = 0; spawnT = 1.2; bookT = 2; boltT = 14;
+    speed = 320; score = 0; boostT = 0; spawnT = 2.2; bookT = 2; boltT = 14;
     obstacles = []; books = []; bolts = []; toasts = []; cosplayers = [];
     shownMs = new Set();
-    player = { x: Math.min(90, W * 0.14), y: 0, vy: 0, onGround: true, w: 34, h: 52, coyote: 0 };
+    player = { x: Math.min(90, W * 0.14), y: 0, vy: 0, onGround: true, w: 34, h: 52, coyote: 0, jumpBuf: 0 };
     dead = false;
     scoreEl.textContent = 'уроков: 0';
   }
@@ -57,6 +77,8 @@
     if (player.onGround || player.coyote > 0) {
       player.vy = -640; player.onGround = false; player.coyote = 0;
       hintEl.style.opacity = 0;
+    } else {
+      player.jumpBuf = 0.14; // нажатие в воздухе — прыжок сразу при приземлении
     }
   }
   function onKey(e) {
@@ -93,9 +115,13 @@
     // player physics
     player.vy += 1700 * dt;
     player.y += player.vy * dt;
-    if (player.y >= 0) { player.y = 0; player.vy = 0; if (!player.onGround) player.coyote = 0; player.onGround = true; }
+    if (player.y >= 0) {
+      player.y = 0; player.vy = 0; player.onGround = true;
+      if (player.jumpBuf > 0) { player.jumpBuf = 0; jump(); }
+    }
     else if (player.onGround) { player.onGround = false; player.coyote = 0.09; }
     if (!player.onGround && player.coyote > 0) player.coyote -= dt;
+    if (player.jumpBuf > 0) player.jumpBuf -= dt;
 
     // spawns
     spawnT -= dt; bookT -= dt; boltT -= dt;
@@ -141,6 +167,17 @@
   }
 
   // ---------- draw ----------
+  function drawChar(x, groundY, yOff, scale, ghost) {
+    if (!charImg.naturalWidth) { stickman(x, groundY, yOff, scale, ghost); return; }
+    const s = scale || 1;
+    let frame;
+    if (dead) frame = 5;
+    else if (!player.onGround && Math.abs(player.vy) > 40) frame = 4;
+    else frame = Math.floor(performance.now() / 90) % 4;
+    const h = 78 * s, w = h * 0.68;
+    drawSprite(charImg, CHAR_GRID, frame, x - w * 0.18, groundY + yOff - h + 2, w, h, ghost ? 0.5 : 1);
+  }
+
   function stickman(x, groundY, yOff, scale, ghost) {
     const s = scale || 1;
     ctx.save();
@@ -182,6 +219,11 @@
 
     // объекты
     obstacles.forEach(o => {
+      if (itemsImg.naturalWidth) {
+        const pad = o.kind === 'slide' ? 6 : 10;
+        drawSprite(itemsImg, ITEM_GRID, ITEM_IDX[o.kind], o.x - pad, o.y - pad, o.w + pad * 2, o.h + pad * 2);
+        return;
+      }
       ctx.lineWidth = 2.5; ctx.strokeStyle = INK;
       if (o.kind === 'edit') { // красная каракуля-правка
         ctx.strokeStyle = RED; ctx.beginPath();
@@ -204,6 +246,10 @@
 
     // книги
     books.forEach(b => {
+      if (itemsImg.naturalWidth) {
+        drawSprite(itemsImg, ITEM_GRID, ITEM_IDX.book, b.x - 19, b.y - 15, 38, 30);
+        return;
+      }
       ctx.save(); ctx.translate(b.x, b.y);
       ctx.fillStyle = '#fff'; ctx.strokeStyle = INK; ctx.lineWidth = 2.5;
       ctx.beginPath(); ctx.moveTo(-14, 0); ctx.quadraticCurveTo(-7, -8, 0, 0); ctx.quadraticCurveTo(7, -8, 14, 0);
@@ -215,6 +261,10 @@
 
     // молнии
     bolts.forEach(b => {
+      if (itemsImg.naturalWidth) {
+        drawSprite(itemsImg, ITEM_GRID, ITEM_IDX.bolt, b.x - 15, b.y - 19, 30, 38);
+        return;
+      }
       ctx.save(); ctx.translate(b.x, b.y);
       ctx.fillStyle = RED; ctx.strokeStyle = INK; ctx.lineWidth = 2;
       ctx.beginPath(); ctx.moveTo(2, -14); ctx.lineTo(-6, 2); ctx.lineTo(0, 2); ctx.lineTo(-2, 14); ctx.lineTo(7, -2); ctx.lineTo(1, -2); ctx.closePath();
@@ -223,11 +273,11 @@
     });
 
     // косплееры (после 500)
-    cosplayers.forEach(c => stickman(player.x - c.off, GROUND, 0, 0.8, true));
+    cosplayers.forEach(c => drawChar(player.x - c.off, GROUND, 0, 0.8, true));
 
     // игрок
     if (boostT > 0) { ctx.save(); ctx.shadowColor = RED; ctx.shadowBlur = 18; }
-    stickman(player.x, GROUND, player.y, 1, false);
+    drawChar(player.x, GROUND, player.y, 1, false);
     if (boostT > 0) ctx.restore();
 
     // тосты
