@@ -480,21 +480,27 @@ body {
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* ---------- game ---------- */
-.hero__game {
-  margin-top: 14px;
-  display: inline-block;
-  background: none;
-  border: none;
+.demo-strip {
+  position: relative;
+  height: 96px;
+  border-bottom: 1px solid var(--line);
   cursor: pointer;
-  color: var(--red);
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  padding: 0;
-  opacity: 0.85;
-  transition: opacity .15s ease;
+  overflow: hidden;
 }
-.hero__game:hover { opacity: 1; text-decoration: underline; }
+.demo-strip canvas { width: 100%; height: 100%; display: block; }
+.demo-strip__label {
+  position: absolute;
+  top: 50%;
+  right: clamp(20px, 5vw, 72px);
+  transform: translateY(-50%);
+  font-size: 11px;
+  color: var(--red);
+  background: color-mix(in srgb, var(--paper) 82%, transparent);
+  padding: 6px 10px;
+  border-radius: 6px;
+  pointer-events: none;
+}
+.demo-strip:hover .demo-strip__label { text-decoration: underline; }
 
 .game {
   position: fixed;
@@ -503,7 +509,11 @@ body {
   background: var(--paper);
   display: flex;
   flex-direction: column;
+  opacity: 0;
+  transform: translateY(-14px);
+  transition: opacity .35s ease, transform .35s ease;
 }
+.game--open { opacity: 1; transform: none; }
 .game[hidden] { display: none; }
 
 .game__bar {
