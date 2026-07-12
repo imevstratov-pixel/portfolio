@@ -15,12 +15,20 @@ const lbVideo = lightbox.querySelector('.lightbox__video');
 const lbCase = lightbox.querySelector('.lightbox__case');
 
 function openLightbox(reel) {
+  const caseId = reel.dataset.case;
+  lbVideo.poster = 'assets/posters/' + caseId + '.jpg';
   lbVideo.src = reel.dataset.video;
-  lbCase.href = '#' + reel.dataset.case;
+  lbCase.href = '#' + caseId;
   lightbox.hidden = false;
   document.body.style.overflow = 'hidden';
   lbVideo.play().catch(() => {});
 }
+
+// спиннер на буферизации (медленная сеть)
+['waiting', 'stalled', 'loadstart'].forEach(ev =>
+  lbVideo.addEventListener(ev, () => lightbox.classList.add('is-buffering')));
+['canplay', 'playing', 'error'].forEach(ev =>
+  lbVideo.addEventListener(ev, () => lightbox.classList.remove('is-buffering')));
 function closeLightbox() {
   lbVideo.pause();
   lbVideo.removeAttribute('src');

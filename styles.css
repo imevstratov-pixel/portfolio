@@ -45,6 +45,7 @@ body {
   gap: 16px;
   padding: 14px var(--pad);
   background: color-mix(in srgb, var(--paper) 88%, transparent);
+  -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--line);
 }
@@ -438,6 +439,7 @@ body {
   position: absolute;
   inset: 0;
   background: rgba(17, 17, 16, 0.82);
+  -webkit-backdrop-filter: blur(6px);
   backdrop-filter: blur(6px);
 }
 
@@ -460,6 +462,22 @@ body {
 
 .lightbox__row { display: flex; gap: 10px; justify-content: center; }
 .lightbox__row .btn { background: var(--paper); font-size: 12px; padding: 12px 20px; }
+
+/* индикатор буферизации на медленной сети */
+.lightbox__spinner {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 46px; height: 46px;
+  margin: -23px 0 0 -23px;
+  border-radius: 50%;
+  border: 3px solid rgba(250,248,244,0.25);
+  border-top-color: var(--red);
+  animation: spin 0.8s linear infinite;
+  display: none;
+  pointer-events: none;
+}
+.lightbox.is-buffering .lightbox__spinner { display: block; }
+@keyframes spin { to { transform: rotate(360deg); } }
 
 /* ---------- footer ---------- */
 .footer {
