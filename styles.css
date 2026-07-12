@@ -482,7 +482,7 @@ body {
 /* ---------- game ---------- */
 .demo-strip {
   position: relative;
-  height: 96px;
+  height: 76px;
   border-bottom: 1px solid var(--line);
   cursor: pointer;
   overflow: hidden;

@@ -45,7 +45,7 @@
     const ctx = canvas.getContext('2d');
     const R = {
       running: false, dead: false, raf: 0, tPrev: 0,
-      speed: 0, score: 0, grace: 0, beltShift: 0, cloudShift: 0,
+      speed: 0, score: 0, grace: 0, beltShift: 0, cloudShift: 0, time: 0, mult: 1,
       W: 0, H: 0, GROUND: 0,
       player: null, obstacles: [], books: [], bolts: [], toasts: [], fans: [],
       boostT: 0, spawnT: 0, bookT: 0, boltT: 0, shownMs: null,
@@ -68,15 +68,16 @@
       R.W = canvas.clientWidth; R.H = canvas.clientHeight;
       canvas.width = R.W * devicePixelRatio; canvas.height = R.H * devicePixelRatio;
       ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
-      R.GROUND = demo ? R.H - 26 : R.H * 0.72;
+      R.GROUND = demo ? R.H - 20 : R.H * 0.72;
     };
 
     R.reset = function () {
-      R.speed = 320; R.score = 0; R.boostT = 0; R.grace = demo ? 0 : 3;
-      R.spawnT = 0.4; R.bookT = 1.6; R.boltT = 14;
+      R.speed = demo ? 170 : 320; R.score = 0; R.boostT = 0; R.grace = demo ? 0 : 3;
+      R.time = 0; R.mult = 1;
+      R.spawnT = 0.6; R.bookT = 1.6; R.boltT = 7;
       R.obstacles = []; R.books = []; R.bolts = []; R.toasts = []; R.fans = [];
       R.shownMs = new Set(); R.dead = false;
-      R.player = { x: Math.min(90, R.W * 0.14), y: 0, vy: 0, onGround: true, w: 34, h: 52, coyote: 0, jumpBuf: 0, autoT: 0.8 };
+      R.player = { x: Math.min(90, R.W * 0.14), y: 0, vy: 0, onGround: true, w: 34, h: 52, coyote: 0, jumpBuf: 0, autoT: 1.6 };
       R.onScore(0);
     };
 
@@ -102,13 +103,18 @@
       const boost = R.boostT > 0 ? 1.7 : 1;
       if (R.boostT > 0) R.boostT -= dt;
       if (R.grace > 0) R.grace -= dt;
-      if (!demo) R.speed += dt * 4;
+      if (!demo) {
+        R.speed += dt * 3;
+        R.time += dt;
+        const m = 1 + Math.floor(R.time / 30); // стаж смены: каждые 30 сек множитель +1
+        if (m > R.mult) { R.mult = m; R.toasts.push({ text: 'Стаж вырос — очки ×' + m, t: 2.4 }); R.onScore(R.score); }
+      }
       const move = R.speed * boost * dt;
       R.beltShift = (R.beltShift + move) % 64;
       R.cloudShift += move * 0.12;
 
       // demo: автопрыжки, чтобы полоска жила сама
-      if (demo) { p.autoT -= dt; if (p.autoT <= 0 && p.onGround) { R.jump(); p.autoT = 1 + Math.random() * 1.4; } }
+      if (demo) { p.autoT -= dt; if (p.autoT <= 0 && p.onGround) { R.jump(); p.autoT = 2.2 + Math.random() * 2; } }
 
       p.vy += 1700 * dt;
       p.y += p.vy * dt;
@@ -123,8 +129,8 @@
       if (R.bookT <= 0) { spawnBook(); R.bookT = 1.4 + Math.random() * 1.4; }
       if (!demo && R.grace <= 0) {
         R.spawnT -= dt; R.boltT -= dt;
-        if (R.spawnT <= 0) { spawnObstacle(); R.spawnT = 0.9 + Math.random() * 1.1 - Math.min(0.5, R.score / 400); }
-        if (R.boltT <= 0) { spawnBolt(); R.boltT = 16 + Math.random() * 8; }
+        if (R.spawnT <= 0) { spawnObstacle(); R.spawnT = 1.4 + Math.random() * 1.4 - Math.min(0.5, R.time / 240); }
+        if (R.boltT <= 0) { spawnBolt(); R.boltT = 9 + Math.random() * 6; }
       }
 
       const px = p.x, py = R.GROUND + p.y - p.h;
@@ -141,7 +147,8 @@
       }
       R.books = R.books.filter(b => {
         if (Math.abs(b.x - (px + p.w / 2)) < 30 && Math.abs(b.y - (py + p.h / 2)) < 46) {
-          R.score++; R.onScore(R.score);
+          R.score += R.mult * (R.boostT > 0 ? 5 : 1); // AI-буст печёт уроки пачками
+          R.onScore(R.score);
           if (!demo) for (const [n, text] of MILESTONES) if (R.score === n && !R.shownMs.has(n)) {
             R.shownMs.add(n); R.toasts.push({ text, t: 2.6 });
             if (n === 500) R.fans = [{ off: 60 }, { off: 105 }, { off: 150 }];
@@ -200,14 +207,6 @@
         ctx.beginPath(); ctx.moveTo(x, gy); ctx.lineTo(x, gy + beltH); ctx.stroke();
         ctx.fillStyle = INK;
         ctx.beginPath(); ctx.arc(x + 32, gy + beltH / 2, 2.2, 0, 7); ctx.fill();
-      }
-      // ролики под лентой
-      ctx.fillStyle = PAPER; ctx.strokeStyle = INK; ctx.lineWidth = 2;
-      for (let x = -R.beltShift % 128; x < R.W + 128; x += 128) {
-        ctx.beginPath(); ctx.arc(x, gy + beltH + 10, 7, 0, 7); ctx.fill(); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(x, gy + beltH + 10);
-        const a = (R.beltShift / 10) % 6.283;
-        ctx.lineTo(x + Math.cos(a) * 5, gy + beltH + 10 + Math.sin(a) * 5); ctx.stroke();
       }
       // тень под персонажем
       const shScale = 1 + R.player.y / 400;
@@ -297,7 +296,7 @@
   const hintEl = overlay.querySelector('.game__hint');
 
   const game = createRunner(overlay.querySelector('canvas'), {
-    onScore: s => { scoreEl.textContent = 'уроков: ' + s; },
+    onScore: s => { scoreEl.textContent = 'уроков: ' + s + (game && game.mult > 1 ? ' · очки ×' + game.mult : ''); },
     onDeath: s => { if (s > best) { best = s; localStorage.setItem('shift-best', best); } },
   });
 
