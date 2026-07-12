@@ -9,13 +9,40 @@ if (canHover && !reducedMotion) {
   track.appendChild(set.cloneNode(true));
 }
 
-// Клик по рилсу — скроллим к соответствующему кейсу.
-// Когда появятся видео, здесь будет открытие плеера со звуком.
+// Клик по рилсу — лайтбокс с видео со звуком; из него ссылка на текстовый кейс
+const lightbox = document.getElementById('lightbox');
+const lbVideo = lightbox.querySelector('.lightbox__video');
+const lbCase = lightbox.querySelector('.lightbox__case');
+
+function openLightbox(reel) {
+  lbVideo.src = reel.dataset.video;
+  lbCase.href = '#' + reel.dataset.case;
+  lightbox.hidden = false;
+  document.body.style.overflow = 'hidden';
+  lbVideo.play().catch(() => {});
+}
+function closeLightbox() {
+  lbVideo.pause();
+  lbVideo.removeAttribute('src');
+  lbVideo.load();
+  lightbox.hidden = true;
+  document.body.style.overflow = '';
+}
+
 track.addEventListener('click', (e) => {
   const reel = e.target.closest('.reel');
-  if (!reel) return;
-  const target = document.getElementById(reel.dataset.case);
+  if (reel) openLightbox(reel);
+});
+lightbox.querySelector('.lightbox__backdrop').addEventListener('click', closeLightbox);
+lightbox.querySelector('.lightbox__close').addEventListener('click', closeLightbox);
+lbCase.addEventListener('click', (e) => {
+  e.preventDefault();
+  const target = document.getElementById(lbCase.hash.slice(1));
+  closeLightbox();
   if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && !lightbox.hidden) closeLightbox();
 });
 
 // Анимированные лупы: играем только при наведении, чтобы не грузить страницу

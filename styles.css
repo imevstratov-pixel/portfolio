@@ -423,6 +423,44 @@ body {
 .btn--primary { background: var(--red); border-color: var(--red); color: #fff; }
 .btn--primary:hover { box-shadow: 3px 4px 0 var(--ink); }
 
+/* ---------- lightbox ---------- */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.lightbox[hidden] { display: none; }
+
+.lightbox__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(17, 17, 16, 0.82);
+  backdrop-filter: blur(6px);
+}
+
+.lightbox__inner {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-height: 92vh;
+}
+
+.lightbox__video {
+  height: min(78vh, 800px);
+  aspect-ratio: 9 / 16;
+  border-radius: 16px;
+  border: 1.5px solid var(--paper);
+  background: #000;
+  object-fit: cover;
+}
+
+.lightbox__row { display: flex; gap: 10px; justify-content: center; }
+.lightbox__row .btn { background: var(--paper); font-size: 12px; padding: 12px 20px; }
+
 /* ---------- footer ---------- */
 .footer {
   display: flex;

@@ -51,57 +51,57 @@
   <section class="reels" aria-label="Видео-кейсы">
     <div class="reels__track" id="reelsTrack">
       <div class="reels__set">
-        <article class="reel" data-case="c1">
+        <article class="reel" data-case="c1" data-video="assets/reels/reel-c1.mp4">
           <div class="reel__poster reel__poster--1">
             <span class="reel__num mono">01</span>
             <h3 class="reel__hook">Один методолог. 500 000 юзеров в месяц</h3>
           </div>
-          <div class="reel__meta mono">читать кейс ↓</div>
+          <div class="reel__meta mono"><span class="reel__play">▶</span> смотреть</div>
         </article>
-        <article class="reel" data-case="c2">
+        <article class="reel" data-case="c2" data-video="assets/reels/reel-c2.mp4">
           <div class="reel__poster reel__poster--2">
             <video class="reel__loop" src="assets/reels/loops/c2.mp4" muted loop playsinline preload="none"></video>
             <span class="reel__num mono">02</span>
             <h3 class="reel__hook">Курс делали месяц. Теперь — день. ×26</h3>
           </div>
-          <div class="reel__meta mono">читать кейс ↓</div>
+          <div class="reel__meta mono"><span class="reel__play">▶</span> смотреть</div>
         </article>
-        <article class="reel" data-case="c3">
+        <article class="reel" data-case="c3" data-video="assets/reels/reel-c3.mp4">
           <div class="reel__poster reel__poster--3">
             <video class="reel__loop" src="assets/reels/loops/c3.mp4" muted loop playsinline preload="none"></video>
             <span class="reel__num mono">03</span>
             <h3 class="reel__hook">Рубль вложили — тридцать вернулось. ROI 2982%</h3>
           </div>
-          <div class="reel__meta mono">читать кейс ↓</div>
+          <div class="reel__meta mono"><span class="reel__play">▶</span> смотреть</div>
         </article>
-        <article class="reel" data-case="c4">
+        <article class="reel" data-case="c4" data-video="assets/reels/reel-c4.mp4">
           <div class="reel__poster reel__poster--4">
             <span class="reel__num mono">04</span>
             <h3 class="reel__hook">Самый прибыльный курс я не писал. Я его пересобрал</h3>
           </div>
-          <div class="reel__meta mono">читать кейс ↓</div>
+          <div class="reel__meta mono"><span class="reel__play">▶</span> смотреть</div>
         </article>
-        <article class="reel" data-case="c5">
+        <article class="reel" data-case="c5" data-video="assets/reels/reel-c5.mp4">
           <div class="reel__poster reel__poster--5">
             <video class="reel__loop" src="assets/reels/loops/c5.mp4" muted loop playsinline preload="none"></video>
             <span class="reel__num mono">05</span>
             <h3 class="reel__hook">Юзеры не тупые. Курс скучный. Retention ×3</h3>
           </div>
-          <div class="reel__meta mono">читать кейс ↓</div>
+          <div class="reel__meta mono"><span class="reel__play">▶</span> смотреть</div>
         </article>
-        <article class="reel" data-case="c6">
+        <article class="reel" data-case="c6" data-video="assets/reels/reel-c6.mp4">
           <div class="reel__poster reel__poster--6">
             <span class="reel__num mono">06</span>
             <h3 class="reel__hook">4 запуска за 3 месяца. NR 30+ млн ₽</h3>
           </div>
-          <div class="reel__meta mono">читать кейс ↓</div>
+          <div class="reel__meta mono"><span class="reel__play">▶</span> смотреть</div>
         </article>
-        <article class="reel" data-case="c7">
+        <article class="reel" data-case="c7" data-video="assets/reels/reel-c7.mp4">
           <div class="reel__poster reel__poster--7">
             <span class="reel__num mono">07</span>
             <h3 class="reel__hook">Мой первый образовательный продукт — люди</h3>
           </div>
-          <div class="reel__meta mono">читать кейс ↓</div>
+          <div class="reel__meta mono"><span class="reel__play">▶</span> смотреть</div>
         </article>
       </div>
     </div>
@@ -318,6 +318,17 @@
   <div class="mono">© <span id="year"></span> Даниил Евстратов</div>
   <div class="mono">Сделано вместе с Claude</div>
 </footer>
+
+<div class="lightbox" id="lightbox" hidden>
+  <div class="lightbox__backdrop"></div>
+  <div class="lightbox__inner">
+    <video class="lightbox__video" controls playsinline></video>
+    <div class="lightbox__row">
+      <a class="btn lightbox__case" href="#">читать кейс →</a>
+      <button class="btn lightbox__close" type="button">закрыть ✕</button>
+    </div>
+  </div>
+</div>
 
 <script src="script.js"></script>
 </body>
