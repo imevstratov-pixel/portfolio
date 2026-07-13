@@ -327,12 +327,16 @@ body {
   padding: 30px 0 42px;
   position: relative;
 }
+/* правый жёлоб под иллюстрацию — контент кейса в него не заходит */
+@media (min-width: 641px) {
+  .case { padding-right: clamp(104px, 13vw, 168px); }
+}
 
 .case__art {
   position: absolute;
   top: 34px;
   right: 0;
-  width: clamp(76px, 10vw, 128px);
+  width: clamp(84px, 10vw, 132px);
   height: auto;
   border: 1.5px solid var(--ink);
   border-radius: 12px;
@@ -340,6 +344,7 @@ body {
   box-shadow: 4px 5px 0 rgba(17,17,16,0.08);
 }
 .case:nth-child(even) .case__art { transform: rotate(-1.4deg); }
+@media (max-width: 640px) { .case__art { display: none; } }
 .case:last-of-type { border-bottom: 1px solid var(--ink); }
 
 .case__head {
@@ -357,7 +362,6 @@ body {
   font-weight: 700;
   letter-spacing: -0.02em;
   line-height: 1.2;
-  padding-right: clamp(90px, 12vw, 150px);
 }
 
 .case__body {
