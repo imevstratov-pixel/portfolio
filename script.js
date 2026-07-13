@@ -5,16 +5,26 @@ const reelsBox = track.closest('.reels');
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 const set = track.querySelector('.reels__set');
-track.appendChild(set.cloneNode(true)); // дубль набора для бесконечной прокрутки
+// три копии набора: всегда полный буфер слева и справа, докрутить до пустоты нельзя
+track.appendChild(set.cloneNode(true));
+track.appendChild(set.cloneNode(true));
 
 let autoPause = 0;        // сек до возврата автоплея после ручного управления
 let dragging = false, dragX = 0, dragScroll = 0, dragMoved = false;
 
+function oneSet() { return track.scrollWidth / 3; }
+
+// держим скролл в средней трети; при заходе в крайние — телепорт на ширину набора
+// (буфер с обеих сторон гарантирует, что виден контент, а не пустой край)
 function loopScroll() {
-  const half = track.scrollWidth / 2;
-  if (reelsBox.scrollLeft >= half) reelsBox.scrollLeft -= half;
-  else if (reelsBox.scrollLeft <= 0) reelsBox.scrollLeft += half;
+  const w = oneSet();
+  if (!w) return;
+  if (reelsBox.scrollLeft < w * 0.5) reelsBox.scrollLeft += w;
+  else if (reelsBox.scrollLeft > w * 1.5) reelsBox.scrollLeft -= w;
 }
+
+// стартуем из середины, чтобы можно было листать в обе стороны без пустоты
+requestAnimationFrame(() => { reelsBox.scrollLeft = oneSet(); });
 
 // автодвижение
 let prevT = 0;
