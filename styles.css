@@ -108,7 +108,29 @@ body {
 .topbar__cta:hover { background: var(--red); border-color: var(--red); color: #fff; }
 
 /* ---------- hero ---------- */
-.hero { padding: clamp(64px, 12vh, 140px) var(--pad) 48px; }
+.hero {
+  padding: clamp(64px, 12vh, 140px) var(--pad) 48px;
+  position: relative;
+}
+
+.hero__portrait {
+  position: absolute;
+  top: clamp(56px, 10vh, 120px);
+  right: var(--pad);
+  width: clamp(200px, 24vw, 340px);
+  height: auto;
+  border: 1.5px solid var(--ink);
+  border-radius: 18px;
+  transform: rotate(1.8deg);
+  box-shadow: 8px 10px 0 rgba(17,17,16,0.08);
+}
+
+@media (max-width: 900px) {
+  .hero__portrait { display: none; }
+}
+@media (min-width: 901px) {
+  .hero__title, .hero__sub { max-width: calc(100% - clamp(230px, 27vw, 380px)); }
+}
 
 .eyebrow {
   font-family: var(--font-mono);
