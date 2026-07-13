@@ -12,6 +12,7 @@
   ];
 
   // ---------- спрайты (Higgsfield) → листы с настоящей альфой ----------
+  const BASE = document.documentElement.dataset.base || '';
   const SHEETS = {};
   function loadSheet(key, src, whiteCut) {
     const img = new Image();
@@ -30,9 +31,9 @@
     };
     img.src = src;
   }
-  loadSheet('char',   'assets/game/sprites-char.jpg', 218);
-  loadSheet('items',  'assets/game/sprites-items.jpg', 218);
-  loadSheet('clouds', 'assets/game/clouds.jpg', 215);
+  loadSheet('char',   BASE + 'assets/game/sprites-char.jpg', 218);
+  loadSheet('items',  BASE + 'assets/game/sprites-items.jpg', 218);
+  loadSheet('clouds', BASE + 'assets/game/clouds.jpg', 215);
 
   const CHAR_GRID  = { x0: 22, y0: 208, cw: (1352 - 22) / 6, ch: 314, inset: 12 };
   const ITEM_GRID  = { x0: 57, y0: 257, cw: (1319 - 57) / 5, ch: 255, inset: 12 };

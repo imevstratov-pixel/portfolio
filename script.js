@@ -1,13 +1,61 @@
-// Бесконечная лента: на устройствах с ховером дублируем набор карточек,
-// CSS-анимация крутит трек на -50%. На тачах — нативный свайп без клона.
+// Бесконечная лента с нативным управлением: крутится сама, но колесо,
+// тачпад, драг и свайп всегда берут контроль; автоплей возвращается после паузы.
 const track = document.getElementById('reelsTrack');
-const canHover = window.matchMedia('(hover: hover)').matches;
+const reelsBox = track.closest('.reels');
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-if (canHover && !reducedMotion) {
-  const set = track.querySelector('.reels__set');
-  track.appendChild(set.cloneNode(true));
+const set = track.querySelector('.reels__set');
+track.appendChild(set.cloneNode(true)); // дубль набора для бесконечной прокрутки
+
+let autoPause = 0;        // сек до возврата автоплея после ручного управления
+let dragging = false, dragX = 0, dragScroll = 0, dragMoved = false;
+
+function loopScroll() {
+  const half = track.scrollWidth / 2;
+  if (reelsBox.scrollLeft >= half) reelsBox.scrollLeft -= half;
+  else if (reelsBox.scrollLeft <= 0) reelsBox.scrollLeft += half;
 }
+
+// автодвижение
+let prevT = 0;
+function autoTick(t) {
+  const dt = Math.min(0.05, (t - prevT) / 1000 || 0.016);
+  prevT = t;
+  if (autoPause > 0) autoPause -= dt;
+  else if (!reducedMotion && !dragging && !reelsBox.matches(':hover')) {
+    reelsBox.scrollLeft += 30 * dt;
+    loopScroll();
+  }
+  requestAnimationFrame(autoTick);
+}
+requestAnimationFrame(autoTick);
+
+// колесо и тачпад: вертикальное движение тоже листает ленту
+reelsBox.addEventListener('wheel', (e) => {
+  const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+  reelsBox.scrollLeft += delta;
+  loopScroll();
+  autoPause = 2.5;
+  e.preventDefault();
+}, { passive: false });
+
+// драг мышью
+reelsBox.addEventListener('pointerdown', (e) => {
+  if (e.pointerType !== 'mouse') { autoPause = 2.5; return; } // тач скроллит нативно
+  dragging = true; dragMoved = false;
+  dragX = e.clientX; dragScroll = reelsBox.scrollLeft;
+});
+window.addEventListener('pointermove', (e) => {
+  if (!dragging) return;
+  const dx = e.clientX - dragX;
+  if (Math.abs(dx) > 4) dragMoved = true;
+  reelsBox.scrollLeft = dragScroll - dx;
+  loopScroll();
+});
+window.addEventListener('pointerup', () => {
+  if (dragging) { dragging = false; autoPause = 2.5; }
+});
+reelsBox.addEventListener('scroll', () => { if (!dragging) loopScroll(); }, { passive: true });
 
 // Клик по рилсу — лайтбокс с видео со звуком; из него ссылка на текстовый кейс
 const lightbox = document.getElementById('lightbox');
@@ -38,6 +86,7 @@ function closeLightbox() {
 }
 
 track.addEventListener('click', (e) => {
+  if (dragMoved) { dragMoved = false; return; } // драг — не клик
   const reel = e.target.closest('.reel');
   if (reel) openLightbox(reel);
 });

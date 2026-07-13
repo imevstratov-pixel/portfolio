@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>404 — такого урока нет</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='38' fill='%23E63311'/%3E%3C/svg%3E">
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;700;900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/portfolio/styles.css">
+  <style>
+    .nf {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 24px;
+      gap: 18px;
+    }
+    .nf__img {
+      width: 150px;
+      mix-blend-mode: multiply; /* белый фон кадра растворяется в бумаге */
+      transform: rotate(4deg);
+    }
+    .nf__code {
+      font-size: clamp(64px, 14vw, 140px);
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      line-height: 1;
+    }
+    .nf__title { font-size: clamp(20px, 3vw, 30px); font-weight: 700; }
+    .nf__sub { color: var(--ink-soft); }
+  </style>
+</head>
+<body>
+  <main class="nf">
+    <div class="nf__code">4<span class="accent">0</span>4</div>
+    <img class="nf__img" src="/portfolio/assets/game/fallen.jpg" alt="">
+    <div class="nf__title">Такого урока нет.</div>
+    <p class="nf__sub mono">CSI этой страницы упал ниже 80%</p>
+    <a class="btn btn--primary" href="/portfolio/">Пересобрать курс → на главную</a>
+  </main>
+</body>
+</html>
