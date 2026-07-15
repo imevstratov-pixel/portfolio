@@ -388,6 +388,87 @@ body {
 
 .case__col p { color: var(--ink-soft); font-size: 16px; }
 
+/* ---------- featured AI case ---------- */
+.case__flag {
+  display: inline-block;
+  background: var(--red);
+  color: var(--paper);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 4px;
+  transform: rotate(-1.2deg);
+  margin-bottom: 10px;
+}
+
+.case--ai { background: linear-gradient(rgba(230, 51, 17, 0.035), transparent 220px); }
+
+.scheme {
+  margin-top: 36px;
+  padding-left: 82px;
+}
+/* схема шире колонки текста — выходит в правый жёлоб под иллюстрацией */
+@media (min-width: 641px) {
+  .case--ai .scheme { margin-right: calc(-1 * clamp(104px, 13vw, 168px)); }
+}
+.scheme h4 {
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+.scheme h4::before {
+  content: "";
+  display: inline-block;
+  width: 14px;
+  height: 3px;
+  background: var(--red);
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+.scheme__scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.scheme__scroll svg {
+  display: block;
+  min-width: 940px;
+  width: 100%;
+  height: auto;
+  border: 1.5px solid var(--ink);
+  border-radius: 14px;
+  background: #fffdf9;
+  box-shadow: 5px 6px 0 rgba(17,17,16,0.08);
+}
+.scheme__hint { display: none; color: var(--ink-soft); margin-top: 8px; }
+
+.scheme__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+.scheme__chips span {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  padding: 5px 13px;
+  background: var(--paper);
+}
+.scheme__chips b { color: var(--red); font-weight: 700; }
+
+/* svg internals */
+.sv-mono { font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.03em; }
+.sv-box { fill: #fffdf9; stroke: #111110; stroke-width: 1.5; }
+.sv-soft { fill: #4a4844; }
+.sv-red { fill: #E63311; }
+
+@media (max-width: 900px) {
+  .scheme { padding-left: 0; }
+  .scheme__hint { display: block; }
+}
+
 .todo {
   background: #fff3b8;
   font-style: normal;

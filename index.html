@@ -20,7 +20,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;700;900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=2">
+  <link rel="stylesheet" href="styles.css?v=3">
 </head>
 <body>
 
@@ -172,19 +172,155 @@
       </div>
     </article>
 
-    <article class="case" id="c2">
+    <article class="case case--ai" id="c2">
       <img class="case__art" src="assets/cases/c2.jpg" alt="" loading="lazy" width="440" height="440">
       <div class="case__head">
         <span class="case__num mono">02</span>
-        <h3 class="case__title">×26: AI-конвейер производства и локализации курсов</h3>
+        <div>
+          <span class="case__flag">Главный кейс · AI-агенты</span>
+          <h3 class="case__title">×26: мультиагентная фабрика курсов — 20+ AI-агентов в одном конвейере</h3>
+        </div>
       </div>
       <div class="case__body">
         <div class="case__col"><h4 class="mono">Контекст</h4>
-          <p>Продукт растёт быстрее, чем человек может писать уроки. Нужно было масштабировать производство без потери качества — и без раздувания команды.</p></div>
+          <p>Продукт растёт быстрее, чем человек может писать уроки. Раздувать команду — дорого и медленно. Я решил это архитектурой: не «чат с нейросетью», а система агентов с ролями, правилами и контролем качества.</p></div>
         <div class="case__col"><h4 class="mono">Что сделал</h4>
-          <p>Разложил разработку курса на воспроизводимые LLM-шаги с ролями генератора, критика и редактора, встроил контрольные точки качества. Автоматизировал локализацию контента с английского на 4 языка.</p></div>
+          <p>Спроектировал и собрал мультиагентную систему: оркестратор маршрутизирует задачи, конвейеры программы и уроков гоняют черновик через цикл «анализ → рерайт → проверки → авточинка», отдельный слой агентов локализует контент на 4 языка. Качество держат не «проверки на глаз», а детерминированные линтеры-скрипты и два human-гейта. Токен-гардрейлы и батчи здесь не из теории: ранняя версия пайплайна сожгла $2 000 за две недели — при прежнем пике $550 в месяц. Больше не жжёт.</p></div>
         <div class="case__col"><h4 class="mono">Результат</h4>
-          <p>Выпуск одного курса ускорился в 26 раз.</p></div>
+          <p>Выпуск курса ускорился в 26 раз: один методолог выпускает объём целой команды. 20+ агентов в ежедневной работе, локализация EN → ES / FR / DE / JA, −50% к стоимости токенов.</p></div>
+      </div>
+
+      <div class="scheme">
+        <h4 class="mono">Как устроен конвейер</h4>
+        <div class="scheme__scroll">
+          <svg viewBox="0 0 1180 648" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Схема мультиагентного конвейера производства курсов">
+            <defs>
+              <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#111110"/></marker>
+              <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#E63311"/></marker>
+            </defs>
+
+            <!-- column headers -->
+            <text class="sv-mono sv-soft" font-size="11" text-anchor="middle" x="107" y="30">Вход</text>
+            <text class="sv-mono sv-soft" font-size="11" text-anchor="middle" x="340" y="30">Оркестрация</text>
+            <text class="sv-mono sv-soft" font-size="11" text-anchor="middle" x="662" y="30">Агентные конвейеры</text>
+            <text class="sv-mono sv-soft" font-size="11" text-anchor="middle" x="1052" y="30">Выход</text>
+
+            <!-- input -->
+            <rect class="sv-box" x="25" y="50" width="165" height="86" rx="10" transform="rotate(-0.5 107 93)"/>
+            <text x="107" y="82" text-anchor="middle" font-size="15" font-weight="700">Материалы</text>
+            <text class="sv-mono sv-soft" x="107" y="104" text-anchor="middle" font-size="10">PDF · брифы · видео</text>
+            <text class="sv-mono sv-soft" x="107" y="119" text-anchor="middle" font-size="10">транскрипты</text>
+
+            <rect x="25" y="420" width="165" height="96" rx="10" fill="#fffdf9" stroke="#E63311" stroke-width="2" transform="rotate(0.6 107 468)"/>
+            <text x="107" y="452" text-anchor="middle" font-size="15" font-weight="700">Методолог <tspan class="sv-red">(я)</tspan></text>
+            <text class="sv-mono sv-soft" x="107" y="474" text-anchor="middle" font-size="10">ставит задачу</text>
+            <text class="sv-mono sv-soft" x="107" y="489" text-anchor="middle" font-size="10">держит гейты качества</text>
+
+            <!-- orchestrator -->
+            <rect class="sv-box" x="255" y="232" width="170" height="96" rx="10"/>
+            <text x="340" y="266" text-anchor="middle" font-size="15" font-weight="700">Оркестратор</text>
+            <text class="sv-mono sv-soft" x="340" y="288" text-anchor="middle" font-size="10">маршрутизирует запрос</text>
+            <text class="sv-mono sv-soft" x="340" y="303" text-anchor="middle" font-size="10">к нужному конвейеру</text>
+
+            <path d="M190,93 H340 V226" fill="none" stroke="#111110" stroke-width="1.5" marker-end="url(#ar)"/>
+            <path d="M107,417 V280 H249" fill="none" stroke="#111110" stroke-width="1.5" marker-end="url(#ar)"/>
+            <text class="sv-mono sv-soft" x="170" y="271" text-anchor="middle" font-size="10">задача</text>
+
+            <!-- pipeline: program -->
+            <rect x="470" y="55" width="384" height="110" rx="12" fill="none" stroke="#4a4844" stroke-width="1.2" stroke-dasharray="6 6"/>
+            <text class="sv-mono sv-red" x="482" y="78" font-size="11">Program-pipeline · программа курса</text>
+            <rect class="sv-box" x="488" y="95" width="104" height="44" rx="8"/>
+            <text x="540" y="122" text-anchor="middle" font-size="12.5" font-weight="700">генерация</text>
+            <rect class="sv-box" x="612" y="95" width="104" height="44" rx="8"/>
+            <text x="664" y="122" text-anchor="middle" font-size="12.5" font-weight="700">критика</text>
+            <rect class="sv-box" x="736" y="95" width="104" height="44" rx="8"/>
+            <text x="788" y="122" text-anchor="middle" font-size="12.5" font-weight="700">скоринг</text>
+            <path d="M592,117 H606" fill="none" stroke="#111110" stroke-width="1.5" marker-end="url(#ar)"/>
+            <path d="M716,117 H730" fill="none" stroke="#111110" stroke-width="1.5" marker-end="url(#ar)"/>
+
+            <!-- pipeline: lessons -->
+            <rect x="470" y="205" width="384" height="140" rx="12" fill="none" stroke="#4a4844" stroke-width="1.2" stroke-dasharray="6 6"/>
+            <text class="sv-mono sv-red" x="482" y="228" font-size="11">Lesson-pipeline · уроки</text>
+            <rect class="sv-box" x="484" y="245" width="80" height="44" rx="8"/>
+            <text x="524" y="272" text-anchor="middle" font-size="12" font-weight="700">анализ</text>
+            <rect class="sv-box" x="578" y="245" width="80" height="44" rx="8"/>
+            <text x="618" y="272" text-anchor="middle" font-size="12" font-weight="700">рерайт</text>
+            <rect class="sv-box" x="672" y="245" width="80" height="44" rx="8"/>
+            <text x="712" y="272" text-anchor="middle" font-size="11.5" font-weight="700">чек формы</text>
+            <rect class="sv-box" x="766" y="245" width="80" height="44" rx="8"/>
+            <text x="806" y="272" text-anchor="middle" font-size="11.5" font-weight="700">валидация</text>
+            <path d="M564,267 H572" fill="none" stroke="#111110" stroke-width="1.5" marker-end="url(#ar)"/>
+            <path d="M658,267 H666" fill="none" stroke="#111110" stroke-width="1.5" marker-end="url(#ar)"/>
+            <path d="M752,267 H760" fill="none" stroke="#111110" stroke-width="1.5" marker-end="url(#ar)"/>
+            <path d="M806,289 V318 H618 V295" fill="none" stroke="#E63311" stroke-width="1.5" stroke-dasharray="4 4" marker-end="url(#arr)"/>
+            <text class="sv-mono sv-red" x="712" y="334" text-anchor="middle" font-size="10">task-repair · авточинка по флагам</text>
+
+            <!-- pipeline: translation -->
+            <rect x="470" y="385" width="384" height="105" rx="12" fill="none" stroke="#4a4844" stroke-width="1.2" stroke-dasharray="6 6"/>
+            <text class="sv-mono sv-red" x="482" y="408" font-size="11">Translation-orchestrator · локализация</text>
+            <rect class="sv-box" x="484" y="420" width="158" height="46" rx="8"/>
+            <text x="563" y="448" text-anchor="middle" font-size="12" font-weight="700">оркестратор переводов</text>
+            <rect class="sv-box" x="676" y="420" width="166" height="46" rx="8"/>
+            <text x="759" y="441" text-anchor="middle" font-size="11.5" font-weight="700">1 субагент =</text>
+            <text x="759" y="457" text-anchor="middle" font-size="11.5" font-weight="700">1 файл × 1 локаль</text>
+            <path d="M642,443 H670" fill="none" stroke="#111110" stroke-width="1.5" marker-end="url(#ar)"/>
+            <text class="sv-mono sv-soft" x="662" y="482" text-anchor="middle" font-size="10.5">EN → ES · FR · DE · JA</text>
+
+            <!-- orchestrator → pipelines -->
+            <path d="M425,250 H448 V110 H464" fill="none" stroke="#111110" stroke-width="1.5" marker-end="url(#ar)"/>
+            <path d="M425,275 H464" fill="none" stroke="#111110" stroke-width="1.5" marker-end="url(#ar)"/>
+            <path d="M425,300 H448 V437 H464" fill="none" stroke="#111110" stroke-width="1.5" marker-end="url(#ar)"/>
+
+            <!-- human gates -->
+            <polygon points="893,88 915,110 893,132 871,110" fill="#FAF8F4" stroke="#E63311" stroke-width="2"/>
+            <text class="sv-mono sv-red" x="893" y="66" text-anchor="middle" font-size="10">Human gate</text>
+            <text class="sv-mono sv-soft" x="893" y="80" text-anchor="middle" font-size="9.5">аппрув программы</text>
+            <polygon points="893,253 915,275 893,297 871,275" fill="#FAF8F4" stroke="#E63311" stroke-width="2"/>
+            <text class="sv-mono sv-red" x="893" y="231" text-anchor="middle" font-size="10">Human gate</text>
+            <text class="sv-mono sv-soft" x="893" y="245" text-anchor="middle" font-size="9.5">ревью урока</text>
+
+            <path d="M854,110 H865" fill="none" stroke="#111110" stroke-width="1.5" marker-end="url(#ar)"/>
+            <path d="M854,275 H865" fill="none" stroke="#111110" stroke-width="1.5" marker-end="url(#ar)"/>
+            <path d="M893,132 V180 H700 V199" fill="none" stroke="#111110" stroke-width="1.5" marker-end="url(#ar)"/>
+            <text class="sv-mono sv-soft" x="800" y="172" text-anchor="middle" font-size="9.5">программа → в уроки</text>
+
+            <!-- human holds the gates -->
+            <path d="M107,519 V538 H893 V304" fill="none" stroke="#E63311" stroke-width="1.5" stroke-dasharray="3 5" marker-end="url(#arr)"/>
+            <text class="sv-mono sv-red" x="500" y="530" text-anchor="middle" font-size="10">оба гейта проходят через человека</text>
+
+            <!-- output -->
+            <rect class="sv-box" x="950" y="225" width="205" height="58" rx="10"/>
+            <text x="1052" y="250" text-anchor="middle" font-size="14" font-weight="700">Экспорт-форматтер</text>
+            <text class="sv-mono sv-soft" x="1052" y="268" text-anchor="middle" font-size="10">формат под LMS</text>
+            <rect class="sv-box" x="950" y="318" width="205" height="58" rx="10"/>
+            <text x="1052" y="343" text-anchor="middle" font-size="14" font-weight="700">Артефакт-роутер</text>
+            <text class="sv-mono sv-soft" x="1052" y="361" text-anchor="middle" font-size="10">раскладывает артефакты</text>
+            <rect x="950" y="415" width="205" height="70" rx="10" fill="#111110"/>
+            <text x="1052" y="445" text-anchor="middle" font-size="17" font-weight="700" fill="#FAF8F4">Курс в LMS</text>
+            <text class="sv-mono" x="1052" y="466" text-anchor="middle" font-size="10" fill="#d9d5cd">85+ курсов · 5 языков</text>
+
+            <path d="M915,275 H932 V253 H944" fill="none" stroke="#111110" stroke-width="1.5" marker-end="url(#ar)"/>
+            <path d="M854,443 H932 V347 H944" fill="none" stroke="#111110" stroke-width="1.5" marker-end="url(#ar)"/>
+            <path d="M1052,283 V312" fill="none" stroke="#111110" stroke-width="1.5" marker-end="url(#ar)"/>
+            <path d="M1052,376 V409" fill="none" stroke="#111110" stroke-width="1.5" marker-end="url(#ar)"/>
+
+            <!-- foundation -->
+            <rect x="25" y="560" width="1135" height="72" rx="12" fill="none" stroke="#111110" stroke-width="1.2" stroke-dasharray="6 6"/>
+            <text class="sv-mono sv-red" x="45" y="586" font-size="11">Фундамент — общий контекст всех агентов</text>
+            <text x="45" y="612" font-size="13" class="sv-soft">реестры типов заданий · правила курса · глоссарии · детерминированные линтеры-скрипты (не «на глаз») · токен-гардрейлы и батчи −50%</text>
+            <path d="M640,558 V505" fill="none" stroke="#4a4844" stroke-width="1.2" stroke-dasharray="2 4" marker-end="url(#ar)"/>
+            <path d="M760,558 V505" fill="none" stroke="#4a4844" stroke-width="1.2" stroke-dasharray="2 4" marker-end="url(#ar)"/>
+          </svg>
+        </div>
+        <p class="scheme__hint mono">→ схема скроллится горизонтально</p>
+        <div class="scheme__chips">
+          <span><b>20+</b> агентов</span>
+          <span><b>3</b> слоя оркестрации</span>
+          <span><b>2</b> human-гейта</span>
+          <span>EN <b>+ 4</b> локали</span>
+          <span><b>−50%</b> стоимости токенов</span>
+          <span><b>×26</b> скорость выпуска</span>
+        </div>
       </div>
     </article>
 
