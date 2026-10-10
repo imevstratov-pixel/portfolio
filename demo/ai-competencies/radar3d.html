@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"><meta name="robots" content="noindex,nofollow">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Объёмный радар компетенций — концепт</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--accent:#0E7490;--green:#0EA900;--blue:#5B7BEA;--title:#1C1C1C;--mu:#666;--stroke:#D4D1D1;--bg:#F4F4F4;--card:#fff;--r:12px}
+*{box-sizing:border-box}
+body{margin:0;font:16px/1.55 Raleway,system-ui,sans-serif;color:var(--title);background:var(--bg)}
+header{background:linear-gradient(100deg,#0E7490,#0C6783 55%,#0A546B);color:#fff;padding:18px 24px}
+.xnav{display:flex;flex-wrap:wrap;gap:4px 18px;margin:0 0 8px;font-size:13.5px;font-weight:600}.xnav a{color:#fff;text-decoration:none;border-bottom:1.5px solid transparent}.xnav a:hover{border-bottom-color:rgba(255,255,255,.75)}.xnav a[aria-current]{border-bottom-color:#fff}.xnav a:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.xnav .pf{margin-left:auto;font-weight:500;opacity:.92}.xnav .pf:hover{opacity:1}@media(max-width:600px){.xnav .pf{margin-left:0}}
+header b{font-size:18px}header span{opacity:.9;font-size:14px;display:block;margin-top:2px}
+main{max-width:1180px;margin:0 auto;padding:20px 16px 60px}
+.wrap{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:20px;align-items:start}
+@media(max-width:900px){.wrap{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--stroke);border-radius:var(--r);padding:16px}
+.stage{position:relative;overflow:hidden;touch-action:none;cursor:grab;user-select:none}
+.stage.drag{cursor:grabbing}
+svg{display:block;width:100%;height:auto}
+.dot{cursor:pointer;transition:r .15s ease}
+.hint{position:absolute;left:14px;bottom:12px;font-size:13px;color:var(--mu)}
+.bub{position:absolute;min-width:190px;max-width:240px;background:#fff;border:1px solid var(--stroke);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.14);padding:10px 12px;font-size:13px;pointer-events:none;opacity:0;transform:translate(-50%,-112%) scale(.96);transition:opacity .18s,transform .18s}
+.bub.on{opacity:1;transform:translate(-50%,-108%) scale(1)}
+.bub b{display:block;font-size:14px;line-height:1.25;margin-bottom:6px}
+.bar{height:8px;border-radius:5px;background:#eee;overflow:hidden;margin:6px 0 4px;position:relative}
+.bar i{display:block;height:100%;border-radius:5px}
+.bar u{position:absolute;top:-3px;width:2px;height:14px;background:var(--title);opacity:.5}
+.tip{position:absolute;background:rgba(28,28,28,.92);color:#fff;font-size:12px;padding:4px 8px;border-radius:6px;pointer-events:none;transform:translate(-50%,-140%);opacity:0;transition:opacity .12s;white-space:nowrap}
+.tip.on{opacity:1}
+h2{font-size:17px;margin:2px 0 10px}
+label{display:block;font-size:13px;color:var(--mu);margin:10px 0 4px}
+select,input[type=range]{width:100%}
+select{padding:8px;border:1px solid var(--stroke);border-radius:8px;font:inherit;background:#fff}
+.row{display:flex;align-items:center;gap:8px;font-size:14px;margin:8px 0}
+.row input{accent-color:var(--blue)}
+.plan{border-top:1px solid #eee;padding-top:10px;margin-top:12px}
+.pl{display:grid;grid-template-columns:1fr 64px 64px;gap:6px;align-items:center;font-size:13px;padding:5px 0;border-top:1px solid #f2f2f2}
+.pl:first-of-type{border-top:0}
+.pl b{font-weight:600}.pl .lv{display:flex;align-items:center;gap:4px}
+.pl input[type=range]{width:54px}
+.leg{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:13px;color:var(--mu);margin-top:12px}
+.leg i{width:12px;height:12px;border-radius:50%;display:inline-block;margin-right:6px;vertical-align:-1px}
+.note{font-size:13px;color:var(--mu);margin-top:14px;line-height:1.5}
+.ex{display:inline-block;background:#fff6d6;border:1px solid #e8d48a;border-radius:6px;padding:0 8px;font-size:12px}
+.btn{border:1px solid var(--stroke);background:#fff;border-radius:8px;padding:7px 12px;font:inherit;cursor:pointer}
+.btn:hover{border-color:var(--title)}
+</style>
+</head>
+<body>
+<header><nav class="xnav" aria-label="Страницы демо"><a href="index.html">К прототипу</a><a href="frequency.html">Частота задач</a><a href="radar3d.html" aria-current="page">Объёмный радар</a><a href="skilltree.html">Скилл-древо</a><a class="pf" href="../../">Портфолио Даниила Евстратова</a></nav><b>Объёмный радар компетенций</b><span>Концепт для разговора с директором: внутренняя фигура — как есть, внешняя — как нужно. Данные условные.</span></header>
+<main>
+<div class="wrap">
+  <div class="card stage" id="stage">
+    <svg id="svg" viewBox="0 0 720 620" role="img" aria-label="Объёмный радар компетенций"></svg>
+    <div class="tip" id="tip"></div>
+    <div class="bub" id="bub"></div>
+    <div class="hint">Потяните мышью, чтобы повернуть. Наведите на точку — подпись, нажмите — карточка компетенции.</div>
+  </div>
+  <div class="card">
+    <h2>Настройки</h2>
+    <label for="role">Должность</label>
+    <select id="role"></select>
+    <div class="row"><input type="checkbox" id="spin" checked><label for="spin" style="margin:0">Вращать самому</label></div>
+    <label for="speed">Скорость вращения</label><input type="range" id="speed" min="0" max="100" value="26">
+    <div class="row"><input type="checkbox" id="snap" checked><label for="snap" style="margin:0">Доводить до грани</label></div>
+    <div class="row"><input type="checkbox" id="plan" checked><label for="plan" style="margin:0">Показывать план</label></div>
+    <div class="row"><input type="checkbox" id="rays" checked><label for="rays" style="margin:0">Лучи «есть → нужно»</label></div>
+    <div class="row"><input type="checkbox" id="labels"><label for="labels" style="margin:0">Подписи всегда</label></div>
+    <div class="row"><input type="checkbox" id="prio" checked><label for="prio" style="margin:0">Цвет — приоритет</label></div>
+    <div class="plan">
+      <h2 style="margin-bottom:6px">Планирование</h2>
+      <div style="font-size:13px;color:var(--mu);margin-bottom:8px">Слева — сколько есть, справа — сколько нужно. Фигуры меняются сразу.</div>
+      <div id="sliders"></div>
+      <p><button class="btn" id="reset">Вернуть как в модели</button></p>
+    </div>
+    <div class="leg">
+      <span><i style="background:#7A4DD1"></i>каждый день</span>
+      <span><i style="background:#F5A300"></i>каждую неделю</span>
+      <span><i style="background:#0EA900"></i>реже</span>
+      <span><i style="background:#c9cfda"></i>внешняя фигура — план</span>
+    </div>
+    <p class="note"><span class="ex">концепт</span> Отдельный артефакт, в прототип не встроен.</p>
+  </div>
+</div>
+</main>
+<script>const DATA={"scale": {"5": "каждый день", "4": "каждую неделю", "3": "пару раз в месяц", "2": "раз в квартал", "1": "реже раза в квартал"}, "roles": {"SMM-дизайнер": {"base": [{"code": "B", "name": "Промптинг и проверка ответов", "req": 2, "got": 1, "freq": 5}], "comps": [{"code": "G", "name": "Генерация изображений по брифу", "req": 2, "got": 1, "freq": 5}, {"code": "K", "name": "Пакеты макетов и презентаций", "req": 3, "got": 1, "freq": 5}, {"code": "F", "name": "Правка и печать изображений", "req": 2, "got": 1, "freq": 4}, {"code": "V", "name": "Сборка роликов из шаблона", "req": 2, "got": 1, "freq": 4}, {"code": "W", "name": "Генерация видео", "req": 1, "got": 0, "freq": 3}]}, "Веб-дизайнер": {"base": [{"code": "B", "name": "Промптинг и проверка ответов", "req": 2, "got": 1, "freq": 5}], "comps": [{"code": "R", "name": "Прототипирование интерфейсов", "req": 3, "got": 1, "freq": 5}, {"code": "G", "name": "Генерация изображений по брифу", "req": 2, "got": 1, "freq": 3}, {"code": "F", "name": "Правка и печать изображений", "req": 1, "got": 0, "freq": 2}, {"code": "K", "name": "Пакеты макетов и презентаций", "req": 1, "got": 0, "freq": 2}]}, "Видео/моушен-дизайнер": {"base": [{"code": "B", "name": "Промптинг и проверка ответов", "req": 2, "got": 1, "freq": 5}], "comps": [{"code": "Y", "name": "Анимация, озвучка и дубляж", "req": 3, "got": 1, "freq": 5}, {"code": "V", "name": "Сборка роликов из шаблона", "req": 2, "got": 0, "freq": 4}, {"code": "W", "name": "Генерация видео", "req": 2, "got": 0, "freq": 4}]}, "Графический дизайнер": {"base": [{"code": "B", "name": "Промптинг и проверка ответов", "req": 2, "got": 1, "freq": 5}], "comps": [{"code": "F", "name": "Правка и печать изображений", "req": 3, "got": 0, "freq": 5}, {"code": "G", "name": "Генерация изображений по брифу", "req": 2, "got": 1, "freq": 4}, {"code": "K", "name": "Пакеты макетов и презентаций", "req": 2, "got": 1, "freq": 4}]}, "Продуктовый дизайнер": {"base": [{"code": "B", "name": "Промптинг и проверка ответов", "req": 2, "got": 1, "freq": 5}], "comps": [{"code": "R", "name": "Прототипирование интерфейсов", "req": 3, "got": 1, "freq": 5}, {"code": "I", "name": "Анализ отзывов и интервью", "req": 2, "got": 2, "freq": 3}]}, "Средовой (3D) дизайнер": {"base": [{"code": "B", "name": "Промптинг и проверка ответов", "req": 2, "got": 1, "freq": 5}], "comps": [{"code": "D", "name": "Визуализация пространств", "req": 2, "got": 0, "freq": 5}, {"code": "G", "name": "Генерация изображений по брифу", "req": 2, "got": 0, "freq": 3}, {"code": "F", "name": "Правка и печать изображений", "req": 1, "got": 0, "freq": 3}, {"code": "K", "name": "Пакеты макетов и презентаций", "req": 2, "got": 1, "freq": 3}]}, "Стресс-тест: все 11 компетенций дизайна": {"base": [{"code": "B", "name": "Промптинг и проверка ответов", "req": 3, "got": 2, "freq": 5}], "comps": [{"code": "G", "name": "Генерация изображений по брифу", "req": 3, "got": 1, "freq": 5}, {"code": "F", "name": "Правка и печать изображений", "req": 3, "got": 2, "freq": 5}, {"code": "K", "name": "Пакеты макетов и презентаций", "req": 2, "got": 1, "freq": 4}, {"code": "R", "name": "Прототипирование интерфейсов", "req": 3, "got": 1, "freq": 4}, {"code": "Y", "name": "Анимация, озвучка и дубляж", "req": 3, "got": 2, "freq": 4}, {"code": "V", "name": "Сборка роликов из шаблона", "req": 2, "got": 1, "freq": 3}, {"code": "W", "name": "Генерация видео", "req": 2, "got": 0, "freq": 3}, {"code": "I", "name": "Анализ отзывов и интервью", "req": 2, "got": 0, "freq": 2}, {"code": "D", "name": "Визуализация пространств", "req": 2, "got": 0, "freq": 1}]}}};</script>
+<script>
+/* ---------- данные ---------- */
+const ROLES=Object.keys(DATA.roles);
+const RC={3:'#7A4DD1',2:'#F5A300',1:'#0EA900'},tier=f=>f>=5?3:f===4?2:1;
+const LVW={0:'ещё не начинал',1:'по образцу',2:'самостоятельно',3:'по ситуации',4:'для других'};
+let role=ROLES[0], comps=[], st={};
+function loadRole(name){role=name;const r=DATA.roles[name];
+  comps=[...(r.base||[]),...r.comps].map(c=>({code:c.code,name:c.name,req:c.req,got:c.got,freq:c.freq}));
+  st={}; comps.forEach(c=>st[c.code]={got:c.got,req:c.req});
+  buildSliders(); geom();}
+/* ---------- геометрия: точки по сфере, грани — выпуклая оболочка ---------- */
+const sub=(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]], cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+const dot=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2], norm=a=>{const l=Math.hypot(...a)||1;return a.map(x=>x/l);};
+let dirs=[], faces=[];
+function geom(){const n=comps.length;
+  if(n<4){ /* меньше четырёх осей объём не образует — раскладываем по кругу */
+    dirs=comps.map((_,i)=>{const a=i/n*Math.PI*2;return [Math.cos(a),0,Math.sin(a)];}); faces=[]; return;}
+  dirs=comps.map((_,i)=>{const k=i+.5,phi=Math.acos(1-2*k/n),th=Math.PI*(1+Math.sqrt(5))*k;
+    return [Math.cos(th)*Math.sin(phi),Math.cos(phi),Math.sin(th)*Math.sin(phi)];});
+  faces=[];const eps=1e-6;
+  for(let i=0;i<n;i++)for(let j=i+1;j<n;j++)for(let k=j+1;k<n;k++){
+    const nr=cross(sub(dirs[j],dirs[i]),sub(dirs[k],dirs[i]));let pos=0,neg=0;
+    for(let m=0;m<n;m++){if(m===i||m===j||m===k)continue;const d=dot(nr,sub(dirs[m],dirs[i]));if(d>eps)pos++;else if(d<-eps)neg++;}
+    if(pos&&neg)continue;
+    faces.push(neg?[i,j,k]:[i,k,j]);}
+}
+/* ---------- вращение: инерция и доводка до ближайшей грани ---------- */
+let yaw=-0.5,pitch=0.32,vy=0,vp=0,drag=null,hoverBoost=0,target=null;
+const R=(v)=>{const cy=Math.cos(yaw),sy=Math.sin(yaw),cp=Math.cos(pitch),sp=Math.sin(pitch);
+  const x=v[0]*cy+v[2]*sy, z=-v[0]*sy+v[2]*cy, y=v[1]*cp-z*sp, z2=v[1]*sp+z*cp; return [x,y,z2];};
+function aim(v){ /* углы, при которых направление v смотрит на зрителя */
+  const y=-Math.atan2(v[0],v[2]); const cy=Math.cos(y),sy=Math.sin(y);
+  const z=-v[0]*sy+v[2]*cy; const p=Math.atan2(v[1],z); return [y,p];}
+function snapTarget(){ if(!faces.length)return null;
+  let best=null,bd=-2;
+  faces.forEach(f=>{const c=norm(f.reduce((s,i)=>[s[0]+dirs[i][0],s[1]+dirs[i][1],s[2]+dirs[i][2]],[0,0,0]));
+    const d=R(c)[2]; if(d>bd){bd=d;best=c;}});
+  return best?aim(best):null;}
+/* ---------- отрисовка ---------- */
+const svg=document.getElementById('svg'),stage=document.getElementById('stage'),tip=document.getElementById('tip'),bub=document.getElementById('bub');
+const cx=360,cy=300,R0=58,RS=42;  /* R0 — радиус нулевого уровня, RS — шаг уровня */
+const rad=lv=>R0+lv/4*RS*4;      /* уровень 4 — 226 px */
+let picked=null,pickTimer=null,hoverIdx=-1;
+
+function project(p){const s=520/(520+p[2]*1.15);return [cx+p[0]*s, cy-p[1]*s, s];}
+function draw(){
+  const n=comps.length; if(!n){svg.innerHTML='';return;}
+  const showPlan=document.getElementById('plan').checked, showRays=document.getElementById('rays').checked,
+        always=document.getElementById('labels').checked, byPrio=document.getElementById('prio').checked;
+  const P=[],Q=[]; // внутренняя (есть) и внешняя (нужно)
+  comps.forEach((c,i)=>{const d=R(dirs[i]);
+    P.push(project(d.map(x=>x*rad(st[c.code].got))));
+    Q.push(project(d.map(x=>x*rad(Math.max(st[c.code].req,st[c.code].got)))));});
+  const col=i=>byPrio?RC[tier(comps[i].freq)]:'#5B7BEA';
+  const parts=[];
+  const ring=(lv,op)=>{const pts=[];for(let a=0;a<=48;a++){const t=a/48*Math.PI*2,d=R([Math.cos(t),0,Math.sin(t)]);pts.push(project(d.map(x=>x*rad(lv))));}
+    return `<polyline points="${pts.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ')}" fill="none" stroke="#c9cfda" stroke-opacity="${op}" stroke-width="1" stroke-dasharray="3 5"/>`;};
+  let rings=[2,4].map(l=>ring(l,.7)).join('');
+  const facePoly=(f,pts,fill,op,stroke)=>{const z=(pts[f[0]][2]+pts[f[1]][2]+pts[f[2]][2])/3;
+    return {z,svg:`<polygon points="${f.map(i=>pts[i][0].toFixed(1)+','+pts[i][1].toFixed(1)).join(' ')}" fill="${fill}" fill-opacity="${op}" stroke="${stroke}" stroke-width="1" stroke-linejoin="round"/>`};};
+  if(showPlan)faces.forEach(f=>parts.push(facePoly(f,Q,'#8fa6f0',.10,'#b9c6f5')));
+  faces.forEach(f=>parts.push(facePoly(f,P,'#2fae5f',.22,'#3fbf70')));
+  if(!faces.length){ /* плоский случай: просто контуры */
+    if(showPlan)parts.push({z:-999,svg:`<polygon points="${Q.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ')}" fill="#8fa6f0" fill-opacity=".12" stroke="#b9c6f5"/>`});
+    parts.push({z:-998,svg:`<polygon points="${P.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ')}" fill="#2fae5f" fill-opacity=".22" stroke="#3fbf70"/>`});}
+  parts.sort((a,b)=>a.z-b.z);
+  let s=rings+parts.map(p=>p.svg).join('');
+  comps.forEach((c,i)=>{
+    if(showRays&&showPlan&&st[c.code].req>st[c.code].got)
+      s+=`<line x1="${P[i][0].toFixed(1)}" y1="${P[i][1].toFixed(1)}" x2="${Q[i][0].toFixed(1)}" y2="${Q[i][1].toFixed(1)}" stroke="${col(i)}" stroke-width="${(2.2*Q[i][2]).toFixed(1)}" stroke-opacity=".75" stroke-linecap="round"/>`;
+    if(showPlan)s+=`<circle cx="${Q[i][0].toFixed(1)}" cy="${Q[i][1].toFixed(1)}" r="${(4.2*Q[i][2]).toFixed(1)}" fill="#fff" stroke="${col(i)}" stroke-width="1.6"/>`;
+    const r=(6.6*P[i][2]*(hoverIdx===i?1.35:1)).toFixed(1);
+    s+=`<circle class="dot" data-i="${i}" cx="${P[i][0].toFixed(1)}" cy="${P[i][1].toFixed(1)}" r="${r}" fill="${col(i)}" stroke="#fff" stroke-width="2"/>`;
+    if(always||hoverIdx===i||picked===i){const up=P[i][1]<cy;
+      s+=`<text x="${P[i][0].toFixed(1)}" y="${(P[i][1]+(up?-14:20)).toFixed(1)}" text-anchor="middle" font-size="${(12*P[i][2]).toFixed(1)}" font-weight="600" fill="#1c1c1c" style="paint-order:stroke;stroke:#fff;stroke-width:3px">${c.name}</text>`;}
+  });
+  svg.innerHTML=s;
+}
+/* ---------- цикл анимации ---------- */
+function tick(){
+  const spin=document.getElementById('spin').checked, sp=+document.getElementById('speed').value/100;
+  if(!drag){
+    if(target){const k=.12; yaw+=(target[0]-yaw)*k; pitch+=(target[1]-pitch)*k;
+      if(Math.abs(target[0]-yaw)<.002&&Math.abs(target[1]-pitch)<.002){yaw=target[0];pitch=target[1];target=null;}}
+    else{ yaw+=vy; pitch+=vp; vy*=.94; vp*=.94;
+      if(Math.abs(vy)<.0004&&Math.abs(vp)<.0004){vy=vp=0;
+        if(spin) yaw+=0.0016*sp*(1+hoverBoost);
+        else if(document.getElementById('snap').checked&&!target){const t=snapTarget();if(t)target=t;}}}
+    pitch=Math.max(-1.1,Math.min(1.1,pitch));
+  }
+  hoverBoost*=.92;
+  draw(); requestAnimationFrame(tick);
+}
+/* ---------- ввод ---------- */
+stage.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY,yaw,pitch,t:Date.now(),moved:0};stage.classList.add('drag');stage.setPointerCapture(e.pointerId);target=null;});
+stage.addEventListener('pointermove',e=>{
+  if(drag){const dx=e.clientX-drag.x,dy=e.clientY-drag.y;drag.moved+=Math.abs(dx)+Math.abs(dy);
+    const ny=drag.yaw+dx*.008, np=drag.pitch+dy*.006; vy=(ny-yaw); vp=(np-pitch); yaw=ny; pitch=np; return;}
+  hoverBoost=Math.min(1,hoverBoost+.12);
+  const el=document.elementFromPoint(e.clientX,e.clientY);
+  const i=el&&el.classList&&el.classList.contains('dot')?+el.dataset.i:-1;
+  if(i!==hoverIdx){hoverIdx=i;
+    if(i>=0){const r=stage.getBoundingClientRect(),b=el.getBoundingClientRect();
+      tip.textContent=comps[i].name+' · '+LVW[st[comps[i].code].got];
+      tip.style.left=(b.left+b.width/2-r.left)+'px'; tip.style.top=(b.top-r.top)+'px'; tip.classList.add('on');}
+    else tip.classList.remove('on');}
+});
+addEventListener('pointerup',e=>{ if(!drag)return; const quick=Date.now()-drag.t<250&&drag.moved<6; stage.classList.remove('drag');
+  const el=document.elementFromPoint(e.clientX,e.clientY);
+  if(quick&&el&&el.classList&&el.classList.contains('dot'))showBubble(+el.dataset.i,el);
+  drag=null;
+  if(document.getElementById('snap').checked&&!document.getElementById('spin').checked){const t=snapTarget();if(t)target=t;}
+});
+stage.addEventListener('pointerleave',()=>{hoverIdx=-1;tip.classList.remove('on');});
+function showBubble(i,el){picked=i;const c=comps[i],s=st[c.code],r=stage.getBoundingClientRect(),b=el.getBoundingClientRect();
+  const pct=Math.round(Math.min(s.got,s.req||1)/Math.max(s.req,1)*100);
+  bub.innerHTML=`<b>${c.name}</b><div style="color:#666">Есть ${s.got} из ${s.req} · ${LVW[s.got]}</div>
+   <div class="bar"><i style="width:${pct}%;background:${RC[tier(c.freq)]}"></i><u style="left:calc(100% - 1px)"></u></div>
+   <div style="color:#666;font-size:12px">План: ${LVW[s.req]} · ${DATA.scale[c.freq]}</div>`;
+  bub.style.left=(b.left+b.width/2-r.left)+'px'; bub.style.top=(b.top-r.top)+'px'; bub.classList.add('on');
+  clearTimeout(pickTimer); pickTimer=setTimeout(()=>{bub.classList.remove('on');picked=null;},5200);
+}
+/* ---------- настройки ---------- */
+function buildSliders(){const box=document.getElementById('sliders');
+  box.innerHTML=comps.map(c=>`<div class="pl"><b>${c.name}</b>
+    <span class="lv"><input type="range" min="0" max="4" value="${st[c.code].got}" data-k="got" data-c="${c.code}"><span id="g_${c.code}">${st[c.code].got}</span></span>
+    <span class="lv"><input type="range" min="0" max="4" value="${st[c.code].req}" data-k="req" data-c="${c.code}"><span id="r_${c.code}">${st[c.code].req}</span></span></div>`).join('');
+  box.oninput=e=>{const t=e.target;if(!t.dataset.c)return;st[t.dataset.c][t.dataset.k]=+t.value;
+    document.getElementById((t.dataset.k==='got'?'g_':'r_')+t.dataset.c).textContent=t.value;};}
+const sel=document.getElementById('role');
+sel.innerHTML=ROLES.map(r=>`<option value="${r}">${r}</option>`).join('');
+sel.onchange=()=>loadRole(sel.value);
+document.getElementById('reset').onclick=()=>loadRole(role);
+loadRole(ROLES[0]); tick();
+</script>
+</body>
+</html>

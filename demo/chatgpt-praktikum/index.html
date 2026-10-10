@@ -1,0 +1,2540 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<meta name="robots" content="noindex">
+<title>ChatGPT: практикум от первого вопроса до своего проекта</title>
+<meta name="description" content="Демо персонального практикума по ChatGPT: шесть интерактивных занятий с тренажёрами, тестами и заданиями, собранными под работу главного бухгалтера, подработку социальной няней, ремонт дома в деревне и огород.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Golos+Text:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F4F6F1; --grid:#E2E8E2; --sheet:#FFFFFF; --line:#D5DDD6;
+  --ink:#1E2A3B; --ink-soft:#4B5767; --ink-faint:#5F6B7A;
+  --pen:#2B50C8; --pen-soft:#E9EEFC;
+  --leaf:#2F7A4B; --leaf-soft:#E3F1E7;
+  --marker:#FFE45C;
+  --red:#C23E2D; --red-soft:#FBE8E4;
+  --amber:#C98412; --amber-soft:#FCF0D8;
+  /* части поручения */
+  --p-role:#6E52C8; --p-role-soft:#EFEBFB;
+  --p-ctx:#2A6B42;  --p-ctx-soft:#E3F1E7;
+  --p-task:#2B50C8; --p-task-soft:#E9EEFC;
+  --p-fmt:#8A5208;  --p-fmt-soft:#FBEFDC;
+  --p-lim:#A8372A;  --p-lim-soft:#FBE8E4;
+  /* метки заданий */
+  --t-gen:#5B6676; --t-acc:#0E6C7A; --t-nanny:#A8446F; --t-home:#5F7A12;
+  --radius:10px;
+  --font:"Golos Text","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --hand:"Caveat","Segoe Print","Bradley Hand","Marker Felt","Comic Neue",cursive;
+  --field-line:#858F98; --ctl-line:#A7B1B9;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+body{
+  margin:0; font-family:var(--font); font-size:19px; line-height:1.62; color:var(--ink);
+  background-color:var(--paper);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:28px 28px;
+  -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+}
+@media (max-width:640px){body{font-size:17.5px}}
+p,li{hyphens:auto; text-wrap:pretty}
+h1,h2,h3,h4{line-height:1.18; margin:0; text-wrap:balance}
+a{color:var(--pen)}
+button{font:inherit; color:inherit}
+:focus-visible{outline:3px solid var(--pen); outline-offset:2px; border-radius:4px}
+.wrap{max-width:880px; margin:0 auto; padding:0 20px}
+.measure{max-width:68ch}
+mark.hl{background:linear-gradient(transparent 55%, var(--marker) 55%); color:inherit; padding:0 2px}
+.muted{color:var(--ink-soft)}
+.small{font-size:.86em}
+.nw{white-space:nowrap}
+.visually-hidden{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ---------- Липкая полоска прогресса ---------- */
+.topbar{position:fixed; top:0; left:0; right:0; z-index:50; background:rgba(255,255,255,.94); backdrop-filter:blur(6px); border-bottom:1px solid var(--line); transform:translateY(-100%); transition:transform .25s}
+.topbar.show{transform:none; visibility:visible}
+.topbar:not(.show){visibility:hidden; transition:transform .25s, visibility 0s .25s}
+.topbar .wrap{display:flex; align-items:center; gap:14px; height:56px; max-width:1320px}
+.topbar .mini-stages{display:flex; gap:4px; flex:1; min-width:0}
+.mini-stage{flex:1; display:flex; flex-direction:column; align-items:stretch; justify-content:center; gap:5px; min-height:44px; text-decoration:none; color:var(--ink-soft); font-size:.76rem; font-weight:600; padding:6px 8px; border-radius:6px; min-width:0}
+@media (hover:hover){.mini-stage:hover{background:var(--leaf-soft)}}
+.mini-stage .bar{flex:none; height:6px; background:var(--grid); border-radius:3px; overflow:hidden; min-width:0}
+.mini-stage .bar i{display:block; height:100%; width:0; background:var(--leaf); transition:width .3s}
+.mini-stage .lbl{white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; text-align:center; line-height:1.2}
+@media (max-width:1100px){.mini-stage .lbl{display:none} .mini-stage::before{content:attr(data-level); font-size:.78rem; font-weight:700; color:var(--ink-soft); text-align:center; line-height:1}}
+@media (max-width:560px){.topbar .count .long{display:none}}
+.topbar .count{font-size:.85rem; font-weight:600; white-space:nowrap}
+
+/* ---------- Шапка ---------- */
+.hero{padding:56px 0 8px}
+.hero .home-link{margin:-34px 0 26px; font-size:.86rem; line-height:1.3}
+.hero .home-link a{color:var(--ink-soft); text-decoration:underline; text-decoration-color:var(--ctl-line); text-underline-offset:3px; display:inline-block; padding:4px 0}
+@media (hover:hover){.hero .home-link a:hover{color:var(--pen); text-decoration-color:currentColor}}
+.hero .kicker{font-family:var(--hand); font-size:1.9rem; color:var(--pen); margin:0 0 4px; transform:rotate(-1.5deg); display:inline-block}
+.hero h1{font-size:clamp(2.2rem,5.4vw,3.7rem); font-weight:800; letter-spacing:-.025em; max-width:21ch}
+.hero .lead{font-size:1.32rem; line-height:1.5; color:var(--ink-soft); max-width:52ch; margin:18px 0 28px}
+@media (max-width:640px){.hero{padding-top:36px} .hero .lead{font-size:1.15rem} .hero .home-link{margin:-26px 0 14px}}
+@media (pointer:coarse){.hero .home-link a{padding:10px 0}}
+.hero-actions{display:flex; flex-wrap:wrap; gap:12px; align-items:center}
+.growth{margin:40px 0 0; background:var(--sheet); border:1px solid var(--line); border-radius:14px; padding:22px 18px 16px; position:relative; overflow:hidden}
+.growth-title{font-weight:700; font-size:1rem; margin:0 4px 6px}
+.growth-sub{font-size:.9rem; color:var(--ink-soft); margin:0 4px 10px}
+.stages{display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:6px; position:relative}
+.stages::after{content:""; position:absolute; left:0; right:0; top:118px; height:14px; background:repeating-linear-gradient(90deg,#8B6B4A 0 10px,#9C7A57 10px 20px); border-radius:7px; opacity:.85; z-index:0}
+.stage{position:relative; z-index:1; text-decoration:none; color:inherit; display:flex; flex-direction:column; align-items:center; text-align:center; padding:4px 2px 8px; border-radius:10px}
+@media (hover:hover){.stage:hover{background:var(--leaf-soft)}}
+.stage svg{width:92px; height:120px; display:block}
+.stage .num{font-weight:800; font-size:.8rem; color:var(--ink-faint); margin-top:14px}
+.stage .name{font-weight:700; font-size:.98rem; line-height:1.2; hyphens:auto; overflow-wrap:break-word; max-width:100%}
+.stage .prog{font-size:.78rem; font-weight:600; color:var(--leaf); margin-top:4px}
+.stage.started{--ps:var(--leaf); --pf:#BFE0C8; --bl:#F7D3DD; --ce:#F4E3A1; --fr:#F2B7AE}
+.stage.done{--pf:#5DAE77; --bl:#EE8FA8; --ce:#F4C542; --fr:#D9493A}
+.stage .check{display:none; width:18px; height:18px; border-radius:50%; background:var(--leaf); color:#fff; font-size:11px; align-items:center; justify-content:center; font-weight:800; line-height:1}
+.stage .prog-row{display:inline-flex; align-items:center; gap:5px; margin-top:4px}
+.stage .prog-row .prog{margin-top:0}
+.stage.done .check{display:inline-flex}
+@media (max-width:760px){
+  .stages{grid-template-columns:repeat(3,minmax(0,1fr)); row-gap:10px}
+  .stages::after{display:none}
+  .stage svg{width:72px; height:94px; border-bottom:8px solid #9C7A57; border-radius:0 0 4px 4px}
+  .stage .num{margin-top:6px}
+}
+@media (max-width:420px){.stage .name{font-size:.86rem}}
+
+/* ---------- Кнопки ---------- */
+.btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:48px; padding:10px 20px; border-radius:8px; border:2px solid var(--pen); background:var(--pen); color:#fff; font-weight:600; font-size:1rem; cursor:pointer; text-decoration:none; transition:background .15s, transform .1s}
+@media (hover:hover){.btn:hover{background:#2344AE}}
+.btn:active{transform:translateY(1px)}
+.btn.ghost{background:transparent; color:var(--pen)}
+@media (hover:hover){.btn.ghost:hover{background:var(--pen-soft)}}
+.btn.small{min-height:38px; padding:6px 14px; font-size:.9rem}
+.btn.quiet{border-color:var(--line); background:#fff; color:var(--ink)}
+@media (hover:hover){.btn.quiet:hover{background:#F3F5F2}}
+.copy-btn{border:1.5px solid var(--ctl-line); background:#fff; color:var(--ink-soft); border-radius:6px; padding:4px 10px; min-height:32px; font-size:.82rem; font-weight:600; cursor:pointer; white-space:nowrap}
+@media (hover:hover){.copy-btn:hover{border-color:var(--pen); color:var(--pen)}}
+.copy-btn.ok{border-color:var(--leaf); color:var(--leaf)}
+.copy-btn:disabled{opacity:.45; cursor:default; border-color:var(--line); color:var(--ink-soft)}
+
+/* ---------- Блоки контента ---------- */
+section.block{margin:34px 0}
+.sheet{background:var(--sheet); border:1px solid var(--line); border-radius:14px; padding:34px 36px; margin:28px 0}
+@media (max-width:640px){.sheet{padding:24px 18px; border-radius:10px}}
+.sheet[id]{scroll-margin-top:72px}
+.sheet h2{font-size:clamp(1.6rem,3.6vw,2.2rem); font-weight:800; letter-spacing:-.015em}
+.sheet h3{font-size:1.32rem; font-weight:700; margin:34px 0 10px}
+.sheet h4{font-size:1.08rem; font-weight:700; margin:0 0 6px}
+.sheet p{margin:10px 0}
+.sheet ul,.sheet ol{padding-left:1.3em; margin:10px 0}
+.sheet li{margin:6px 0}
+
+.level-head{display:grid; grid-template-columns:auto 1fr; gap:22px; align-items:center; border-bottom:2px dashed var(--line); padding-bottom:22px; margin-bottom:8px}
+.level-num{width:96px; height:96px; border-radius:50%; background:var(--leaf-soft); display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative}
+.level-num svg{width:62px; height:78px}
+.level-num b{position:absolute; right:-4px; top:-4px; background:var(--ink); color:#fff; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.05rem}
+.level-meta{font-size:.95rem; color:var(--leaf); font-weight:700; margin-bottom:4px}
+.goal{background:var(--leaf-soft); border-radius:10px; padding:14px 18px; margin:18px 0 6px}
+.goal strong{display:block; margin-bottom:4px}
+.goal ul{margin:4px 0 0}
+@media (max-width:560px){
+  .level-head{grid-template-columns:56px 1fr; gap:14px; align-items:start; padding-bottom:18px}
+  .level-num{width:56px; height:56px}
+  .level-num svg{width:36px; height:46px}
+  .level-num b{width:24px; height:24px; font-size:.78rem; right:-6px; top:-6px}
+}
+
+.note{font-family:var(--hand); font-size:1.55rem; line-height:1.25; color:#1F3F9E; background:rgba(255,228,92,.45); padding:14px 18px 12px; border-radius:3px; transform:rotate(-.6deg); margin:22px 4px; box-shadow:0 1px 0 rgba(0,0,0,.05)}
+.note b{font-weight:700}
+
+.callout{border-left:5px solid var(--pen); background:var(--pen-soft); padding:14px 18px; border-radius:0 10px 10px 0; margin:18px 0}
+.callout.warn{border-color:var(--red); background:var(--red-soft)}
+.callout.leaf{border-color:var(--leaf); background:var(--leaf-soft)}
+.callout p{margin:6px 0}
+
+.term{border:none; background:none; padding:0; cursor:help; color:inherit; font:inherit; border-bottom:2px dotted var(--pen); line-height:1.2}
+@media (hover:hover){.term:hover{color:var(--pen)}}
+.term-pop{position:absolute; z-index:80; pointer-events:none; max-width:320px; background:var(--ink); color:#fff; font-size:.92rem; line-height:1.45; padding:12px 14px; border-radius:8px; box-shadow:0 8px 24px rgba(20,30,50,.25)}
+.term-pop b{display:block; margin-bottom:2px; color:var(--marker)}
+
+/* ---------- Виджеты ---------- */
+.widget{border:1.5px solid #C9D3CB; background:#FBFCFA; border-radius:12px; padding:22px; margin:22px 0}
+.widget > h4{font-size:1.12rem}
+.widget .hint{font-size:.93rem; color:var(--ink-soft); margin:2px 0 14px}
+@media (max-width:640px){.widget{padding:16px}}
+.widget > h4 + .form-grid, .widget > h4 + .tabs, .widget > h4 + #trustList{margin-top:12px}
+.widget .callout{font-size:1rem}
+
+.bubble{border-radius:14px; padding:12px 16px; margin:8px 0; max-width:92%; font-size:.95rem; line-height:1.55; overflow-x:auto}
+.bubble.user{background:var(--pen-soft); margin-left:auto; width:fit-content; border-bottom-right-radius:4px}
+.bubble.ai{border:1px solid var(--line); border-bottom-left-radius:4px; background:linear-gradient(90deg,#fff 40%,rgba(255,255,255,0)) left center / 28px 100% no-repeat local, linear-gradient(270deg,#fff 40%,rgba(255,255,255,0)) right center / 28px 100% no-repeat local, radial-gradient(farthest-side at 0 50%,rgba(20,30,50,.3),transparent) left center / 14px 100% no-repeat scroll, radial-gradient(farthest-side at 100% 50%,rgba(20,30,50,.3),transparent) right center / 14px 100% no-repeat scroll, #fff}
+.bubble .who{font-size:.78rem; font-weight:700; color:var(--ink-faint); display:block; margin-bottom:2px}
+.bubble table{border-collapse:collapse; width:100%; font-size:.86rem; margin:6px 0}
+.bubble th,.bubble td{border:1px solid var(--line); padding:5px 7px; text-align:left; vertical-align:top}
+.bubble th{background:#F2F5F2}
+.bubble th,.bubble td{-webkit-hyphens:auto; hyphens:auto; overflow-wrap:break-word}
+/* Узкий экран: таблицы в ответах ИИ (4 столбца) помещаются в «пузырь» без прокрутки вбок */
+@media (max-width:560px){
+  .bubble{padding:10px 12px}
+  .bubble table{font-size:.8rem; line-height:1.4}
+  .bubble th,.bubble td{padding:4px 5px}
+}
+.bubble p{margin:6px 0}
+.bubble ul{margin:4px 0; padding-left:1.2em}
+
+.seg{display:flex; flex-wrap:wrap; gap:8px}
+.chip{border:1.5px solid var(--ctl-line); background:#fff; border-radius:999px; padding:7px 14px; font-size:.92rem; font-weight:600; cursor:pointer; line-height:1.2}
+@media (hover:hover){.chip:hover{border-color:var(--pen)}}
+.chip[aria-pressed="true"]{background:var(--ink); border-color:var(--ink); color:#fff}
+
+/* Метки заданий */
+.tag{display:inline-block; font-size:.78rem; font-weight:700; padding:3px 10px; border-radius:999px; color:#fff; white-space:nowrap; vertical-align:middle}
+.tag.gen{background:var(--t-gen)} .tag.acc{background:var(--t-acc)} .tag.nanny{background:var(--t-nanny)} .tag.home{background:var(--t-home)}
+
+/* ---------- Задания ---------- */
+.tasks{margin:26px 0}
+.tasks-head{display:flex; justify-content:space-between; align-items:baseline; gap:10px; flex-wrap:wrap}
+.tasks-head .cnt{font-weight:700; color:var(--leaf); font-size:.95rem}
+.task{background:#fff; border:1px solid var(--line); border-left:6px solid var(--t-gen); border-radius:10px; padding:16px 18px; margin:14px 0; transition:background .2s}
+.task[data-tag="acc"]{border-left-color:var(--t-acc)}
+.task[data-tag="nanny"]{border-left-color:var(--t-nanny)}
+.task[data-tag="home"]{border-left-color:var(--t-home)}
+.task.done{background:#F4FAF5}
+.task-top{display:flex; gap:14px; align-items:flex-start}
+.task-check{flex:0 0 auto; width:32px; height:32px; border-radius:8px; border:2.5px solid var(--field-line); background:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; margin-top:1px}
+.task-check svg{width:20px; height:20px; opacity:0}
+.task.done .task-check{background:var(--leaf); border-color:var(--leaf)}
+.task.done .task-check svg{opacity:1}
+.task-title{font-weight:700; font-size:1.06rem; line-height:1.35}
+.task-title .tag{margin-left:6px}
+.task-body{margin:8px 0 0 46px}
+@media (max-width:560px){.task-body{margin-left:0}}
+.task-body p{margin:6px 0}
+.task-body > p:not(.look){font-size:1.06rem}
+.prompt{position:relative; background:var(--pen-soft); border-radius:8px; padding:12px 14px 12px 16px; margin:10px 0; font-size:1rem; line-height:1.55; white-space:pre-wrap}
+@media (min-width:561px){.prompt{padding-right:132px; min-height:56px} .prompt .copy-btn{position:absolute; top:10px; right:10px; margin:0}}
+@media (max-width:560px){.prompt{display:flex; flex-direction:column} .prompt .copy-btn{order:2; align-self:flex-end; margin:10px 0 0}}
+.look{font-size:.97rem; color:var(--ink-soft)}
+.look b{color:var(--ink)}
+
+/* ---------- Тест ---------- */
+.quiz{border:2px solid var(--ink); border-radius:12px; padding:22px; margin:30px 0 6px; background:#fff}
+.quiz h3{margin:0 0 4px!important}
+.q{margin:18px 0 0}
+.q-text{font-weight:600; margin-bottom:8px}
+.q-opts{display:grid; gap:8px}
+.q-opt{text-align:left; border:1.5px solid var(--ctl-line); background:#fff; border-radius:8px; padding:10px 14px; cursor:pointer; font-size:.98rem}
+@media (hover:hover){.q-opt:hover:not([disabled]){border-color:var(--pen)}}
+.q-opt.right{border-color:var(--leaf); background:var(--leaf-soft)}
+.q-opt.wrong{border-color:var(--red); background:var(--red-soft)}
+.q-opt[disabled]{cursor:default}
+.q-exp{font-size:.93rem; margin-top:8px; color:var(--ink-soft)}
+.quiz-score{font-weight:700; margin-top:14px; color:var(--leaf)}
+
+/* ---------- Правила ---------- */
+.rules{display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin:18px 0; counter-reset:r}
+@media (max-width:680px){.rules{grid-template-columns:1fr}}
+.rule{border:1px solid var(--line); border-radius:10px; padding:16px 18px; background:#fff; position:relative}
+.rule h4{font-size:1.05rem; margin-bottom:4px}
+.rule p{margin:0; font-size:.95rem; color:var(--ink-soft)}
+.rule .ico{width:44px; height:44px; border-radius:50%; background:var(--leaf-soft); color:var(--leaf); display:flex; align-items:center; justify-content:center}
+.rule .ico svg{width:24px; height:24px}
+.rule:has(.ico){display:grid; grid-template-columns:44px 1fr; column-gap:14px; align-items:start; align-content:start}
+.rule:has(.ico) .ico{grid-row:1 / span 2}
+.rule:has(.ico) h4{margin-top:2px}
+@media (max-width:560px){
+  .rule:has(.ico){grid-template-columns:36px 1fr; column-gap:12px; align-items:center; row-gap:6px}
+  .rule:has(.ico) .ico{grid-row:auto; width:36px; height:36px}
+  .rule:has(.ico) .ico svg{width:20px; height:20px}
+  .rule:has(.ico) h4{margin:0}
+  .rule:has(.ico) p{grid-column:1 / -1}
+}
+
+details.setup{border:1.5px dashed #AEBBB2; border-radius:12px; padding:0 20px; background:#fff; margin:22px 0}
+details.setup summary{cursor:pointer; font-weight:700; padding:16px 0; list-style:none; display:flex; align-items:flex-start; gap:12px}
+details.setup summary::-webkit-details-marker{display:none}
+details.setup summary::before{content:"+"; flex:0 0 26px; height:26px; margin:1px 0 0; border-radius:50%; background:var(--ink); color:#fff; text-align:center; line-height:26px; font-weight:800}
+details.setup[open] summary::before{content:"−"}
+details.setup .inner{padding-bottom:18px}
+</style>
+<style>
+/* ---------- Макет экрана ChatGPT ---------- */
+.mock{display:grid; grid-template-columns:244px minmax(0,1fr); border:1.5px solid #C9D3CB; border-radius:12px; overflow:hidden; background:#fff; font-size:.86rem; line-height:1.3}
+.mock-side{background:#F3F5F4; padding:12px 10px; display:flex; flex-direction:column; gap:4px; border-right:1px solid var(--line)}
+.mock-main{display:flex; flex-direction:column; min-height:360px}
+.m-el{position:relative; border-radius:8px; padding:7px 9px; border:2px solid transparent; cursor:pointer; background:transparent; text-align:left; font-size:.86rem; display:flex; align-items:center; gap:8px}
+.m-el:not(.round){padding-right:18px}
+@media (hover:hover){.m-el:hover{background:rgba(43,80,200,.06)}}
+.m-el.active{border-color:var(--pen); background:var(--pen-soft)}
+.m-el .ic{width:18px; height:18px; flex:0 0 18px; color:var(--ink-soft)}
+svg.i{display:block; fill:none; stroke:currentColor; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round}
+.m-el svg.i{width:18px; height:18px}
+.mock-actions .m-el{gap:10px; color:var(--ink-soft)}
+.mock-actions svg.i{width:16px; height:16px}
+.m-el.round svg.i{width:20px; height:20px}
+.m-el.round.voice{background:var(--ink); color:#fff}
+@media (hover:hover){.m-el.round.voice:hover{background:#33415A}}
+.m-el.round.voice.active{background:var(--pen); border-color:var(--pen)}
+.hs{position:absolute; top:-9px; right:-9px; width:22px; height:22px; border-radius:50%; background:var(--marker); color:var(--ink); font-size:.72rem; font-weight:800; display:flex; align-items:center; justify-content:center; border:2px solid var(--ink); pointer-events:none}
+.m-el.active .hs{background:var(--pen); color:#fff; border-color:var(--pen)}
+.mock-sub{font-size:.74rem; color:var(--ink-faint); margin:10px 9px 2px; font-weight:600}
+.mock-chat{font-size:.8rem; color:var(--ink-soft); padding:4px 9px}
+.mock-top{display:flex; justify-content:space-between; align-items:center; padding:10px 14px; border-bottom:1px solid var(--line)}
+.mock-body{flex:1; padding:14px 18px}
+.mock-user{background:#EEF0F3; border-radius:14px; padding:8px 12px; margin-left:auto; width:max-content; max-width:80%}
+.mock-lines{margin:14px 0 6px}
+.mock-lines i{display:block; height:9px; border-radius:5px; background:#E3E7EB; margin:7px 0}
+.mock-actions{display:inline-flex; gap:2px}
+.mock-composer{margin:10px 14px 14px; border:1.5px solid var(--line); border-radius:22px; padding:6px 8px; display:flex; align-items:center; gap:6px}
+.mock-composer .ph{flex:1; color:var(--ink-faint); padding:0 6px}
+.m-el.round{border-radius:50%; width:36px; height:36px; justify-content:center; padding:0}
+.tour-panel{margin-top:14px; background:#fff; border:1px solid var(--line); border-radius:10px; padding:14px 16px; min-height:120px}
+.tour-panel h4{margin-bottom:4px}
+.tour-panel p{font-size:1rem}
+.tour-nav{display:flex; gap:8px; align-items:center; margin-top:10px; flex-wrap:wrap}
+.tour-nav .pos{font-size:.85rem; color:var(--ink-soft); margin-left:auto}
+@media (max-width:640px){
+  .mock{grid-template-columns:minmax(0,1fr)}
+  .mock-side{border-right:none; border-bottom:1px solid var(--line); display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px 8px; padding:14px 10px}
+  .mock-sub,.mock-chat,.mock-side > div[style]{display:none}
+  .m-el{font-size:.8rem; padding:6px 12px 6px 8px; gap:6px}
+  .hs{width:20px; height:20px; font-size:.66rem; top:-8px; right:-6px}
+  .mock-body{padding:12px}
+  .mock-composer{flex-wrap:wrap; border-radius:18px; padding:8px 10px; gap:8px 10px}
+  .mock-composer .ph{order:-1; flex:1 1 100%; justify-content:flex-start; padding:8px 10px}
+  .mock-composer .m-el.round:first-of-type{margin-right:auto}
+}
+
+/* ---------- Сортировка карточек ---------- */
+.sort-list{display:grid; gap:10px}
+.sort-card{background:#fff; border:1px solid var(--line); border-radius:10px; padding:12px 14px}
+.sort-card .txt{font-weight:600}
+.sort-card .opts{display:flex; flex-wrap:wrap; gap:6px; margin-top:8px}
+.sort-card .fb{font-size:.92rem; margin-top:8px; display:none}
+.sort-card.answered .fb{display:block}
+.sort-card.ok{border-color:var(--leaf); background:#F6FBF7}
+.sort-card.no{border-color:var(--amber); background:#FFFAF0}
+@media (max-width:560px){.sort-card .opts > button{flex:1 1 auto; justify-content:center; text-align:center}}
+.opt-btn{border:1.5px solid var(--ctl-line); background:#fff; border-radius:6px; padding:7px 12px; font-size:.88rem; font-weight:600; cursor:pointer}
+@media (hover:hover){.opt-btn:hover{border-color:var(--ink)}}
+.opt-btn.sel{background:var(--ink); color:#fff; border-color:var(--ink)}
+.sort-card.answered .opt-btn,.sort-card.answered .dot-btn{cursor:default}
+.score-line{font-weight:700; margin-top:12px}
+
+/* ---------- Светофор ---------- */
+.lights{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:14px 0}
+@media (max-width:680px){.lights{grid-template-columns:1fr}}
+.light{border-radius:10px; padding:14px 16px; border:1px solid var(--line); background:#fff}
+.light h4{display:flex; align-items:center; gap:8px}
+.light h4::before{content:""; width:18px; height:18px; border-radius:50%; background:var(--c)}
+.light p{font-size:.93rem; margin:6px 0 0; color:var(--ink-soft)}
+.light.g{--c:#3AA35B} .light.y{--c:#E9B21F} .light.r{--c:#D2432F}
+.dot-btn{display:inline-flex; align-items:center; gap:6px; border:1.5px solid var(--ctl-line); background:#fff; border-radius:999px; padding:5px 12px 5px 8px; font-size:.86rem; font-weight:600; cursor:pointer}
+.dot-btn::before{content:""; width:14px; height:14px; border-radius:50%; background:var(--c)}
+.dot-btn.g{--c:#3AA35B} .dot-btn.y{--c:#E9B21F} .dot-btn.r{--c:#D2432F}
+.dot-btn.sel{border-color:var(--ink); box-shadow:inset 0 0 0 1px var(--ink)}
+
+/* ---------- Ползунок контекста ---------- */
+.range-wrap{margin:10px 0 16px}
+input[type=range]{width:100%; height:32px; margin:0; -webkit-appearance:none; appearance:none; background:transparent; cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:8px; border-radius:4px; background:var(--grid)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none; appearance:none; width:26px; height:26px; margin-top:-9px; border-radius:50%; background:var(--leaf); border:3px solid #fff; box-shadow:0 0 0 1.5px var(--leaf), 0 1px 3px rgba(20,30,50,.25)}
+input[type=range]::-moz-range-track{height:8px; border-radius:4px; background:var(--grid)}
+input[type=range]::-moz-range-thumb{width:22px; height:22px; border-radius:50%; background:var(--leaf); border:3px solid #fff; box-shadow:0 0 0 1.5px var(--leaf), 0 1px 3px rgba(20,30,50,.25)}
+input[type=range]:focus-visible{outline:3px solid var(--pen); outline-offset:4px}
+.range-labels{display:flex; justify-content:space-between; font-size:.78rem; color:var(--ink-faint); font-weight:600}
+.facts{display:flex; flex-wrap:wrap; gap:6px; margin-top:6px}
+.fact{background:var(--leaf-soft); color:#1E5534; border-radius:6px; padding:2px 8px; font-size:.85rem; font-weight:600}
+.meter{margin:12px 0 4px}
+.meter-top{display:flex; justify-content:space-between; gap:12px; font-size:.88rem; font-weight:600}
+.meter-bar{height:12px; border-radius:6px; background:var(--grid); overflow:hidden; margin-top:4px}
+.meter-bar i{display:block; height:100%; width:10%; background:linear-gradient(90deg,#E9B21F,#3AA35B); transition:width .35s}
+
+/* ---------- Найди ошибку ---------- */
+.claims{background:#fff; border:1px solid var(--line); border-radius:12px; padding:14px 16px}
+.claim{display:inline; border:none; background:transparent; font:inherit; padding:2px 3px; border-radius:4px; cursor:pointer; text-align:left; line-height:1.7; border-bottom:2px dashed #B9C3BC}
+@media (hover:hover){.claim:hover{background:#FFF7C9}}
+.claim.bad{background:var(--red-soft); border-bottom-color:var(--red)}
+.claim.good{background:var(--leaf-soft); border-bottom-color:var(--leaf)}
+.claim-fb{margin-top:12px; font-size:.95rem}
+
+/* ---------- Конструктор поручения ---------- */
+.parts{display:flex; flex-wrap:wrap; gap:8px; margin:12px 0}
+.part-tg{--c:var(--ink); --s:#fff; display:inline-flex; align-items:center; gap:8px; border:2px solid var(--c); color:var(--c); background:#fff; border-radius:8px; padding:7px 12px; font-weight:700; font-size:.92rem; cursor:pointer}
+.part-tg .box{width:18px; height:18px; border-radius:4px; border:2px solid var(--c); display:flex; align-items:center; justify-content:center; font-size:12px; line-height:1}
+.part-tg[aria-pressed="true"]{background:var(--s)}
+.part-tg[aria-pressed="true"] .box{background:var(--c); color:#fff}
+.part-tg[aria-pressed="true"] .box::after{content:"✓"}
+.pt-role{--c:var(--p-role); --s:var(--p-role-soft)}
+.pt-ctx{--c:var(--p-ctx); --s:var(--p-ctx-soft)}
+.pt-task{--c:var(--p-task); --s:var(--p-task-soft)}
+.pt-fmt{--c:var(--p-fmt); --s:var(--p-fmt-soft)}
+.pt-lim{--c:var(--p-lim); --s:var(--p-lim-soft)}
+.assembled{background:#fff; border:1px solid var(--line); border-radius:10px; padding:14px 16px; min-height:70px; font-size:.97rem; line-height:1.65}
+.seg-span{border-radius:4px; padding:1px 3px; -webkit-box-decoration-break:clone; box-decoration-break:clone}
+.seg-role{background:var(--p-role-soft); box-shadow:inset 0 -2px 0 var(--p-role)}
+.seg-ctx{background:var(--p-ctx-soft); box-shadow:inset 0 -2px 0 var(--p-ctx)}
+.seg-task{background:var(--p-task-soft); box-shadow:inset 0 -2px 0 var(--p-task)}
+.seg-fmt{background:var(--p-fmt-soft); box-shadow:inset 0 -2px 0 var(--p-fmt)}
+.seg-lim{background:var(--p-lim-soft); box-shadow:inset 0 -2px 0 var(--p-lim)}
+.builder-grid{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:16px; margin-top:14px}
+@media (max-width:760px){.builder-grid{grid-template-columns:minmax(0,1fr)}}
+.builder-grid .col-title{min-height:32px}
+.col-title{font-size:.88rem; font-weight:700; color:var(--ink-soft); margin:0 0 6px; display:flex; justify-content:space-between; align-items:center; gap:8px}
+.missing{font-size:.9rem; margin:10px 0 0; padding:0; list-style:none}
+.missing li{margin:4px 0; padding-left:22px; position:relative}
+.missing li::before{content:"!"; position:absolute; left:0; top:1px; width:16px; height:16px; border-radius:50%; background:var(--amber); color:#fff; font-size:11px; font-weight:800; display:flex; align-items:center; justify-content:center}
+
+.formula{display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:8px; margin:18px 0}
+@media (max-width:900px){.formula{grid-template-columns:repeat(2,minmax(0,1fr))} .f-part:last-child{grid-column:1/-1}}
+@media (max-width:560px){.formula{grid-template-columns:1fr}}
+.f-part{border-top:6px solid var(--c); background:var(--s); border-radius:8px; padding:12px 10px 14px}
+.f-part .n{font-weight:800; color:var(--c); font-size:.85rem}
+.f-part h4{color:var(--ink); margin:2px 0 4px!important; font-size:1.02rem}
+.f-part p{font-size:.88rem; margin:0; color:var(--ink-soft)}
+.f-part .q{font-family:var(--hand); font-size:1.24rem; color:var(--c); margin:0 0 4px; line-height:1.1; white-space:nowrap}
+@media (max-width:900px){.f-part{padding:12px 12px 14px} .f-part .q{white-space:normal; font-size:1.3rem}}
+
+/* ---------- Чат-уточнения ---------- */
+.chat-demo{background:#F7F9F7; border:1px solid var(--line); border-radius:12px; padding:12px 14px; min-height:160px}
+.fade-in{animation:fadein .35s ease}
+@keyframes fadein{from{opacity:0; transform:translateY(4px)}to{opacity:1; transform:none}}
+
+/* ---------- Обезличиватель ---------- */
+textarea.inp, input.inp, select.inp{width:100%; font:inherit; font-size:.95rem; border:1.5px solid var(--field-line); border-radius:8px; padding:10px 12px; background:#fff; color:var(--ink)}
+input.inp, select.inp{height:48px; line-height:1.3}
+.inp::placeholder{color:#6B7684; opacity:1}
+textarea.inp{min-height:130px; resize:vertical; line-height:1.5}
+@media (max-width:560px){#anonIn{min-height:270px}}
+textarea.inp:focus, input.inp:focus, select.inp:focus{border-color:var(--pen); outline:none; box-shadow:0 0 0 3px var(--pen-soft)}
+.anon-out{background:#fff; border:1px solid var(--line); border-radius:8px; padding:12px 14px; min-height:80px; white-space:pre-wrap; font-size:.95rem; line-height:1.6}
+.anon-out mark{background:#FFE9A8; border-radius:3px; padding:0 2px}
+.anon-sum{font-size:.9rem; color:var(--ink-soft); margin-top:6px}
+.row-btns{display:flex; flex-wrap:wrap; gap:8px; margin:10px 0}
+
+/* ---------- Формы-конструкторы ---------- */
+.form-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px 16px}
+@media (max-width:680px){.form-grid{grid-template-columns:1fr}}
+.field label{display:block; font-size:.88rem; font-weight:700; margin-bottom:4px}
+.field.full{grid-column:1/-1}
+.checks{display:grid; gap:6px}
+.checks label{display:flex; gap:10px; align-items:flex-start; font-size:.94rem; font-weight:500; cursor:pointer}
+.checks input{width:20px; height:20px; accent-color:var(--pen); margin-top:3px; flex:0 0 auto}
+.gen-out{background:#fff; border:1.5px dashed var(--pen); border-radius:10px; padding:14px 16px; white-space:pre-wrap; font-size:.95rem; line-height:1.6; margin-top:12px}
+
+/* ---------- Вкладки ---------- */
+.tabs{display:flex; flex-wrap:wrap; gap:4px; border-bottom:2px solid var(--line); margin-bottom:12px}
+.tab{border:none; background:transparent; padding:9px 14px; font-weight:700; font-size:.94rem; cursor:pointer; border-bottom:3px solid transparent; margin-bottom:-2px; color:var(--ink-soft)}
+.tab[aria-selected="true"]{color:var(--ink); border-bottom-color:var(--pen)}
+@media (max-width:560px){
+  .tabs{border-bottom:none; gap:6px}
+  .tab{border:1.5px solid var(--ctl-line); border-radius:999px; margin:0; padding:8px 14px; background:#fff; line-height:1.2; color:var(--ink)}
+  .tab[aria-selected="true"]{background:var(--ink); color:#fff; border-color:var(--ink)}
+}
+.tab-panel .prompt{margin:8px 0}
+
+/* ---------- Шкала доверия ---------- */
+.trust-row{background:#fff; border:1px solid var(--line); border-radius:10px; padding:12px 14px; margin:8px 0}
+.trust-row .txt{font-weight:600; margin-bottom:8px}
+.trust-opts{display:grid; grid-template-columns:repeat(4,1fr); gap:6px}
+@media (max-width:640px){.trust-opts{grid-template-columns:1fr 1fr}}
+.trust-opt{border:1.5px solid var(--ctl-line); background:#fff; border-radius:6px; padding:6px 8px; font-size:.84rem; font-weight:600; cursor:pointer; line-height:1.2}
+.trust-opt[data-v="0"]{--c:#3AA35B}.trust-opt[data-v="1"]{--c:#8FB43A}.trust-opt[data-v="2"]{--c:#E9A21F}.trust-opt[data-v="3"]{--c:#D2432F}
+.trust-opt{border-top:4px solid var(--c)}
+.trust-opt.sel{background:var(--ink); color:#fff; border-color:var(--ink); border-top-color:var(--c)}
+.trust-opt.rec{box-shadow:0 0 0 3px var(--c)}
+.trust-fb{font-size:.9rem; margin-top:8px; display:none}
+.trust-row.revealed .trust-fb{display:block}
+
+/* ---------- Сравнение ответов ---------- */
+.compare{display:grid; grid-template-columns:1fr 1fr; gap:14px}
+@media (max-width:720px){.compare{grid-template-columns:1fr}}
+.ans-card{background:#fff; border:1.5px solid var(--line); border-radius:12px; padding:14px 16px; display:flex; flex-direction:column}
+.ans-card .lbl{font-weight:800; margin-bottom:6px}
+.ans-card .txt{font-size:.93rem; flex:1}
+.ans-card .txt p{margin:6px 0}
+.ans-card.win{border-color:var(--leaf); box-shadow:0 0 0 2px var(--leaf)}
+.ans-card.lose{opacity:.85}
+.ans-card .btn[aria-pressed="true"], .ans-card .btn[aria-pressed="true"]:hover{background:var(--ink); color:#fff; border-color:var(--ink); cursor:default}
+.ans-card .btn[hidden]{display:none}
+.cmp-fb{margin-top:12px; display:none}
+.cmp-fb.show{display:block}
+
+/* ---------- До / после (картинки) ---------- */
+.ba{position:relative; border-radius:12px; overflow:hidden; border:1.5px solid #C9D3CB; aspect-ratio:16/10; background:#fff; user-select:none; touch-action:pan-y}
+.ba svg{position:absolute; inset:0; width:100%; height:100%}
+.ba .after{clip-path:inset(0 0 0 50%)}
+.ba .divider{position:absolute; top:0; bottom:0; left:50%; width:3px; background:var(--ink); transform:translateX(-50%); pointer-events:none}
+.ba .divider::after{content:""; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:40px; height:40px; border-radius:50%; background:var(--ink) linear-gradient(90deg,transparent 14px,#fff 14px 16px,transparent 16px 19px,#fff 19px 21px,transparent 21px 24px,#fff 24px 26px,transparent 26px) center/40px 14px no-repeat}
+.ba-labels{display:flex; justify-content:space-between; gap:16px; margin-top:10px; font-size:.92rem}
+.ba-labels div{flex:1}
+@media (max-width:640px){.ba-labels{flex-direction:column; gap:8px}}
+.ba-range{margin-top:6px}
+.ba-tag{display:none; position:absolute; inset:0; padding:8px; pointer-events:none}
+.ba-tag span{display:inline-block; background:rgba(30,42,59,.88); color:#fff; font-weight:700; font-size:.76rem; line-height:1.2; padding:5px 9px; border-radius:7px}
+.ba-tag-before{clip-path:inset(0 50% 0 0)}
+.ba-tag-after{text-align:right; clip-path:inset(0 0 0 50%)}
+@media (max-width:560px){.ba .ba-badge{display:none} .ba-tag{display:block}}
+
+.toggle2{display:inline-grid; grid-auto-flow:column; grid-auto-columns:1fr; border:2px solid var(--ink); border-radius:8px; overflow:hidden; margin-bottom:12px; max-width:100%}
+.toggle2 button{border:none; background:#fff; padding:8px 14px; font-weight:700; font-size:.92rem; cursor:pointer}
+.toggle2 button[aria-pressed="true"]{background:var(--ink); color:#fff}
+.toggle2 button + button{border-left:2px solid var(--ink)}
+@media (max-width:560px){.toggle2{display:grid; grid-template-columns:1fr 1fr; grid-auto-flow:row; width:100%} .toggle2 button{line-height:1.25; padding:10px 8px}}
+
+/* ---------- Шпаргалка ---------- */
+.cheat-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px}
+@media (max-width:720px){.cheat-grid{grid-template-columns:1fr}}
+.cheat{border:1px solid var(--line); border-radius:10px; padding:14px 16px; background:#fff}
+.cheat h4{margin-bottom:6px!important}
+.cheat ul{margin:4px 0; padding-left:1.1em; font-size:.93rem}
+.cheat li{margin:3px 0}
+.cheat .fline{display:flex; flex-wrap:wrap; gap:4px; margin:4px 0}
+.cheat .fline span{font-size:.85rem; font-weight:700; padding:2px 8px; border-radius:4px; color:#fff}
+
+.steps-list{counter-reset:s; list-style:none; padding:0!important}
+.steps-list > li{counter-increment:s; position:relative; padding-left:48px; margin:14px 0!important}
+.steps-list > li::before{content:counter(s); position:absolute; left:0; top:0; width:34px; height:34px; border-radius:50%; border:2px solid var(--ink); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:.95rem}
+
+.site-foot{padding:30px 0 60px; font-size:.9rem; color:var(--ink-soft)}
+.reset-link{background:none; border:none; color:var(--ink-soft); text-decoration:underline; cursor:pointer; font-size:.9rem; padding:0}
+
+/* ---------- Телефон: меньше вложенных отступов ---------- */
+@media (max-width:560px){
+  .wrap{padding:0 16px}
+  .sheet{padding:22px 16px}
+  .widget{padding:14px 12px}
+  .sort-card,.trust-row{padding:12px}
+  .chat-demo{padding:0; background:transparent; border:none; min-height:0}
+  .bubble.ai{max-width:100%}
+  .steps-list > li{padding-left:42px}
+  .steps-list > li::before{width:30px; height:30px; font-size:.85rem}
+  .hero-actions .btn{flex:1 1 100%}
+  .quiz{padding:18px 14px}
+  .task{padding:14px}
+  .quiz-score .btn,.score-line .btn{display:flex; width:max-content; margin:10px 0 0!important}
+}
+
+/* ---------- Сенсорные экраны: крупные цели ---------- */
+@media (pointer:coarse){
+  .copy-btn{min-height:40px; padding:8px 14px}
+  .builder-grid .col-title{min-height:40px}
+  .task-check{width:40px; height:40px}
+  .chip,.opt-btn,.dot-btn,.trust-opt,.tab,.toggle2 button,.part-tg,.btn.small{min-height:44px}
+  .m-el.round{width:40px; height:40px}
+  .m-el{min-height:40px}
+  input[type=range]{height:40px}
+  .reset-link{padding:10px 0}
+  .checks label{padding:9px 0}
+  .checks{gap:0}
+  .claim{padding:4px 3px}
+}
+@media (pointer:coarse) and (min-width:561px){
+  .task-body{margin-left:54px}
+  .prompt{padding-right:146px; min-height:62px}
+}
+
+@media print{
+  body{background:#fff}
+  .topbar,.hero-actions,.no-print{display:none!important}
+  .note{transform:none}
+  .copy-btn,.task-check,.tour-nav,.row-btns,.ba-range,.reset-link,#trustReveal,.seg,.parts,.score-line button,.quiz-score button{display:none!important}
+  .prompt{padding-right:16px; min-height:0}
+  .level{break-before:page}
+  .rule,.light,.f-part,.task,.cheat,.q,.sort-card,.trust-row,.ans-card,.prompt,.bubble,.callout,.note,.goal,.tour-panel,.widget > h4,.level-head{break-inside:avoid}
+  h2,h3,h4,.tasks-head,.level-head,.col-title{break-after:avoid}
+  .bubble table{break-inside:auto} .bubble tr{break-inside:avoid}
+  .task-body{margin-left:0}
+  .growth{break-inside:avoid}
+  .f-part,.tag,.light h4::before,.seg-span{-webkit-print-color-adjust:exact; print-color-adjust:exact}
+  body.print-cheat header, body.print-cheat footer, body.print-cheat main > *:not(#cheatsheet-wrap){display:none!important}
+  body.print-cheat #cheatsheet-wrap{display:block!important}
+  .sheet{border:none; padding:0}
+  .cheat{break-inside:avoid}
+  .cheat .fline span{-webkit-print-color-adjust:exact; print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="pl1" viewBox="0 0 92 120">
+      <g stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="stroke:var(--ps,#B7C2BA)">
+        <path d="M46 94c11 0 15 7 15 11s-7 9-15 9-15-5-15-9 4-11 15-11z" style="fill:var(--pf,#E8ECE8)"/>
+        <path d="M46 98v7" fill="none"/>
+        <path d="M40 86l-3-5M52 86l3-5M46 84v-6" fill="none" stroke-dasharray="2 4"/>
+      </g>
+    </symbol>
+    <symbol id="pl2" viewBox="0 0 92 120">
+      <g stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="stroke:var(--ps,#B7C2BA)">
+        <path d="M46 114C46 100 44 92 46 80" fill="none"/>
+        <path d="M46 82C38 70 26 72 23 78c6 8 17 8 23 4z" style="fill:var(--pf,#E8ECE8)"/>
+        <path d="M46 82c8-12 20-10 23-4-6 8-17 8-23 4z" style="fill:var(--pf,#E8ECE8)"/>
+      </g>
+    </symbol>
+    <symbol id="pl3" viewBox="0 0 92 120">
+      <g stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="stroke:var(--ps,#B7C2BA)">
+        <path d="M46 114V50" fill="none"/>
+        <path d="M46 96C34 86 22 90 19 96c8 8 21 6 27 0z" style="fill:var(--pf,#E8ECE8)"/>
+        <path d="M46 96c12-10 24-6 27 0-8 8-21 6-27 0z" style="fill:var(--pf,#E8ECE8)"/>
+        <path d="M46 70C36 60 26 62 23 68c6 8 17 6 23 2z" style="fill:var(--pf,#E8ECE8)"/>
+        <path d="M46 70c10-10 20-8 23-2-6 8-17 6-23 2z" style="fill:var(--pf,#E8ECE8)"/>
+        <path d="M46 52c-4-9 0-15 0-15s4 6 0 15z" style="fill:var(--pf,#E8ECE8)"/>
+      </g>
+    </symbol>
+    <symbol id="pl4" viewBox="0 0 92 120">
+      <g stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="stroke:var(--ps,#B7C2BA)">
+        <path d="M46 114V42" fill="none"/>
+        <path d="M46 98C34 88 22 92 19 98c8 8 21 6 27 0z" style="fill:var(--pf,#E8ECE8)"/>
+        <path d="M46 98c12-10 24-6 27 0-8 8-21 6-27 0z" style="fill:var(--pf,#E8ECE8)"/>
+        <path d="M46 72C36 62 26 64 23 70c6 8 17 6 23 2z" style="fill:var(--pf,#E8ECE8)"/>
+        <path d="M46 72c10-10 20-8 23-2-6 8-17 6-23 2z" style="fill:var(--pf,#E8ECE8)"/>
+        <path d="M46 20c9 8 9 18 0 23-9-5-9-15 0-23z" style="fill:var(--bl,var(--pf,#E8ECE8))"/>
+        <path d="M39 38l7 7 7-7" fill="none"/>
+      </g>
+    </symbol>
+    <symbol id="pl5" viewBox="0 0 92 120">
+      <g stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="stroke:var(--ps,#B7C2BA)">
+        <path d="M46 114V44" fill="none"/>
+        <path d="M46 100C34 90 22 94 19 100c8 8 21 6 27 0z" style="fill:var(--pf,#E8ECE8)"/>
+        <path d="M46 100c12-10 24-6 27 0-8 8-21 6-27 0z" style="fill:var(--pf,#E8ECE8)"/>
+        <path d="M46 74C36 64 26 66 23 72c6 8 17 6 23 2z" style="fill:var(--pf,#E8ECE8)"/>
+        <g style="fill:var(--bl,var(--pf,#E8ECE8))">
+          <circle cx="46" cy="18" r="8"/><circle cx="57" cy="26" r="8"/><circle cx="53" cy="39" r="8"/><circle cx="39" cy="39" r="8"/><circle cx="35" cy="26" r="8"/>
+        </g>
+        <circle cx="46" cy="30" r="5.5" style="fill:var(--ce,var(--pf,#E8ECE8))"/>
+      </g>
+    </symbol>
+    <symbol id="pl6" viewBox="0 0 92 120">
+      <g stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="stroke:var(--ps,#B7C2BA)">
+        <path d="M46 114V26M46 74c10-4 18-10 20-18M46 58c-10-4-18-10-20-18" fill="none"/>
+        <path d="M46 100C34 90 22 94 19 100c8 8 21 6 27 0z" style="fill:var(--pf,#E8ECE8)"/>
+        <path d="M46 88c12-10 24-6 27 0-8 8-21 6-27 0z" style="fill:var(--pf,#E8ECE8)"/>
+        <path d="M46 28c-6-8-2-16 0-18 2 2 6 10 0 18z" style="fill:var(--pf,#E8ECE8)"/>
+        <g style="fill:var(--fr,var(--pf,#E8ECE8))">
+          <circle cx="67" cy="64" r="9.5"/><circle cx="25" cy="48" r="9.5"/><circle cx="58" cy="44" r="7"/>
+        </g>
+      </g>
+    </symbol>
+    <!-- значки макета ChatGPT и правил: линии, цвет берётся из currentColor -->
+    <symbol id="i-new" viewBox="0 0 20 20"><path d="M9 3.5H4.8A1.8 1.8 0 0 0 3 5.3v9.9A1.8 1.8 0 0 0 4.8 17h9.9a1.8 1.8 0 0 0 1.8-1.8V11"/><path d="M14.6 2.9a1.6 1.6 0 0 1 2.3 2.3L10.2 12 7 12.8l.8-3.2z"/></symbol>
+    <symbol id="i-search" viewBox="0 0 20 20"><circle cx="8.8" cy="8.8" r="5.3"/><path d="M12.8 12.8l4 4"/></symbol>
+    <symbol id="i-folder" viewBox="0 0 20 20"><path d="M2.8 5.6A1.6 1.6 0 0 1 4.4 4h3.3l2 2h6a1.6 1.6 0 0 1 1.6 1.6v6.8A1.6 1.6 0 0 1 15.7 16H4.4a1.6 1.6 0 0 1-1.6-1.6z"/></symbol>
+    <symbol id="i-image" viewBox="0 0 20 20"><rect x="2.8" y="3.5" width="14.4" height="13" rx="2"/><circle cx="7.4" cy="8" r="1.4"/><path d="M3.2 14.6l4.2-4 3 2.8 2-1.8 4.4 3.8"/></symbol>
+    <symbol id="i-user" viewBox="0 0 20 20"><circle cx="10" cy="7" r="3.4"/><path d="M3.6 17c.8-3.1 3.3-4.9 6.4-4.9s5.6 1.8 6.4 4.9"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 20 20"><path d="M10 4.5v11M4.5 10h11"/></symbol>
+    <symbol id="i-mic" viewBox="0 0 20 20"><rect x="7.2" y="2.6" width="5.6" height="9.6" rx="2.8"/><path d="M4.6 9.4a5.4 5.4 0 0 0 10.8 0M10 14.8v2.6"/></symbol>
+    <symbol id="i-wave" viewBox="0 0 20 20"><path d="M4.2 8.6v2.8M7.4 6.2v7.6M10.6 4.2v11.6M13.8 6.6v6.8M16.8 8.8v2.4"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 20 20"><rect x="7" y="7" width="9.8" height="9.8" rx="1.8"/><path d="M13 7V5a1.8 1.8 0 0 0-1.8-1.8H5A1.8 1.8 0 0 0 3.2 5v6.2A1.8 1.8 0 0 0 5 13h2"/></symbol>
+    <symbol id="i-regen" viewBox="0 0 16 16"><path d="M13 8a5 5 0 1 1-1.5-3.5M13 2.5V5h-2.5"/></symbol>
+    <symbol id="i-up" viewBox="0 0 20 20"><path d="M6.4 9v7.8H3.4V9zM6.4 9l3.3-6c1.3 0 2.2 1 2 2.3L11.3 8h4.3c1 0 1.7.9 1.5 1.9l-1.3 5.4c-.2.9-1 1.5-1.9 1.5H6.4"/></symbol>
+    <symbol id="i-down" viewBox="0 0 20 20"><g transform="matrix(1 0 0 -1 0 20)"><path d="M6.4 9v7.8H3.4V9zM6.4 9l3.3-6c1.3 0 2.2 1 2 2.3L11.3 8h4.3c1 0 1.7.9 1.5 1.9l-1.3 5.4c-.2.9-1 1.5-1.9 1.5H6.4"/></g></symbol>
+    <symbol id="r-lead" viewBox="0 0 24 24"><rect x="3" y="7.5" width="18" height="12" rx="2"/><path d="M9 7.5V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v1.5M3 12.8h18M10.5 12.8v1.6h3v-1.6"/></symbol>
+    <symbol id="r-ctx" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15.6 8.4l-2.1 5.1-5.1 2.1 2.1-5.1z"/></symbol>
+    <symbol id="r-draft" viewBox="0 0 24 24"><path d="M4.5 19.5l1-4.4L15.6 5a2.1 2.1 0 0 1 3 3L8.5 18.1z"/><path d="M13.6 7l3 3M4 21h16"/></symbol>
+    <symbol id="r-check" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.2"/><path d="M15.1 15.1l5 5M8 10.6l1.8 1.8 3.2-3.4"/></symbol>
+    <symbol id="r-lock" viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8 10.5V7.6a4 4 0 0 1 8 0v2.9M12 14.4v2.4"/></symbol>
+    <symbol id="r-ask" viewBox="0 0 24 24"><path d="M4 5.6A1.6 1.6 0 0 1 5.6 4h12.8A1.6 1.6 0 0 1 20 5.6v8.8a1.6 1.6 0 0 1-1.6 1.6H10.5L6 19.8V16h-.4A1.6 1.6 0 0 1 4 14.4z"/><path d="M10 8.4a2 2 0 1 1 2.7 1.9c-.4.2-.7.5-.7 1v.3M12 13.4v.1"/></symbol>
+    <symbol id="ic-check" viewBox="0 0 20 20"><path d="M4 10.5l4 4 8-9" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  </defs>
+</svg>
+
+<nav class="topbar" id="topbar" aria-label="Прогресс по занятиям">
+  <div class="wrap">
+    <div class="mini-stages" id="miniStages"></div>
+    <div class="count" id="topCount"><span class="long">Выполнено </span>0 из&nbsp;37</div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <p class="home-link no-print"><a href="../../">Портфолио Даниила Евстратова</a></p>
+    <p class="kicker">Практикум</p>
+    <h1>ChatGPT: от&nbsp;первого вопроса до&nbsp;своего проекта</h1>
+    <p class="lead">Шесть занятий, после которых искусственный интеллект, или ИИ, станет вам настоящим помощником: в&nbsp;письмах клиентам и&nbsp;документах, в&nbsp;занятиях с&nbsp;детьми, в&nbsp;ремонте дома и&nbsp;планах на&nbsp;огород. Простым языком, с&nbsp;живыми примерами и&nbsp;заданиями.</p>
+    <div class="hero-actions">
+      <a class="btn" href="#how">Начать с&nbsp;первого шага</a>
+      <a class="btn ghost" href="#cheatsheet">Открыть шпаргалку</a>
+    </div>
+
+    <div class="growth" id="growth">
+      <p class="growth-title">Ваш огород знаний</p>
+      <p class="growth-sub">Отмечайте выполненные задания&nbsp;— растение каждого занятия будет зеленеть и&nbsp;созревать.</p>
+      <div class="stages" id="stages"></div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+<!-- ====================== КАК УСТРОЕН ПРАКТИКУМ ====================== -->
+<section class="sheet" id="how">
+  <h2>Как устроен практикум</h2>
+  <div class="measure">
+    <p>Занятия выстроены как лесенка: сначала запоминаем основы, потом разбираемся, как всё устроено, затем применяем знания на&nbsp;деле, работаем с&nbsp;документами и&nbsp;фото, учимся проверять ответы и, наконец, создаём своё. Как на&nbsp;грядке: от&nbsp;семечка до&nbsp;урожая. Перескакивать через ступеньки можно, но&nbsp;знания тогда хуже приживаются.</p>
+    <p>Каждое занятие занимает <span class="nw">30–40&nbsp;минут</span> и&nbsp;устроено одинаково.</p>
+    <ol class="steps-list">
+      <li><b>Короткая теория.</b> Только то, что действительно нужно. Слова с&nbsp;точечным подчёркиванием можно нажать&nbsp;— появится пояснение.</li>
+      <li><b>Интерактивные примеры.</b> Нажимайте, двигайте, переключайте&nbsp;— здесь ничего не&nbsp;сломается.</li>
+      <li><b>Задания в&nbsp;ChatGPT.</b> Откройте ChatGPT рядом&nbsp;— в&nbsp;соседней вкладке на&nbsp;компьютере или на&nbsp;телефоне&nbsp;— и&nbsp;выполните задания. Готовые тексты запросов можно скопировать кнопкой. Выполнили&nbsp;— поставьте галочку.</li>
+      <li><b>Проверьте себя.</b> Три вопроса, чтобы закрепить главное.</li>
+    </ol>
+    <p>Задания бывают общими и&nbsp;из&nbsp;вашей жизни. Их отмечают метки:
+      <span class="tag gen">Общее</span> <span class="tag acc">Бухгалтерия</span> <span class="tag nanny">Няня</span> <span class="tag home">Дом и&nbsp;сад</span>
+    </p>
+  </div>
+  <p class="note">Не&nbsp;торопитесь. Одно занятие в&nbsp;день или даже раз в&nbsp;два дня&nbsp;— отлично. Между занятиями пробуйте ИИ на&nbsp;настоящих делах: так навык закрепляется лучше всего.</p>
+
+  <h3>Шесть правил, которые важнее любых кнопок</h3>
+  <p class="measure">Кнопки в&nbsp;ChatGPT меняются почти каждый месяц, а&nbsp;вот правильный подход остаётся. Мы будем возвращаться к&nbsp;этим правилам в&nbsp;каждом занятии.</p>
+  <div class="rules">
+    <div class="rule"><span class="ico" aria-hidden="true"><svg class="i"><use href="#r-lead"/></svg></span><h4>Вы&nbsp;— руководитель, ИИ&nbsp;— стажёр</h4><p>Он быстрый, начитанный и&nbsp;старательный, но&nbsp;ничего не&nbsp;знает о&nbsp;ваших делах и&nbsp;иногда уверенно ошибается. Решение и&nbsp;ответственность&nbsp;— за&nbsp;вами.</p></div>
+    <div class="rule"><span class="ico" aria-hidden="true"><svg class="i"><use href="#r-ctx"/></svg></span><h4>Контекст&nbsp;— это всё</h4><p>«Что посадить?» и&nbsp;«Что посадить на&nbsp;солнечной грядке 2&nbsp;×&nbsp;1&nbsp;м, если бываю на&nbsp;участке только по&nbsp;выходным?»&nbsp;— это два разных вопроса с&nbsp;разными ответами.</p></div>
+    <div class="rule"><span class="ico" aria-hidden="true"><svg class="i"><use href="#r-draft"/></svg></span><h4>Первый ответ&nbsp;— черновик</h4><p>Уточнять, спорить и&nbsp;просить переделать&nbsp;— нормально. Хороший результат обычно получается за&nbsp;<span class="nw">3–5</span> сообщений.</p></div>
+    <div class="rule"><span class="ico" aria-hidden="true"><svg class="i"><use href="#r-check"/></svg></span><h4>Доверяй, но&nbsp;проверяй</h4><p>Чем дороже ошибка&nbsp;— налоги, здоровье ребёнка, фундамент дома,&nbsp;— тем тщательнее проверяем по&nbsp;официальным источникам и&nbsp;у&nbsp;специалистов.</p></div>
+    <div class="rule"><span class="ico" aria-hidden="true"><svg class="i"><use href="#r-lock"/></svg></span><h4>Чужие данные&nbsp;— под замком</h4><p>ФИО, ИНН, паспорта и&nbsp;счета клиентов, фото и&nbsp;сведения о&nbsp;детях в&nbsp;ChatGPT не&nbsp;отправляем. Сначала обезличиваем.</p></div>
+    <div class="rule"><span class="ico" aria-hidden="true"><svg class="i"><use href="#r-ask"/></svg></span><h4>Не&nbsp;знаете, как спросить,&nbsp;— спросите ИИ</h4><p>Напишите: «Я хочу… Помоги сформулировать запрос». ChatGPT сам подскажет, какие детали ему нужны.</p></div>
+  </div>
+
+  <details class="setup">
+    <summary>Перед стартом: подготовьте ChatGPT к&nbsp;работе</summary>
+    <div class="inner measure">
+      <p>Эти шаги лучше сделать вместе с&nbsp;тем, кто прислал вам практикум,&nbsp;— займёт минут пятнадцать.</p>
+      <ol class="steps-list">
+        <li><b>Вход.</b> Откройте ChatGPT на&nbsp;компьютере в&nbsp;браузере и&nbsp;установите приложение на&nbsp;телефон. Войдите в&nbsp;один и&nbsp;тот же аккаунт&nbsp;— тогда все чаты будут и&nbsp;там, и&nbsp;там.</li>
+        <li><b>Язык.</b> Если интерфейс на&nbsp;английском, в&nbsp;настройках можно выбрать русский язык. Писать ChatGPT по-русски можно в&nbsp;любом случае.</li>
+        <li><b>Микрофон.</b> Разрешите приложению доступ к&nbsp;микрофону&nbsp;— пригодится для голосового ввода.</li>
+        <li><b>Данные.</b> В&nbsp;настройках, в&nbsp;разделе управления данными, отключите пункт об&nbsp;улучшении модели на&nbsp;ваших разговорах.</li>
+        <li><b>Закладка.</b> Сохраните этот практикум в&nbsp;закладках браузера.</li>
+      </ol>
+      <div class="callout warn">
+        <p><b>Про доступ.</b> ChatGPT официально не работает в России. Если сервис вдруг перестал открываться, это не ваша ошибка&nbsp;— просто напишите тому, кто прислал вам практикум.</p>
+        <p>Всё, чему вы здесь научитесь, работает и&nbsp;в&nbsp;других ИИ-помощниках, например в&nbsp;GigaChat от&nbsp;Сбера или в&nbsp;Алисе от&nbsp;Яндекса. Меняются кнопки, а&nbsp;принципы остаются.</p>
+      </div>
+      <p class="muted small">Отметки о&nbsp;выполненных заданиях сохраняются только в&nbsp;этом браузере.</p>
+    </div>
+  </details>
+</section>
+
+<!-- ====================== УРОВЕНЬ 1 ====================== -->
+<section class="sheet level" id="level1" data-level="1">
+  <div class="level-head">
+    <div class="level-num" style="--ps:var(--leaf);--pf:#BFE0C8"><svg><use href="#pl1"/></svg><b>1</b></div>
+    <div>
+      <div class="level-meta">Занятие 1 из&nbsp;6</div>
+      <h2>Знакомство: что такое ChatGPT и&nbsp;где какие кнопки</h2>
+    </div>
+  </div>
+  <div class="goal measure">
+    <strong>После этого занятия вы:</strong>
+    <ul>
+      <li>знаете, что такое ChatGPT и&nbsp;чем он может быть полезен;</li>
+      <li>ориентируетесь на&nbsp;его экране;</li>
+      <li>провели первые разговоры&nbsp;— текстом и&nbsp;голосом.</li>
+    </ul>
+  </div>
+
+  <h3>Что это такое, если совсем просто</h3>
+  <div class="measure">
+    <p>ChatGPT&nbsp;— это программа-собеседник. Вы пишете или говорите ей обычными словами, а&nbsp;она отвечает: объясняет, пишет тексты, считает, разбирает документы и&nbsp;фотографии, рисует картинки.</p>
+    <p>Внутри у&nbsp;ChatGPT&nbsp;— <button class="term" data-term="model">языковая модель</button>. Её обучили на&nbsp;огромном количестве текстов: книгах, статьях, сайтах. Поэтому она хорошо пишет и&nbsp;много знает. Но&nbsp;это не&nbsp;человек и&nbsp;не&nbsp;справочник: ответ не&nbsp;достаётся с&nbsp;полки готовым, а&nbsp;каждый раз составляется заново, слово за&nbsp;словом. Отсюда и&nbsp;сильная сторона&nbsp;— гибкость, и&nbsp;слабая&nbsp;— ИИ может уверенно сочинить неправду.</p>
+    <p>Ваше сообщение для ChatGPT называют <button class="term" data-term="prompt">промптом</button> (от&nbsp;английского prompt&nbsp;— «подсказка», «задание»). Это слово будет часто встречаться дальше.</p>
+  </div>
+  <p class="note">Представьте очень начитанного стажёра в&nbsp;первый рабочий день. Он знает много, но&nbsp;не&nbsp;знает <b>ничего про вас</b>: ни ваших клиентов, ни ваш огород. Всё, что ему нужно, придётся рассказать.</p>
+
+  <h3>Что где находится на&nbsp;экране ChatGPT</h3>
+  <p class="measure">Нажимайте на&nbsp;жёлтые номера или на&nbsp;кнопку «Дальше». Это упрощённая схема: в&nbsp;настоящем ChatGPT кнопки могут выглядеть немного иначе, потому что его часто обновляют. На&nbsp;телефоне боковая панель прячется за&nbsp;кнопкой в&nbsp;левом верхнем углу.</p>
+  <div class="widget" id="tour">
+    <h4>Экскурсия по&nbsp;экрану</h4>
+    <div class="mock" aria-label="Схема экрана ChatGPT">
+      <div class="mock-side">
+        <button class="m-el" data-step="6" type="button"><svg class="i ic" aria-hidden="true"><use href="#i-new"/></svg>Новый чат<span class="hs">7</span></button>
+        <button class="m-el" data-step="7" type="button"><svg class="i ic" aria-hidden="true"><use href="#i-search"/></svg>Поиск чатов<span class="hs">8</span></button>
+        <button class="m-el" data-step="8" type="button"><svg class="i ic" aria-hidden="true"><use href="#i-folder"/></svg>Проекты<span class="hs">9</span></button>
+        <button class="m-el" data-step="9" type="button"><svg class="i ic" aria-hidden="true"><use href="#i-image"/></svg>Картинки и&nbsp;библиотека<span class="hs">10</span></button>
+        <div class="mock-sub">Недавние чаты</div>
+        <div class="mock-chat">Розы осенью</div>
+        <div class="mock-chat">Письмо клиенту</div>
+        <div class="mock-chat">Игры на&nbsp;прогулке</div>
+        <div style="flex:1"></div>
+        <button class="m-el" data-step="10" type="button"><svg class="i ic" aria-hidden="true"><use href="#i-user"/></svg>Профиль и&nbsp;настройки<span class="hs">11</span></button>
+      </div>
+      <div class="mock-main">
+        <div class="mock-top">
+          <b>ChatGPT</b>
+          <button class="m-el" data-step="4" type="button">Режим: быстрый<span class="hs">5</span></button>
+        </div>
+        <div class="mock-body">
+          <div class="mock-user">Как подготовить розы к&nbsp;зиме?</div>
+          <div class="mock-lines"><i style="width:94%"></i><i style="width:88%"></i><i style="width:70%"></i><i style="width:82%"></i></div>
+          <div class="mock-actions"><button class="m-el" data-step="5" type="button" aria-label="Кнопки под ответом"><svg class="i" aria-hidden="true"><use href="#i-copy"/></svg><svg class="i" aria-hidden="true"><use href="#i-regen"/></svg><svg class="i" aria-hidden="true"><use href="#i-up"/></svg><svg class="i" aria-hidden="true"><use href="#i-down"/></svg><span class="hs">6</span></button></div>
+        </div>
+        <div class="mock-composer">
+          <button class="m-el round" data-step="1" type="button" aria-label="Кнопка плюс"><svg class="i" aria-hidden="true"><use href="#i-plus"/></svg><span class="hs">2</span></button>
+          <button class="m-el ph" data-step="0" type="button">Спросите что-нибудь<span class="hs">1</span></button>
+          <button class="m-el round" data-step="2" type="button" aria-label="Микрофон"><svg class="i" aria-hidden="true"><use href="#i-mic"/></svg><span class="hs">3</span></button>
+          <button class="m-el round voice" data-step="3" type="button" aria-label="Голосовой режим"><svg class="i" aria-hidden="true"><use href="#i-wave"/></svg><span class="hs">4</span></button>
+        </div>
+      </div>
+    </div>
+    <div class="tour-panel" aria-live="polite">
+      <h4 id="tourTitle"></h4>
+      <p id="tourText" style="margin:4px 0 0"></p>
+      <div class="tour-nav">
+        <button class="btn small quiet" id="tourPrev" type="button">Назад</button>
+        <button class="btn small" id="tourNext" type="button">Дальше</button>
+        <span class="pos" id="tourPos"></span>
+      </div>
+    </div>
+  </div>
+
+  <h3>Что ChatGPT умеет, а&nbsp;что ему лучше не&nbsp;доверять</h3>
+  <p class="measure">Прежде чем читать подсказки, попробуйте угадать сами. Для каждой задачи выберите вариант.</p>
+  <div class="widget" id="sortGame">
+    <h4>Поможет или нет?</h4>
+    <p class="hint">«Поможет»&nbsp;— смело пользуйтесь. «Проверяйте»&nbsp;— полезно, но&nbsp;результат нужно сверить. «Не&nbsp;доверяйте»&nbsp;— решает человек или специалист.</p>
+    <div class="sort-list" id="sortList"></div>
+    <div class="score-line" id="sortScore" aria-live="polite"></div>
+  </div>
+
+  <div class="tasks" data-level="1">
+    <div class="tasks-head"><h3>Задания</h3><span class="cnt" data-cnt="1"></span></div>
+
+    <article class="task" data-id="1.1" data-tag="gen" data-title="Первый привет">
+      <p>Откройте ChatGPT и&nbsp;отправьте это сообщение. Можно скопировать кнопкой.</p>
+      <div class="prompt">Привет! Я впервые пользуюсь ChatGPT. Объясни простыми словами, что ты умеешь, и&nbsp;приведи 3 примера, чем ты можешь помочь в&nbsp;обычной жизни.</div>
+      <p class="look"><b>Что заметить:</b> под ответом есть кнопки. Одна копирует текст, другая просит ответить заново.</p>
+    </article>
+
+    <article class="task" data-id="1.2" data-tag="gen" data-title="Расскажите о себе и получите идеи">
+      <p>В&nbsp;том же чате напишите о&nbsp;своих занятиях. Это первый шаг к&nbsp;главному навыку&nbsp;— давать ИИ контекст.</p>
+      <div class="prompt">Я главный бухгалтер на&nbsp;аутсорсе в&nbsp;России, ещё работаю социальной няней, а&nbsp;в&nbsp;свободное время занимаюсь домом в&nbsp;деревне и&nbsp;огородом. Предложи по&nbsp;5 идей, как ты можешь помочь мне в&nbsp;каждой из&nbsp;этих сфер. Оформи тремя списками с&nbsp;короткими пояснениями.</div>
+      <p class="look"><b>Что заметить:</b> какие идеи вам откликнулись? Выпишите <span class="nw">2–3</span>&nbsp;— к&nbsp;ним мы вернёмся в&nbsp;следующих занятиях.</p>
+    </article>
+
+    <article class="task" data-id="1.3" data-tag="gen" data-title="Поговорите голосом">
+      <p>Нажмите значок микрофона и&nbsp;продиктуйте вопрос&nbsp;— ChatGPT превратит речь в&nbsp;текст. Затем нажмите кнопку справа от&nbsp;микрофона&nbsp;— это голосовой режим, живой разговор, как по&nbsp;телефону.</p>
+      <div class="prompt">Расскажи, как ухаживать за&nbsp;комнатными цветами зимой, когда в&nbsp;квартире сухо от&nbsp;батарей.</div>
+      <p class="look"><b>Что заметить:</b> в&nbsp;голосовом режиме ChatGPT можно перебить на&nbsp;полуслове и&nbsp;уточнить: «Подожди, а&nbsp;если это фиалки?» Он подстроится.</p>
+    </article>
+
+    <article class="task" data-id="1.4" data-tag="gen" data-title="Новый чат&nbsp;— чистый лист">
+      <p>Нажмите «Новый чат» и&nbsp;спросите:</p>
+      <div class="prompt">О&nbsp;чём мы разговаривали в&nbsp;прошлом чате?</div>
+      <p class="look"><b>Что заметить:</b> в&nbsp;зависимости от&nbsp;настроек <button class="term" data-term="memory">памяти</button> ChatGPT может не&nbsp;помнить ничего или помнить лишь отдельные факты. Вывод: <mark class="hl">новая тема&nbsp;— новый чат</mark>, а&nbsp;важные детали лучше повторять или хранить в&nbsp;проекте. О&nbsp;проектах&nbsp;— в&nbsp;четвёртом занятии.</p>
+    </article>
+
+    <article class="task" data-id="1.5" data-tag="home" data-title="Попросите ответить ещё раз">
+      <p>Задайте вопрос, а&nbsp;потом нажмите под ответом кнопку повтора&nbsp;— значок в&nbsp;виде круглой стрелки.</p>
+      <div class="prompt">Придумай 3 названия для семейного чата, где мы обсуждаем дом в&nbsp;деревне и&nbsp;огород.</div>
+      <p class="look"><b>Что заметить:</b> второй ответ отличается от&nbsp;первого. Это нормально: ИИ каждый раз сочиняет заново. Если ответ не&nbsp;понравился&nbsp;— просто попросите ещё.</p>
+    </article>
+  </div>
+
+  <div class="quiz" data-quiz="1"></div>
+</section>
+
+<!-- ====================== УРОВЕНЬ 2 ====================== -->
+<section class="sheet level" id="level2" data-level="2">
+  <div class="level-head">
+    <div class="level-num" style="--ps:var(--leaf);--pf:#BFE0C8"><svg><use href="#pl2"/></svg><b>2</b></div>
+    <div>
+      <div class="level-meta">Занятие 2 из&nbsp;6</div>
+      <h2>Как «думает» ИИ: почему он ошибается и&nbsp;что ему нужно знать</h2>
+    </div>
+  </div>
+  <div class="goal measure">
+    <strong>После этого занятия вы:</strong>
+    <ul>
+      <li>понимаете, почему ИИ иногда уверенно ошибается;</li>
+      <li>видите, как контекст меняет ответ;</li>
+      <li>знаете, что происходит с&nbsp;вашими данными и&nbsp;какие из&nbsp;них нельзя отправлять.</li>
+    </ul>
+  </div>
+
+  <h3>Начитанный, но&nbsp;не&nbsp;всезнающий</h3>
+  <div class="measure">
+    <p>У&nbsp;ChatGPT есть два слабых места, о&nbsp;которых важно помнить всегда.</p>
+    <p><b>Знания могут устареть.</b> Модель учили на&nbsp;текстах, собранных до&nbsp;определённого момента. О&nbsp;том, что случилось позже, она узнаёт, только если поищет в&nbsp;интернете. Для свежих новостей и&nbsp;изменений в&nbsp;законах прямо попросите: «Найди в&nbsp;интернете и&nbsp;дай ссылки на&nbsp;источники».</p>
+    <p><b>Иногда ИИ выдумывает.</b> Он может назвать несуществующий номер закона, неверную цифру или ссылку. Это называют <button class="term" data-term="halluc">галлюцинацией</button>. ИИ не&nbsp;обманывает специально: он составляет правдоподобный текст, а&nbsp;правдоподобно&nbsp;— не&nbsp;всегда значит правильно. <mark class="hl">Уверенный тон ничего не&nbsp;гарантирует.</mark></p>
+  </div>
+
+  <div class="widget" id="findError">
+    <h4>Найдите, где ИИ ошибся</h4>
+    <p class="hint">Представьте: вы спросили ChatGPT без поиска в&nbsp;интернете. Нажмите на&nbsp;утверждение, которое, по-вашему, неверно.</p>
+    <div class="bubble user"><span class="who">Вы</span>Какая основная ставка НДС в&nbsp;России в&nbsp;2026 году?</div>
+    <div class="claims bubble ai" style="max-width:100%"><span class="who">ChatGPT</span>
+      <button class="claim" data-ok="0" type="button">Основная ставка НДС в&nbsp;России составляет 20% (статья 164 Налогового кодекса).</button>
+      <button class="claim" data-ok="1" type="button">Для многих продуктов питания и&nbsp;детских товаров действует льготная ставка 10%.</button>
+      <button class="claim" data-ok="1" type="button">При экспорте товаров применяется ставка 0%.</button>
+    </div>
+    <div class="claim-fb" id="claimFb" aria-live="polite"></div>
+  </div>
+
+  <h3>Контекст решает всё</h3>
+  <p class="measure">ИИ не&nbsp;видит вашу грядку, вашего клиента или ребёнка, с&nbsp;которым вы занимаетесь. Он знает только то, что вы написали. Подвигайте ползунок и&nbsp;посмотрите, как меняется ответ, когда вы рассказываете больше.</p>
+  <div class="widget" id="ctxSlider">
+    <h4>Один вопрос&nbsp;— пять ответов</h4>
+    <div class="range-wrap">
+      <label for="ctxRange" class="visually-hidden">Сколько деталей вы сообщили</label>
+      <input type="range" id="ctxRange" min="0" max="4" step="1" value="0">
+      <div class="range-labels"><span>Только вопрос</span><span>Много деталей</span></div>
+    </div>
+    <div class="bubble user"><span class="who">Вы</span><span id="ctxQ"></span><div class="facts" id="ctxFacts"></div></div>
+    <div class="bubble ai fade-in" id="ctxA" style="max-width:100%"></div>
+    <div class="meter">
+      <div class="meter-top"><span>Насколько ответ подходит именно вам</span><span id="ctxPct">10%</span></div>
+      <div class="meter-bar"><i id="ctxBar"></i></div>
+    </div>
+  </div>
+
+  <h3>Почему на&nbsp;один вопрос приходят разные ответы</h3>
+  <p class="measure">Каждый раз ChatGPT сочиняет ответ заново, поэтому формулировки меняются. Если первый вариант не&nbsp;понравился, это не&nbsp;приговор: попросите ещё или нажмите кнопку повтора.</p>
+  <div class="widget" id="regen">
+    <h4>Попросите ещё вариант</h4>
+    <div class="bubble user"><span class="who">Вы</span>Придумай короткую подпись к&nbsp;фото урожая кабачков для семейного чата.</div>
+    <div class="bubble ai fade-in" id="regenA" style="max-width:100%"></div>
+    <button class="btn small quiet" id="regenBtn" type="button">Ответить заново</button>
+  </div>
+
+  <h3>Память: что ChatGPT помнит, а&nbsp;что нет</h3>
+  <div class="measure">
+    <p><b>Внутри одного чата</b> ChatGPT помнит всё, о&nbsp;чём вы говорили. Но&nbsp;в&nbsp;очень длинном разговоре начало может «забываться». Тогда лучше начать новый чат и&nbsp;в&nbsp;двух-трёх предложениях пересказать главное.</p>
+    <p><b>Между чатами</b> работает функция <button class="term" data-term="memory">памяти</button>: ChatGPT может запоминать факты о&nbsp;вас, например что вы бухгалтер, и&nbsp;учитывать их. Что именно он запомнил, можно посмотреть, исправить или удалить в&nbsp;настройках, в&nbsp;разделе персонализации.</p>
+    <p><b>Если разговор не&nbsp;должен запоминаться</b>, откройте <button class="term" data-term="temp">временный чат</button>. Он не&nbsp;попадёт в&nbsp;историю и&nbsp;не&nbsp;пополнит память.</p>
+  </div>
+
+  <h3>Ваши данные: правило светофора</h3>
+  <div class="measure">
+    <p>Всё, что вы отправляете в&nbsp;ChatGPT, уходит на&nbsp;серверы компании за&nbsp;рубежом. Для ваших личных вопросов это не&nbsp;страшно. Но&nbsp;данные клиентов и&nbsp;подопечных&nbsp;— это чужие <button class="term" data-term="pd">персональные данные</button>, а&nbsp;закон о&nbsp;персональных данных (<span class="nw">152-ФЗ</span>) строго регулирует, где и&nbsp;как их можно обрабатывать. Безопаснее всего вообще не&nbsp;отправлять их в&nbsp;зарубежные сервисы.</p>
+  </div>
+  <div class="lights">
+    <div class="light g"><h4>Можно</h4><p>Общие вопросы, законы и&nbsp;статьи, шаблоны без реквизитов, ваши планы по&nbsp;дому и&nbsp;саду, фото вашего участка, описание ребёнка без имени: «мальчик 6&nbsp;лет, любит динозавров».</p></div>
+    <div class="light y"><h4>Сначала обезличьте</h4><p>Документы клиентов: выписки, акты сверки, договоры, требования ФНС. Уберите ФИО, ИНН, названия, счета, адреса и&nbsp;телефоны. Как это сделать&nbsp;— в&nbsp;четвёртом занятии.</p></div>
+    <div class="light r"><h4>Нельзя</h4><p>Паспорта, СНИЛС, банковские карты, пароли и&nbsp;доступы к&nbsp;банк-клиенту, 1С и&nbsp;личным кабинетам, фото детей и&nbsp;их документов, сведения о&nbsp;здоровье конкретных людей.</p></div>
+  </div>
+  <div class="widget" id="lightsGame">
+    <h4>Разложите по&nbsp;цветам</h4>
+    <p class="hint">Для каждого случая выберите сигнал светофора.</p>
+    <div class="sort-list" id="lightsList"></div>
+    <div class="score-line" id="lightsScore" aria-live="polite"></div>
+  </div>
+  <p class="note">Даже если вы отключили в&nbsp;настройках улучшение модели на&nbsp;ваших данных, <b>правило светофора остаётся</b>. Отключение касается обучения, а&nbsp;данные всё равно уходят на&nbsp;чужой сервер.</p>
+
+  <div class="tasks" data-level="2">
+    <div class="tasks-head"><h3>Задания</h3><span class="cnt" data-cnt="2"></span></div>
+
+    <article class="task" data-id="2.1" data-tag="gen" data-title="Спросите ИИ о его слабостях">
+      <div class="prompt">Какие у&nbsp;тебя ограничения? В&nbsp;каких вопросах тебе нельзя доверять без проверки? Ответь честно и&nbsp;кратко, списком.</div>
+      <p class="look"><b>Что заметить:</b> совпадает ли его список с&nbsp;тем, что вы прочитали выше? Обычно ИИ сам честно называет свои слабые места&nbsp;— если его спросить.</p>
+    </article>
+
+    <article class="task" data-id="2.2" data-tag="acc" data-title="Проверьте свежесть знаний">
+      <div class="prompt">Какая основная ставка НДС действует в&nbsp;России в&nbsp;2026 году и&nbsp;каким законом она установлена? Найди в&nbsp;интернете и&nbsp;дай ссылки на&nbsp;источники.</div>
+      <p>Откройте хотя бы одну ссылку из&nbsp;ответа. Затем сверьтесь с&nbsp;КонсультантПлюс, Гарантом или сайтом ФНС.</p>
+      <p class="look"><b>Что заметить:</b> есть ли в&nbsp;ответе ссылки? Открываются ли они? Совпадает ли написанное там с&nbsp;тем, что сказал ChatGPT?</p>
+    </article>
+
+    <article class="task" data-id="2.3" data-tag="home" data-title="Сравните ответ без контекста и с контекстом">
+      <p>В&nbsp;новом чате спросите просто: «Что посадить на&nbsp;грядке?» Затем откройте ещё один новый чат и&nbsp;задайте тот же вопрос, но&nbsp;добавьте <span class="nw">3–4</span> факта о&nbsp;своём участке.</p>
+      <div class="prompt">Что посадить на&nbsp;грядке? Я живу в&nbsp;[ваш регион]. Грядка [размер], солнце [сколько часов в&nbsp;день]. На&nbsp;участке бываю [как часто]. Семья любит [что любите есть].</div>
+      <p class="look"><b>Что заметить:</b> насколько второй ответ полезнее первого? Какие детали сработали сильнее всего?</p>
+    </article>
+
+    <article class="task" data-id="2.4" data-tag="nanny" data-title="Один вопрос для разных слушателей">
+      <p>Попросите объяснить одно и&nbsp;то же двум разным людям. Отправьте сообщения по&nbsp;очереди в&nbsp;одном чате.</p>
+      <div class="prompt">Объясни ребёнку 6&nbsp;лет, почему осенью листья желтеют и&nbsp;опадают. <span class="nw">3–4</span> предложения, как будто рассказываешь на&nbsp;прогулке.</div>
+      <div class="prompt">А&nbsp;теперь объясни то же самое взрослому человеку, научно, в&nbsp;5 предложениях.</div>
+      <p class="look"><b>Что заметить:</b> одна фраза «для кого» полностью меняет ответ. Это тоже контекст.</p>
+    </article>
+
+    <article class="task" data-id="2.5" data-tag="gen" data-title="Загляните в память и во временный чат">
+      <p>Откройте настройки, найдите раздел персонализации и&nbsp;память. Посмотрите, что ChatGPT уже запомнил о&nbsp;вас. Потом создайте временный чат&nbsp;— обычно это значок вверху экрана&nbsp;— и&nbsp;спросите в&nbsp;нём: «Что ты обо мне знаешь?»</p>
+      <p class="look"><b>Что заметить:</b> во&nbsp;временном чате ChatGPT ничего о&nbsp;вас не&nbsp;помнит. Такой чат удобен для разовых вопросов, которые не&nbsp;нужно сохранять.</p>
+    </article>
+  </div>
+
+  <div class="quiz" data-quiz="2"></div>
+</section>
+
+<!-- ====================== УРОВЕНЬ 3 ====================== -->
+<section class="sheet level" id="level3" data-level="3">
+  <div class="level-head">
+    <div class="level-num" style="--ps:var(--leaf);--pf:#BFE0C8"><svg><use href="#pl3"/></svg><b>3</b></div>
+    <div>
+      <div class="level-meta">Занятие 3 из&nbsp;6</div>
+      <h2>Как ставить задачу, чтобы ИИ понял с&nbsp;первого раза</h2>
+    </div>
+  </div>
+  <div class="goal measure">
+    <strong>После этого занятия вы:</strong>
+    <ul>
+      <li>составляете запрос из&nbsp;пяти частей;</li>
+      <li>доводите ответ до&nbsp;нужного вида короткими уточнениями;</li>
+      <li>настроили ChatGPT под себя и&nbsp;собрали первые шаблоны.</li>
+    </ul>
+  </div>
+
+  <div class="measure">
+    <p>Вспомните, как вы даёте поручение новой помощнице. Скажете «Подготовь отчёт»&nbsp;— получите что-то. Скажете, для кого отчёт, за&nbsp;какой период, в&nbsp;каком виде и&nbsp;к&nbsp;какому сроку,&nbsp;— получите ровно то, что нужно. С&nbsp;ChatGPT всё точно так же.</p>
+  </div>
+
+  <h3>Поручение из&nbsp;пяти частей</h3>
+  <div class="formula">
+    <div class="f-part" style="--c:var(--p-role);--s:var(--p-role-soft)"><div class="n">1</div><p class="q">Кем быть?</p><h4>Роль</h4><p>«Ты опытный главный бухгалтер», «Ты агроном из&nbsp;средней полосы».</p></div>
+    <div class="f-part" style="--c:var(--p-ctx);--s:var(--p-ctx-soft)"><div class="n">2</div><p class="q">Что происходит?</p><h4>Контекст</h4><p>Кто вы, для кого результат, какие обстоятельства и&nbsp;условия.</p></div>
+    <div class="f-part" style="--c:var(--p-task);--s:var(--p-task-soft)"><div class="n">3</div><p class="q">Что сделать?</p><h4>Задача</h4><p>Одно главное действие: написать, объяснить, составить, сравнить.</p></div>
+    <div class="f-part" style="--c:var(--p-fmt);--s:var(--p-fmt-soft)"><div class="n">4</div><p class="q">Как оформить?</p><h4>Формат</h4><p>Письмо, таблица, список, план по&nbsp;шагам. Длина и&nbsp;тон.</p></div>
+    <div class="f-part" style="--c:var(--p-lim);--s:var(--p-lim-soft)"><div class="n">5</div><p class="q">Чего избегать?</p><h4>Ограничения</h4><p>«Без терминов», «не&nbsp;больше 150 слов», «бюджет до&nbsp;100&nbsp;тысяч».</p></div>
+  </div>
+  <div class="measure">
+    <p>Не&nbsp;обязательно каждый раз писать все пять частей. Для простого вопроса хватит задачи. <mark class="hl">Чем важнее результат, тем больше частей.</mark> Самые важные&nbsp;— контекст и&nbsp;задача: роль помогает, но&nbsp;без контекста даже «опытный бухгалтер» ответит общими словами.</p>
+  </div>
+
+  <div class="widget" id="builder">
+    <h4>Конструктор поручения</h4>
+    <p class="hint">Выберите ситуацию и&nbsp;включайте части по&nbsp;одной. Рядом появится примерный ответ, который вы получите.</p>
+    <div class="tabs" role="tablist" id="bTabs"></div>
+    <div class="parts" id="bParts"></div>
+    <div class="builder-grid">
+      <div>
+        <div class="col-title"><span>Ваш запрос</span><button class="copy-btn" id="bCopy" type="button">Копировать</button></div>
+        <div class="assembled" id="bPrompt"></div>
+        <div class="meter">
+          <div class="meter-top"><span>Насколько точно ИИ поймёт задачу</span><span id="bPct"></span></div>
+          <div class="meter-bar"><i id="bBar"></i></div>
+        </div>
+        <ul class="missing" id="bMissing"></ul>
+      </div>
+      <div>
+        <div class="col-title"><span>Примерный ответ</span></div>
+        <div class="bubble ai fade-in" id="bAnswer" style="max-width:100%; margin:0"></div>
+      </div>
+    </div>
+  </div>
+
+  <h3>До&nbsp;и&nbsp;после: один и&nbsp;тот же вопрос</h3>
+  <div class="widget" id="beforeAfterText">
+    <div class="toggle2" role="group" aria-label="Выберите вариант запроса">
+      <button type="button" aria-pressed="true" data-v="0">Короткий вопрос</button>
+      <button type="button" aria-pressed="false" data-v="1">Поручение из&nbsp;пяти частей</button>
+    </div>
+    <div id="batBox"></div>
+  </div>
+
+  <h3>Первый ответ&nbsp;— черновик: уточняйте</h3>
+  <p class="measure">Не&nbsp;переписывайте запрос с&nbsp;нуля, если ответ почти подошёл. Достаточно короткой просьбы в&nbsp;том же чате. Нажимайте на&nbsp;уточнения и&nbsp;смотрите, как меняется текст.</p>
+  <div class="widget" id="refine">
+    <h4>Письмо клиенту о&nbsp;расхождении в&nbsp;сверке</h4>
+    <div class="chat-demo" id="refineChat"></div>
+    <div class="seg" id="refineChips" style="margin-top:12px"></div>
+  </div>
+
+  <h3>Шесть приёмов, которые сильно улучшают ответы</h3>
+  <div class="rules">
+    <div class="rule"><h4>1. «Сначала спроси меня»</h4><p>Лучший приём для начинающих. Добавьте: «Прежде чем отвечать, задай мне 5 уточняющих вопросов». ИИ сам выяснит, чего не&nbsp;хватает.</p></div>
+    <div class="rule"><h4>2. Покажите образец</h4><p>«Вот письмо, которое мне нравится: […]. Напиши новое в&nbsp;таком же стиле». Пример работает лучше долгих объяснений.</p></div>
+    <div class="rule"><h4>3. Разбейте на&nbsp;шаги</h4><p>«Давай по&nbsp;шагам. Сначала составь список этапов ремонта, потом разберём каждый». Большую задачу проще решать частями.</p></div>
+    <div class="rule"><h4>4. Попросите варианты</h4><p>«Дай 3 варианта: строгий, тёплый и&nbsp;совсем короткий». Из&nbsp;трёх проще выбрать или собрать один свой.</p></div>
+    <div class="rule"><h4>5. Попросите себя проверить</h4><p>«Перечитай ответ и&nbsp;отметь, в&nbsp;чём ты не&nbsp;уверен и&nbsp;что мне нужно перепроверить».</p></div>
+    <div class="rule"><h4>6. Попросите помочь с&nbsp;запросом</h4><p>«Я хочу спланировать огород. Помоги составить хороший запрос к&nbsp;тебе: какие детали тебе нужны?»</p></div>
+  </div>
+
+  <h3>Настройте ChatGPT под себя</h3>
+  <div class="measure">
+    <p>Чтобы не&nbsp;рассказывать о&nbsp;себе в&nbsp;каждом чате, заполните персонализацию. В&nbsp;настройках ChatGPT есть раздел, где можно написать, кто вы и&nbsp;каким должен быть ответ. Эти сведения ChatGPT учитывает во&nbsp;всех разговорах. Соберите текст в&nbsp;конструкторе, скопируйте и&nbsp;вставьте в&nbsp;настройки.</p>
+  </div>
+  <div class="widget" id="ciBuilder">
+    <h4>Конструктор «Расскажите о&nbsp;себе»</h4>
+    <div class="form-grid">
+      <div class="field"><label for="ciName">Как к&nbsp;вам обращаться</label><input class="inp" id="ciName" placeholder="Например: Анна Сергеевна"></div>
+      <div class="field"><label for="ciRegion">Где дом и&nbsp;огород</label><input class="inp" id="ciRegion" placeholder="Например: средняя полоса"></div>
+      <div class="field full"><label>Чем вы занимаетесь</label>
+        <div class="checks">
+          <label><input type="checkbox" data-ci="acc" checked> Главный бухгалтер на&nbsp;аутсорсе, веду несколько компаний в&nbsp;России</label>
+          <label><input type="checkbox" data-ci="nanny" checked> Работаю социальной няней</label>
+          <label><input type="checkbox" data-ci="home" checked> Ремонтирую дом в&nbsp;деревне и&nbsp;занимаюсь огородом и&nbsp;цветами</label>
+        </div>
+      </div>
+      <div class="field full"><label>Как отвечать</label>
+        <div class="checks">
+          <label><input type="checkbox" data-cs="simple" checked> Простым языком, термины объяснять</label>
+          <label><input type="checkbox" data-cs="short" checked> Сначала короткий вывод, потом подробности</label>
+          <label><input type="checkbox" data-cs="unsure" checked> Честно говорить, в&nbsp;чём не&nbsp;уверен</label>
+          <label><input type="checkbox" data-cs="sources" checked> Для законов, налогов и&nbsp;цифр давать ссылки на&nbsp;официальные источники</label>
+          <label><input type="checkbox" data-cs="ask"> Если не&nbsp;хватает данных, сначала задавать уточняющие вопросы</label>
+          <label><input type="checkbox" data-cs="noemoji"> Без смайликов</label>
+        </div>
+      </div>
+    </div>
+    <div class="col-title" style="margin-top:14px"><span>Готовый текст для настроек</span><button class="copy-btn" id="ciCopy" type="button">Копировать</button></div>
+    <div class="gen-out" id="ciOut"></div>
+  </div>
+
+  <h3>Библиотека готовых запросов</h3>
+  <p class="measure">Копируйте и&nbsp;меняйте то, что в&nbsp;квадратных скобках. Со&nbsp;временем сохраняйте в&nbsp;заметках свои удачные запросы&nbsp;— это ваша личная библиотека.</p>
+  <div class="widget" id="library">
+    <div class="tabs" role="tablist" id="libTabs"></div>
+    <div id="libPanel"></div>
+  </div>
+
+  <div class="tasks" data-level="3">
+    <div class="tasks-head"><h3>Задания</h3><span class="cnt" data-cnt="3"></span></div>
+
+    <article class="task" data-id="3.1" data-tag="gen" data-title="«Сначала спроси меня»">
+      <div class="prompt">Я хочу спокойно спланировать следующую неделю: работа, подработка няней и&nbsp;дела по&nbsp;дому. Прежде чем что-то предлагать, задай мне 5 уточняющих вопросов. Задавай их по&nbsp;одному.</div>
+      <p class="look"><b>Что заметить:</b> какие вопросы задал ИИ? Итоговый план получается точнее, потому что вы вместе собрали контекст.</p>
+    </article>
+
+    <article class="task" data-id="3.2" data-tag="acc" data-title="Письмо клиенту из пяти частей">
+      <p>Возьмите реальную рабочую ситуацию, уберите из&nbsp;неё имена и&nbsp;названия и&nbsp;составьте запрос по&nbsp;формуле. Можно начать с&nbsp;варианта из&nbsp;конструктора выше. Затем уточните ответ минимум два раза: например, «короче» и&nbsp;«теплее».</p>
+      <p class="look"><b>Что заметить:</b> сколько уточнений понадобилось? Какое из&nbsp;них сработало лучше всего?</p>
+    </article>
+
+    <article class="task" data-id="3.3" data-tag="nanny" data-title="План занятий на день">
+      <div class="prompt">Ты опытный педагог. Я социальная няня, провожу с&nbsp;ребёнком [возраст] лет [сколько] часов. Он любит [интересы], быстро устаёт от&nbsp;[чего]. Дома есть [материалы]. Составь план занятий на&nbsp;это время: игры, которые развивают речь и&nbsp;внимание. Таблицей: время, занятие, что понадобится. Без гаджетов, каждое занятие не&nbsp;дольше 20&nbsp;минут.</div>
+      <p class="look"><b>Что заметить:</b> в&nbsp;запросе нет имени и&nbsp;диагнозов&nbsp;— только возраст и&nbsp;интересы. Этого ИИ достаточно.</p>
+    </article>
+
+    <article class="task" data-id="3.4" data-tag="home" data-title="Порядок ремонта по этапам">
+      <div class="prompt">Ты опытный прораб. У&nbsp;меня [деревянный / кирпичный] дом [размер] в&nbsp;деревне, [год постройки или состояние]. Хочу: [список работ]. Составь порядок работ по&nbsp;этапам с&nbsp;учётом сезона. Таблицей: этап, что делаем, когда лучше, сама или с&nbsp;мастером. Если чего-то не&nbsp;хватает для точного плана&nbsp;— сначала спроси.</div>
+      <p class="look"><b>Что заметить:</b> задал ли ИИ вопросы? Есть ли в&nbsp;плане этапы, о&nbsp;которых вы не&nbsp;подумали?</p>
+    </article>
+
+    <article class="task" data-id="3.5" data-tag="gen" data-title="Настройте персонализацию">
+      <p>Соберите текст в&nbsp;конструкторе «Расскажите о&nbsp;себе», скопируйте его и&nbsp;вставьте в&nbsp;настройки ChatGPT, в&nbsp;раздел персонализации. Затем откройте новый чат и&nbsp;спросите:</p>
+      <div class="prompt">Что ты знаешь обо мне и&nbsp;как будешь мне отвечать?</div>
+      <p class="look"><b>Что заметить:</b> ChatGPT перечислит ваши настройки. Если что-то не&nbsp;так&nbsp;— поправьте текст.</p>
+    </article>
+  </div>
+
+  <div class="quiz" data-quiz="3"></div>
+</section>
+
+<!-- ====================== УРОВЕНЬ 4 ====================== -->
+<section class="sheet level" id="level4" data-level="4">
+  <div class="level-head">
+    <div class="level-num" style="--ps:var(--leaf);--pf:#BFE0C8;--bl:#F2B8C6"><svg><use href="#pl4"/></svg><b>4</b></div>
+    <div>
+      <div class="level-meta">Занятие 4 из&nbsp;6</div>
+      <h2>Файлы и&nbsp;фото: ChatGPT читает, считает и&nbsp;смотрит</h2>
+    </div>
+  </div>
+  <div class="goal measure">
+    <strong>После этого занятия вы:</strong>
+    <ul>
+      <li>загружаете документы, таблицы и&nbsp;фотографии и&nbsp;знаете, что с&nbsp;ними просить;</li>
+      <li>умеете обезличивать документы перед отправкой;</li>
+      <li>создали свой первый проект&nbsp;— папку с&nbsp;памятью для большой темы.</li>
+    </ul>
+  </div>
+
+  <h3>Что можно загрузить</h3>
+  <div class="measure">
+    <p>ChatGPT понимает почти все привычные файлы: PDF, Word, Excel и&nbsp;CSV, презентации, фотографии, сканы и&nbsp;скриншоты. За&nbsp;один раз можно прикрепить несколько файлов. Он умеет читать текст, считать по&nbsp;таблицам, строить графики и&nbsp;рассматривать изображения. На&nbsp;бесплатном тарифе количество загрузок в&nbsp;день ограничено.</p>
+    <p>Загруженные файлы сохраняются в&nbsp;библиотеке&nbsp;— к&nbsp;ним можно вернуться в&nbsp;другом чате, не&nbsp;загружая заново.</p>
+  </div>
+  <ol class="steps-list measure">
+    <li><b>Подготовьте файл.</b> Если в&nbsp;нём есть чужие данные&nbsp;— обезличьте (тренажёр ниже).</li>
+    <li><b>Прикрепите.</b> Нажмите «+» рядом с&nbsp;полем ввода и&nbsp;выберите файл или фото. На&nbsp;компьютере файл можно просто перетащить в&nbsp;окно чата.</li>
+    <li><b>Объясните, что это и&nbsp;что сделать.</b> Главная ошибка&nbsp;— отправить файл без пояснения. Напишите, что за&nbsp;документ, зачем он вам и&nbsp;что именно в&nbsp;нём найти.</li>
+    <li><b>Проверьте по&nbsp;оригиналу.</b> Попросите указать страницу или строку, сверьте две-три цифры сами.</li>
+  </ol>
+
+  <div class="widget" id="docTabs">
+    <h4>Что просить у&nbsp;разных файлов</h4>
+    <div class="tabs" role="tablist" id="dTabs"></div>
+    <div id="dPanel"></div>
+  </div>
+
+  <h3>Тренажёр: обезличиваем документ</h3>
+  <div class="measure">
+    <p>Прежде чем загрузить документ клиента, замените всё, по&nbsp;чему можно узнать человека или компанию. В&nbsp;Word для этого есть «Найти и&nbsp;заменить». Попробуйте, как это выглядит, на&nbsp;выдуманном примере&nbsp;— или вставьте свой текст.</p>
+  </div>
+  <div class="widget" id="anon">
+    <h4>Обезличиватель</h4>
+    <p class="hint">Проверка работает прямо на&nbsp;этой странице&nbsp;— текст никуда не&nbsp;отправляется. Но&nbsp;она не&nbsp;идеальна: имена без отчества, адреса и&nbsp;названия без кавычек обязательно проверьте глазами.</p>
+    <label for="anonIn" class="visually-hidden">Текст для обезличивания</label>
+    <textarea class="inp" id="anonIn"></textarea>
+    <div class="row-btns">
+      <button class="btn small" id="anonGo" type="button">Обезличить</button>
+      <button class="btn small quiet" id="anonSample" type="button">Вернуть пример</button>
+      <button class="btn small quiet" id="anonClear" type="button">Очистить, чтобы вставить свой текст</button>
+    </div>
+    <div class="col-title"><span>Результат</span><button class="copy-btn" id="anonCopy" type="button">Копировать</button></div>
+    <div class="anon-out" id="anonOut" aria-live="polite"><span class="muted">Нажмите «Обезличить».</span></div>
+    <div class="anon-sum" id="anonSum"></div>
+  </div>
+  <p class="note">Главный приём бухгалтера: отправляйте в&nbsp;ИИ <b>не&nbsp;данные, а&nbsp;задачу</b>. Вместо выписки клиента опишите столбцы&nbsp;— ChatGPT напишет формулу, а&nbsp;считать вы будете у&nbsp;себя в&nbsp;Excel. Данные останутся у&nbsp;вас.</p>
+
+  <h3>Фото: ChatGPT смотрит вместе с&nbsp;вами</h3>
+  <div class="measure">
+    <p>ChatGPT умеет рассматривать фотографии: узнать растение, подсказать, что не&nbsp;так с&nbsp;листьями, оценить, какие работы нужны в&nbsp;комнате, переписать текст с&nbsp;чека или инструкции в&nbsp;таблицу, объяснить ошибку на&nbsp;скриншоте программы.</p>
+    <p><b>Как сделать фото, по&nbsp;которому ИИ поймёт больше:</b> снимайте днём при хорошем свете, а&nbsp;объект держите целиком в&nbsp;кадре. Для сложных случаев сделайте <span class="nw">2–3</span> снимка с&nbsp;разных сторон и&nbsp;один крупный план. Документы&nbsp;— ровно, без бликов.</p>
+  </div>
+  <div class="callout warn measure">
+    <p><b>Не&nbsp;фотографируйте детей</b>, с&nbsp;которыми работаете, и&nbsp;их документы. Для идей занятий достаточно сфотографировать игрушки или материалы на&nbsp;столе.</p>
+    <p>Ответ по&nbsp;фото растения&nbsp;— это подсказка, а&nbsp;не&nbsp;диагноз. Для ценных растений уточните у&nbsp;агронома или опытных садоводов.</p>
+  </div>
+
+  <h3>Проекты: папка с&nbsp;памятью для большой темы</h3>
+  <div class="measure">
+    <p><button class="term" data-term="project">Проект</button>&nbsp;— это папка в&nbsp;боковой панели. В&nbsp;ней хранятся чаты на&nbsp;одну тему, нужные файлы и&nbsp;постоянная инструкция, которую ChatGPT учитывает в&nbsp;каждом чате этого проекта. Один раз описали участок&nbsp;— и&nbsp;больше не&nbsp;повторяете.</p>
+    <p>Хорошие проекты для вас: «Дом и&nbsp;участок», «Огород и&nbsp;цветы», «Работа: шаблоны писем», «Няня: идеи занятий». Для рабочих тем в&nbsp;настройках проекта можно включить память только внутри проекта&nbsp;— тогда сведения из&nbsp;него не&nbsp;будут смешиваться с&nbsp;остальными чатами.</p>
+  </div>
+  <div class="widget" id="projBuilder">
+    <h4>Конструктор инструкции для проекта «Дом и&nbsp;участок»</h4>
+    <p class="hint">Заполните то, что знаете. Если чего-то не&nbsp;знаете&nbsp;— не&nbsp;страшно: в&nbsp;задании 4.5 ИИ поможет составить список того, что нужно измерить.</p>
+    <div class="form-grid">
+      <div class="field"><label for="pjRegion">Регион</label><input class="inp" id="pjRegion" placeholder="Средняя полоса России"></div>
+      <div class="field"><label for="pjHouse">Дом</label><input class="inp" id="pjHouse" placeholder="Деревянный, 6&nbsp;×&nbsp;8&nbsp;м, 1970-х годов"></div>
+      <div class="field"><label for="pjPlot">Участок</label><input class="inp" id="pjPlot" placeholder="15&nbsp;соток, небольшой уклон к югу"></div>
+      <div class="field"><label for="pjSun">Особенности</label><input class="inp" id="pjSun" placeholder="Вдоль северного забора тень от берёз"></div>
+      <div class="field"><label for="pjVisits">Как часто бываете</label><select class="inp" id="pjVisits"><option value="бываю на участке по выходным">по&nbsp;выходным</option><option value="летом живу на участке">живу там летом</option><option value="бываю на участке раз в две недели">раз в&nbsp;две недели</option><option value="живу на участке постоянно">живу постоянно</option></select></div>
+      <div class="field"><label for="pjBudget">Бюджет на&nbsp;сезон</label><input class="inp" id="pjBudget" placeholder="до 150&nbsp;тысяч рублей"></div>
+      <div class="field full"><label for="pjGoals">Чего хочется</label><input class="inp" id="pjGoals" placeholder="Утеплить пол, покрасить фасад, 4 грядки, теплица, цветник у крыльца"></div>
+    </div>
+    <div class="col-title" style="margin-top:14px"><span>Инструкция для проекта</span><button class="copy-btn" id="pjCopy" type="button">Копировать</button></div>
+    <div class="gen-out" id="pjOut"></div>
+  </div>
+
+  <div class="tasks" data-level="4">
+    <div class="tasks-head"><h3>Задания</h3><span class="cnt" data-cnt="4"></span></div>
+
+    <article class="task" data-id="4.1" data-tag="acc" data-title="Безопасная тренировка на выдуманной выписке">
+      <p>Сначала попросите ChatGPT создать учебный файл с&nbsp;выдуманными данными:</p>
+      <div class="prompt">Создай файл Excel с&nbsp;выдуманной банковской выпиской небольшой компании за&nbsp;квартал: 60 операций, столбцы&nbsp;— дата, контрагент, приход, расход, назначение платежа. Все названия выдуманные. Дай ссылку на&nbsp;скачивание.</div>
+      <p>Скачайте файл, откройте новый чат, прикрепите его и&nbsp;напишите:</p>
+      <div class="prompt">Это учебная выписка за&nbsp;квартал. Посчитай обороты по&nbsp;месяцам, найди 5 самых крупных расходов и&nbsp;построй график приходов и&nbsp;расходов по&nbsp;месяцам.</div>
+      <p class="look"><b>Что заметить:</b> сверьте итог одного месяца сами в&nbsp;Excel через автосумму. Совпало?</p>
+    </article>
+
+    <article class="task" data-id="4.2" data-tag="acc" data-title="Разберите официальный документ">
+      <p>Скачайте с&nbsp;сайта ФНС, Минфина или КонсультантПлюс любое официальное письмо или разъяснение в&nbsp;PDF&nbsp;— в&nbsp;них нет персональных данных. Прикрепите файл.</p>
+      <div class="prompt">Это официальное письмо. Объясни простыми словами, о&nbsp;чём оно и&nbsp;кого касается. Выпиши все сроки и&nbsp;суммы таблицей. Для каждого пункта укажи, на&nbsp;какой странице это написано.</div>
+      <p class="look"><b>Что заметить:</b> откройте указанные страницы. Там действительно это написано?</p>
+    </article>
+
+    <article class="task" data-id="4.3" data-tag="home" data-title="Фото комнаты или крыльца">
+      <p>Сфотографируйте место в&nbsp;доме, которое требует ремонта. Прикрепите фото.</p>
+      <div class="prompt">Это [комната / крыльцо / забор] в&nbsp;старом деревенском доме. Какие работы нужны, судя по&nbsp;фото? Какие могут быть скрытые проблемы? Составь список вопросов, которые стоит задать мастеру перед началом работ.</div>
+      <p class="look"><b>Что заметить:</b> что ИИ увидел верно, а&nbsp;что додумал? Он ведь не&nbsp;может потрогать доски или заглянуть под пол.</p>
+    </article>
+
+    <article class="task" data-id="4.4" data-tag="home" data-title="Узнайте растение по фото">
+      <div class="prompt">Что это за&nbsp;растение? У&nbsp;него [желтеют листья / пятна / вянет]. Растёт [в&nbsp;теплице / в&nbsp;открытом грунте / дома на&nbsp;окне]. Назови 3 самые вероятные причины и&nbsp;что проверить в&nbsp;первую очередь.</div>
+      <p class="look"><b>Что заметить:</b> называет ли ИИ несколько вероятных причин или одну уверенно? Хороший ответ предлагает проверить варианты.</p>
+    </article>
+
+    <article class="task" data-id="4.5" data-tag="home" data-title="Создайте проект «Дом и участок»">
+      <p>В&nbsp;боковой панели создайте новый проект. Вставьте в&nbsp;его инструкцию текст из&nbsp;конструктора выше. Внутри проекта откройте первый чат:</p>
+      <div class="prompt">Составь список того, что мне нужно измерить, сфотографировать и&nbsp;записать на&nbsp;участке и&nbsp;в&nbsp;доме, чтобы дальше мы могли спланировать ремонт и&nbsp;посадки. Оформи чек-листом, который удобно распечатать.</div>
+      <p class="look"><b>Что заметить:</b> ИИ помогает собрать контекст для самого себя. Выполните чек-лист в&nbsp;следующий приезд&nbsp;— он пригодится в&nbsp;шестом занятии.</p>
+    </article>
+
+    <article class="task" data-id="4.6" data-tag="nanny" data-title="Игры из того, что есть под рукой">
+      <p>Сфотографируйте материалы для занятий: игрушки, карандаши, крупу, коробки. Детей в&nbsp;кадре быть не&nbsp;должно.</p>
+      <div class="prompt">Вот что у&nbsp;меня есть для занятий с&nbsp;ребёнком [возраст] лет. Придумай 5 игр только из&nbsp;этих предметов. Для каждой: как играть, сколько минут, что развивает. Отметь, какие предметы нельзя давать без присмотра.</div>
+      <p class="look"><b>Что заметить:</b> правильно ли ИИ распознал предметы на&nbsp;фото? Учёл ли безопасность?</p>
+    </article>
+  </div>
+
+  <div class="quiz" data-quiz="4"></div>
+</section>
+
+<!-- ====================== УРОВЕНЬ 5 ====================== -->
+<section class="sheet level" id="level5" data-level="5">
+  <div class="level-head">
+    <div class="level-num" style="--ps:var(--leaf);--pf:#BFE0C8;--bl:#F2B8C6;--ce:#F4C542"><svg><use href="#pl5"/></svg><b>5</b></div>
+    <div>
+      <div class="level-meta">Занятие 5 из&nbsp;6</div>
+      <h2>Проверка ответов: когда доверять, а&nbsp;когда перепроверять</h2>
+    </div>
+  </div>
+  <div class="goal measure">
+    <strong>После этого занятия вы:</strong>
+    <ul>
+      <li>решаете, насколько тщательно проверять ответ, в&nbsp;зависимости от&nbsp;цены ошибки;</li>
+      <li>отличаете хороший ответ от&nbsp;гладкого, но&nbsp;опасного;</li>
+      <li>используете ИИ как строгого проверяющего для своих планов.</li>
+    </ul>
+  </div>
+
+  <h3>Цена ошибки решает, сколько проверять</h3>
+  <p class="measure">Проверять всё подряд одинаково тщательно не&nbsp;нужно&nbsp;— так вы потеряете время. Ориентируйтесь на&nbsp;вопрос: <mark class="hl">что будет, если здесь ошибка?</mark> Для каждой задачи выберите уровень, а&nbsp;потом сверьтесь с&nbsp;подсказкой.</p>
+  <div class="widget" id="trust">
+    <h4>Сколько проверки нужно?</h4>
+    <div id="trustList"></div>
+    <div class="row-btns"><button class="btn small" id="trustReveal" type="button">Показать подсказки</button></div>
+  </div>
+
+  <h3>Пять вопросов к&nbsp;любому важному ответу</h3>
+  <ol class="steps-list measure">
+    <li><b>Это ответ на&nbsp;мой вопрос?</b> Или на&nbsp;похожий, но&nbsp;другой?</li>
+    <li><b>Есть ли цифры, даты, названия, номера законов?</b> Именно их сверяем в&nbsp;первую очередь.</li>
+    <li><b>Есть ли ссылки?</b> Откройте хотя бы одну: существует ли страница и&nbsp;написано ли там то же самое.</li>
+    <li><b>Чего ИИ мог не&nbsp;знать о&nbsp;моей ситуации?</b> Регион, особенности клиента, состояние дома.</li>
+    <li><b>Что будет, если здесь ошибка?</b> Чем дороже ошибка, тем строже проверка.</li>
+  </ol>
+
+  <div class="measure">
+    <p><b>Где проверять:</b></p>
+    <ul>
+      <li><b>налоги и&nbsp;учёт</b>&nbsp;— сайт ФНС, КонсультантПлюс, Гарант, письма Минфина;</li>
+      <li><b>дети и&nbsp;здоровье</b>&nbsp;— только врач, родители ребёнка и&nbsp;ваш куратор;</li>
+      <li><b>строительство</b>&nbsp;— мастер или проектировщик, для сложных работ&nbsp;— строительные нормы;</li>
+      <li><b>огород и&nbsp;сад</b>&nbsp;— пакетик семян, местные садоводы, агроном.</li>
+    </ul>
+  </div>
+
+  <h3>Какой ответ лучше?</h3>
+  <p class="measure">Гладкий и&nbsp;уверенный текст не&nbsp;всегда самый полезный. Прочитайте два ответа на&nbsp;один и&nbsp;тот же вопрос и&nbsp;выберите тот, которому стоит доверять больше.</p>
+  <div class="widget" id="cmp">
+    <div class="bubble user" style="margin-bottom:14px"><span class="who">Вы</span>Составь план работ в&nbsp;саду на&nbsp;октябрь.</div>
+    <div class="compare">
+      <div class="ans-card" data-win="0">
+        <div class="lbl">Ответ А</div>
+        <div class="txt">
+          <p>Октябрь&nbsp;— важнейший месяц для сада!</p>
+          <p>1. Выкопайте все луковичные цветы.<br>2. Обрежьте все кустарники как можно короче.<br>3. Укройте розы плёнкой, чтобы они не&nbsp;замёрзли.<br>4. Перекопайте весь огород.<br>5. Обильно полейте деревья перед зимой.</p>
+          <p>Следуя этим советам, вы гарантированно получите отличный урожай!</p>
+        </div>
+        <button class="btn small ghost" type="button">Этот лучше</button>
+      </div>
+      <div class="ans-card" data-win="1">
+        <div class="lbl">Ответ Б</div>
+        <div class="txt">
+          <p>Чтобы план точно подошёл, напишите регион и&nbsp;что растёт на&nbsp;участке. Пока&nbsp;— общий план для средней полосы.</p>
+          <p><b>Первая половина месяца:</b> посадить озимый чеснок и&nbsp;тюльпаны примерно за&nbsp;<span class="nw">3–4</span> недели до&nbsp;промерзания почвы; убрать больные листья; выкопать георгины, когда заморозки побьют листву.</p>
+          <p><b>Вторая половина:</b> если осень сухая&nbsp;— обильно полить деревья и&nbsp;кустарники; укрыть розы лапником или нетканым материалом, когда установится небольшой минус. Плёнку не&nbsp;используйте: под ней растения выпревают.</p>
+          <p>Сроки зависят от&nbsp;погоды&nbsp;— ориентируйтесь на&nbsp;прогноз, а&nbsp;не&nbsp;на&nbsp;даты.</p>
+        </div>
+        <button class="btn small ghost" type="button">Этот лучше</button>
+      </div>
+    </div>
+    <div class="cmp-fb callout leaf" id="cmpFb" aria-live="polite"></div>
+  </div>
+
+  <h3>ИИ любит соглашаться. Спрашивайте нейтрально</h3>
+  <div class="measure">
+    <p>ChatGPT склонен поддакивать собеседнику. Если спросить «Правда же, мой план хороший?», скорее всего, услышите «да». Чтобы получить честный разбор, задавайте нейтральные вопросы или прямо просите найти слабые места.</p>
+  </div>
+  <div class="widget" id="lead">
+    <div class="toggle2" role="group" aria-label="Выберите вопрос">
+      <button type="button" aria-pressed="true" data-v="0">Наводящий вопрос</button>
+      <button type="button" aria-pressed="false" data-v="1">Нейтральный вопрос</button>
+    </div>
+    <div id="leadBox"></div>
+  </div>
+  <p class="note">Любимая фраза для важных решений: «Сыграй роль <b>опытного и&nbsp;строгого</b> [прораба / налогового инспектора / агронома]. Найди 5 слабых мест в&nbsp;моём плане. Не&nbsp;хвали».</p>
+
+  <div class="tasks" data-level="5">
+    <div class="tasks-head"><h3>Задания</h3><span class="cnt" data-cnt="5"></span></div>
+
+    <article class="task" data-id="5.1" data-tag="acc" data-title="Сверьте календарь отчётности">
+      <div class="prompt">Составь календарь сдачи отчётности и&nbsp;уплаты налогов на&nbsp;ближайший квартал для ООО на&nbsp;УСН «доходы минус расходы» с&nbsp;сотрудниками. Таблицей: дата, что сдаём или платим. Найди актуальные сроки в&nbsp;интернете и&nbsp;дай ссылки.</div>
+      <p>Сверьте любые три даты с&nbsp;календарём бухгалтера в&nbsp;КонсультантПлюс или на&nbsp;сайте ФНС.</p>
+      <p class="look"><b>Что заметить:</b> сколько дат совпало? Если нашли расхождение&nbsp;— напишите ChatGPT, что именно не&nbsp;так, и&nbsp;посмотрите, как он исправится.</p>
+    </article>
+
+    <article class="task" data-id="5.2" data-tag="gen" data-title="Проверьте ссылки">
+      <p>Задайте любой фактический вопрос, который вам интересен, и&nbsp;попросите источники.</p>
+      <div class="prompt">[Ваш вопрос]. Найди информацию в&nbsp;интернете и&nbsp;дай 3 ссылки на&nbsp;надёжные источники. Для каждой ссылки кратко напиши, что именно там подтверждается.</div>
+      <p class="look"><b>Что заметить:</b> откройте все три ссылки. Существуют ли страницы? Написано ли там то, что утверждает ИИ?</p>
+    </article>
+
+    <article class="task" data-id="5.3" data-tag="home" data-title="ИИ в роли строгого прораба">
+      <p>Возьмите план ремонта из&nbsp;задания 3.4 или опишите свой и&nbsp;попросите найти слабые места.</p>
+      <div class="prompt">Вот мой план ремонта на&nbsp;сезон: [план]. Сыграй роль опытного и&nbsp;строгого прораба. Найди 5 рисков или слабых мест: порядок работ, сезон, бюджет, то, что я могла упустить. Для каждого предложи, как это исправить. Не&nbsp;хвали.</div>
+      <p class="look"><b>Что заметить:</b> какие риски оказались для вас новыми? Какие из&nbsp;них стоит обсудить с&nbsp;мастером?</p>
+    </article>
+
+    <article class="task" data-id="5.4" data-tag="nanny" data-title="Проверка на безопасность">
+      <div class="prompt">Придумай 7 игр и&nbsp;занятий для ребёнка 3&nbsp;лет дома в&nbsp;дождливый день.</div>
+      <p>Когда получите ответ, напишите в&nbsp;том же чате:</p>
+      <div class="prompt">Перечитай свой список. Какие из&nbsp;этих занятий могут быть небезопасны для ребёнка 3&nbsp;лет и&nbsp;почему? Что нужно изменить?</div>
+      <p class="look"><b>Что заметить:</b> нашёл ли ИИ проблемы в&nbsp;собственном списке? Мелкие детали, ножницы, краски&nbsp;— всё это стоит проверять самой.</p>
+    </article>
+
+    <article class="task" data-id="5.5" data-tag="gen" data-title="Наводящий и нейтральный вопрос">
+      <p>Подумайте о&nbsp;каком-нибудь своём решении, например о&nbsp;покупке или планах на&nbsp;дом. Задайте о&nbsp;нём два вопроса в&nbsp;двух разных новых чатах:</p>
+      <div class="prompt">Я решила [ваше решение]. Правда же, это хорошая идея?</div>
+      <div class="prompt">Я думаю о&nbsp;том, чтобы [ваше решение]. Какие у&nbsp;этого решения плюсы, минусы и&nbsp;риски? Что мне стоит учесть?</div>
+      <p class="look"><b>Что заметить:</b> насколько по-разному ответил ИИ? Какой ответ полезнее для решения?</p>
+    </article>
+  </div>
+
+  <div class="quiz" data-quiz="5"></div>
+</section>
+
+<!-- ====================== УРОВЕНЬ 6 ====================== -->
+<section class="sheet level" id="level6" data-level="6">
+  <div class="level-head">
+    <div class="level-num" style="--ps:var(--leaf);--pf:#BFE0C8;--fr:#D9493A"><svg><use href="#pl6"/></svg><b>6</b></div>
+    <div>
+      <div class="level-meta">Занятие 6 из&nbsp;6</div>
+      <h2>Картинки, визуализации и&nbsp;ваш собственный проект</h2>
+    </div>
+  </div>
+  <div class="goal measure">
+    <strong>После этого занятия вы:</strong>
+    <ul>
+      <li>создаёте и&nbsp;редактируете изображения;</li>
+      <li>визуализируете ремонт по&nbsp;фото и&nbsp;планируете участок и&nbsp;посадки;</li>
+      <li>довели до&nbsp;конца большой проект «Дом и&nbsp;участок».</li>
+    </ul>
+  </div>
+
+  <h3>Как создать картинку</h3>
+  <div class="measure">
+    <p>Просто напишите: «Создай изображение…» или «Нарисуй…». Ещё можно открыть в&nbsp;боковой панели раздел с&nbsp;картинками&nbsp;— там есть готовые шаблоны. Обычно картинка появляется за&nbsp;минуту-другую, иногда чуть дольше. Пока она рисуется, можно продолжать переписку.</p>
+    <p><b>Исправлять картинку можно двумя способами.</b> Первый&nbsp;— написать в&nbsp;чате, что поменять: «Сделай небо вечерним, остальное не&nbsp;меняй». Второй&nbsp;— открыть картинку, выделить нужную область и&nbsp;описать изменение.</p>
+    <p><b>Формат</b> тоже можно заказать: квадрат, горизонтальный или вертикальный&nbsp;— для телефона или печати на&nbsp;листе A4.</p>
+    <p><b>На&nbsp;телефоне</b> можно нарисовать набросок пальцем и&nbsp;попросить превратить его в&nbsp;картинку. Для этого в&nbsp;поле сообщения наберите @ и&nbsp;выберите рисование.</p>
+    <p>На&nbsp;бесплатном тарифе количество картинок в&nbsp;день ограничено.</p>
+  </div>
+
+  <h3>Из&nbsp;чего состоит запрос для картинки</h3>
+  <div class="measure">
+    <p><b>Что</b> изображаем + <b>где и&nbsp;что вокруг</b> + <b>стиль</b> + <b>ракурс и&nbsp;свет</b> + <b>детали</b>. Если меняете своё фото, добавьте шестую часть: <b>что сохранить без изменений</b>.</p>
+    <p>Двигайте разделитель и&nbsp;сравните две условные иллюстрации: что получится по&nbsp;короткой просьбе и&nbsp;что&nbsp;— по&nbsp;подробному описанию.</p>
+  </div>
+  <div class="widget" id="baImg">
+    <div class="ba" id="baBox" aria-hidden="true">
+      <svg class="before" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid slice">
+        <defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9FD3F5"/><stop offset="1" stop-color="#DFF1FB"/></linearGradient></defs>
+        <rect width="800" height="500" fill="url(#sky)"/>
+        <circle cx="660" cy="90" r="46" fill="#FFD447"/>
+        <g fill="#fff" opacity=".95"><ellipse cx="170" cy="90" rx="60" ry="22"/><ellipse cx="215" cy="75" rx="40" ry="22"/><ellipse cx="470" cy="60" rx="50" ry="18"/></g>
+        <path d="M0 300 Q200 230 420 290 T800 270 V500 H0z" fill="#8CC66B"/>
+        <path d="M0 360 Q260 320 520 370 T800 350 V500 H0z" fill="#6BAF4E"/>
+        <g fill="#C79A63"><rect x="40" y="300" width="14" height="90"/><rect x="100" y="295" width="14" height="95"/><rect x="160" y="300" width="14" height="90"/><rect x="220" y="305" width="14" height="85"/><rect x="30" y="320" width="220" height="10"/><rect x="30" y="355" width="220" height="10"/></g>
+        <ellipse cx="450" cy="420" rx="210" ry="40" fill="#7A5230"/>
+        <g><ellipse cx="560" cy="395" rx="62" ry="46" fill="#F08A24"/><path d="M560 350 v-18" stroke="#3E7A2A" stroke-width="8" stroke-linecap="round"/><path d="M530 360 q30 30 0 70 M590 360 q-30 30 0 70" stroke="#D56F12" stroke-width="4" fill="none"/></g>
+        <g fill="#F07A1F"><path d="M340 380 l14 60 l14-60z"/><path d="M390 385 l12 55 l12-55z"/></g>
+        <g fill="#3E9A3A"><path d="M347 380 l-10-30 l12 14 l6-20 l6 20 l12-14 l-10 30z"/><path d="M396 385 l-8-26 l10 12 l4-16 l6 16 l10-12 l-8 26z"/></g>
+        <g><circle cx="700" cy="360" r="34" fill="#E04B3A"/><path d="M700 326 v-12" stroke="#3E7A2A" stroke-width="6" stroke-linecap="round"/></g>
+        <g class="ba-badge"><rect x="16" y="16" width="270" height="54" rx="9" fill="rgba(30,42,59,.88)"/>
+        <text x="33" y="51" fill="#fff" font-family="Golos Text, Segoe UI, sans-serif" font-size="24" font-weight="700">«Нарисуй огород»</text></g>
+      </svg>
+      <svg class="after" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid slice">
+        <rect width="800" height="500" fill="#DDEBC8"/>
+        <g stroke="#C5D9AE" stroke-width="1">
+          <path d="M0 50H800M0 100H800M0 150H800M0 200H800M0 250H800M0 300H800M0 350H800M0 400H800M0 450H800"/>
+          <path d="M50 0V500M100 0V500M150 0V500M200 0V500M250 0V500M300 0V500M350 0V500M400 0V500M450 0V500M500 0V500M550 0V500M600 0V500M650 0V500M700 0V500M750 0V500"/>
+        </g>
+        <rect x="40" y="30" width="720" height="440" fill="none" stroke="#5B4632" stroke-width="5" stroke-dasharray="14 8"/>
+        <rect x="70" y="60" width="200" height="150" fill="#B7926A" stroke="#5B4632" stroke-width="4"/>
+        <path d="M70 60 L270 210 M270 60 L70 210" stroke="#8E6E4D" stroke-width="2"/>
+        <rect x="120" y="115" width="100" height="40" rx="6" fill="#fff"/>
+        <text x="170" y="144" text-anchor="middle" font-family="Golos Text, Segoe UI, sans-serif" font-size="26" font-weight="700" fill="#3A2C1E">Дом</text>
+        <path d="M170 210 V300 H420 V330" stroke="#BDB6AA" stroke-width="30" fill="none"/>
+        <path d="M170 210 V300 H420 V330" stroke="#fff" stroke-width="2" stroke-dasharray="6 24" fill="none"/>
+        <g><circle cx="300" cy="240" r="10" fill="#E8577A"/><circle cx="322" cy="252" r="10" fill="#F2B84B"/><circle cx="296" cy="264" r="10" fill="#9B6BD6"/><circle cx="336" cy="232" r="9" fill="#E8577A"/><circle cx="346" cy="258" r="9" fill="#F2B84B"/></g>
+        <text x="364" y="257" font-family="Golos Text, Segoe UI, sans-serif" font-size="22" font-weight="700" fill="#2E3A2A">Цветник</text>
+        <g font-family="Golos Text, Segoe UI, sans-serif" font-size="21" font-weight="700" fill="#fff" text-anchor="middle">
+          <rect x="110" y="360" width="120" height="70" fill="#7A5230"/><text x="170" y="403">Грядка 1</text>
+          <rect x="250" y="360" width="120" height="70" fill="#7A5230"/><text x="310" y="403">Грядка 2</text>
+          <rect x="470" y="360" width="120" height="70" fill="#7A5230"/><text x="530" y="403">Грядка 3</text>
+          <rect x="610" y="360" width="120" height="70" fill="#7A5230"/><text x="670" y="403">Грядка 4</text>
+        </g>
+        <rect x="470" y="200" width="260" height="110" fill="#EAF6FB" stroke="#7FB4CC" stroke-width="4"/>
+        <path d="M500 200V310M530 200V310M560 200V310M590 200V310M620 200V310M650 200V310M680 200V310M710 200V310" stroke="#B9DCEA" stroke-width="2"/>
+        <text x="600" y="264" text-anchor="middle" font-family="Golos Text, Segoe UI, sans-serif" font-size="25" font-weight="700" fill="#2C5E74">Теплица 3&nbsp;×&nbsp;6&nbsp;м</text>
+        <g fill="#5E9E48" stroke="#3E7A2A" stroke-width="3"><circle cx="470" cy="100" r="38"/><circle cx="580" cy="95" r="38"/><circle cx="690" cy="100" r="38"/></g>
+        <g fill="#D9493A"><circle cx="458" cy="92" r="5"/><circle cx="482" cy="110" r="5"/><circle cx="572" cy="84" r="5"/><circle cx="594" cy="104" r="5"/><circle cx="684" cy="112" r="5"/></g>
+        <text x="580" y="166" text-anchor="middle" font-family="Golos Text, Segoe UI, sans-serif" font-size="20" font-weight="700" fill="#2E3A2A">Яблони вдоль северной стороны</text>
+        <g transform="translate(740 470)"><path d="M0 -30 L8 -10 L0 -14 L-8 -10z" fill="#1E2A3B"/><text x="0" y="-37" text-anchor="middle" font-family="Golos Text, Segoe UI, sans-serif" font-size="19" font-weight="800" fill="#1E2A3B">С</text></g>
+        <g class="ba-badge"><rect x="490" y="16" width="294" height="54" rx="9" fill="rgba(30,42,59,.88)"/>
+        <text x="507" y="51" fill="#fff" font-family="Golos Text, Segoe UI, sans-serif" font-size="24" font-weight="700">Подробное описание</text></g>
+      </svg>
+      <div class="ba-tag ba-tag-before" id="baTagBefore"><span>«Нарисуй огород»</span></div>
+      <div class="ba-tag ba-tag-after" id="baTagAfter"><span>Подробное описание</span></div>
+      <div class="divider" id="baDivider"></div>
+    </div>
+    <div class="ba-range">
+      <label for="baRange" class="visually-hidden">Разделитель: сравнить короткий и&nbsp;подробный запрос</label>
+      <input type="range" id="baRange" min="0" max="100" value="50">
+    </div>
+    <div class="ba-labels">
+      <div><b>Короткая просьба.</b> Красиво и&nbsp;ярко, но&nbsp;это не&nbsp;ваш участок&nbsp;— просто «огород вообще».</div>
+      <div><b>Подробное описание.</b> «Вид сверху на&nbsp;участок: дом слева вверху, цветник у&nbsp;крыльца, 4 грядки у&nbsp;южного забора, теплица 3&nbsp;×&nbsp;6&nbsp;м, 3 яблони вдоль северной стороны, дорожка от&nbsp;дома, стиль&nbsp;— аккуратный план с&nbsp;подписями».</div>
+    </div>
+  </div>
+
+  <div class="widget" id="imgBuilder">
+    <h4>Конструктор запроса для картинки</h4>
+    <p class="hint">Выберите по&nbsp;одному варианту в&nbsp;каждой строке и&nbsp;допишите детали. Готовый запрос можно скопировать в&nbsp;ChatGPT.</p>
+    <div id="imgGroups"></div>
+    <div class="field" style="margin-top:12px"><label for="imgDetails">Детали&nbsp;— ваши собственные</label><input class="inp" id="imgDetails" placeholder="Например: зелёная крыша, белые наличники, скамейка у крыльца, кусты сирени"></div>
+    <div class="col-title" style="margin-top:14px"><span>Запрос для ChatGPT</span><button class="copy-btn" id="imgCopy" type="button">Копировать</button></div>
+    <div class="gen-out" id="imgOut"></div>
+  </div>
+
+  <h3>Как показать будущий ремонт на&nbsp;фото дома</h3>
+  <ol class="steps-list measure">
+    <li><b>Сфотографируйте дом</b> днём, целиком и&nbsp;ровно, без людей в&nbsp;кадре.</li>
+    <li><b>Прикрепите фото и&nbsp;опишите изменения конкретно.</b> Не&nbsp;«сделай красивее», а: «Перекрась стены в&nbsp;серо-зелёный цвет, наличники&nbsp;— в&nbsp;белый, крышу сделай тёмно-коричневой. Форму дома, окна, деревья и&nbsp;ракурс сохрани без изменений».</li>
+    <li><b>Меняйте по&nbsp;одному-два пункта за&nbsp;раз.</b> Так проще понять, что получилось, и&nbsp;вернуться назад.</li>
+    <li><b>Попросите <span class="nw">2–3</span> варианта</b> цвета или отделки и&nbsp;сравните их рядом.</li>
+    <li><b>Помните, что это настроение, а&nbsp;не&nbsp;проект.</b> ИИ рисует «на&nbsp;глаз»: пропорции, материалы и&nbsp;количество досок могут не&nbsp;совпадать с&nbsp;реальностью. Всё техническое решаем с&nbsp;мастером.</li>
+  </ol>
+  <div class="prompt">Это фото комнаты в&nbsp;деревенском доме. Покажи, как она будет выглядеть, если стены обшить светлой вагонкой, пол покрасить в&nbsp;тёплый коричневый цвет, а&nbsp;на&nbsp;окна повесить льняные шторы. Мебель, окна и&nbsp;двери оставь на&nbsp;своих местах, ракурс не&nbsp;меняй.</div>
+
+  <h3>План участка: картинка или схема?</h3>
+  <div class="measure">
+    <p><mark class="hl">Для вдохновения&nbsp;— картинка. Для размеров&nbsp;— таблица и&nbsp;схема.</mark> Картинки ИИ рисует на&nbsp;глаз, поэтому 4 грядки легко превращаются в&nbsp;5, а&nbsp;теплица становится вдвое больше. Если важны метры, идите от&nbsp;точного к&nbsp;красивому.</p>
+    <ol class="steps-list">
+      <li><b>Текстовый план.</b> Таблица: что где находится, размеры, стороны света.</li>
+      <li><b>Схема по&nbsp;размерам.</b> Попросите: «Сделай схему участка как чертёж с&nbsp;сеткой, одна клетка&nbsp;— 1 метр, подпиши размеры». ChatGPT может построить её с&nbsp;помощью кода&nbsp;— получится точнее, чем обычная картинка.</li>
+      <li><b>Красивая визуализация.</b> Когда схема устраивает, попросите нарисовать по&nbsp;ней вид участка летом.</li>
+    </ol>
+    <p><b>Для посадок</b> хорошо работают таблицы: календарь посадок по&nbsp;месяцам, севооборот на&nbsp;3 года, удачные и&nbsp;неудачные соседи, цветник, который цветёт с&nbsp;мая по&nbsp;сентябрь, неприхотливые кустарники для вашего региона. Севооборот&nbsp;— это порядок, в&nbsp;котором культуры сменяют друг друга на&nbsp;одной грядке из&nbsp;года в&nbsp;год. Сроки всегда сверяйте с&nbsp;пакетиком семян и&nbsp;погодой.</p>
+  </div>
+
+  <div class="tasks" data-level="6">
+    <div class="tasks-head"><h3>Задания</h3><span class="cnt" data-cnt="6"></span></div>
+
+    <article class="task" data-id="6.1" data-tag="gen" data-title="Первая картинка и одна правка">
+      <p>Соберите запрос в&nbsp;конструкторе выше и&nbsp;создайте картинку. Затем попросите изменить только одну деталь:</p>
+      <div class="prompt">Сделай освещение вечерним и&nbsp;добавь скамейку у&nbsp;крыльца. Всё остальное оставь как есть.</div>
+      <p class="look"><b>Что заметить:</b> ИИ действительно сохранил всё остальное? Если нет&nbsp;— попробуйте выделить нужную область на&nbsp;картинке и&nbsp;описать правку.</p>
+    </article>
+
+    <article class="task" data-id="6.2" data-tag="home" data-title="Фасад дома в трёх цветах">
+      <p>Прикрепите фото своего дома.</p>
+      <div class="prompt">Это мой дом. Покажи три варианта покраски фасада: 1) серо-зелёный с&nbsp;белыми наличниками, 2) тёмно-коричневый с&nbsp;молочными наличниками, 3) светло-серый с&nbsp;тёмно-синими наличниками. Форму дома, крышу, окна, деревья и&nbsp;ракурс не&nbsp;меняй.</div>
+      <p class="look"><b>Что заметить:</b> какой вариант нравится? Покажите семье&nbsp;— картинка помогает договориться быстрее слов.</p>
+    </article>
+
+    <article class="task" data-id="6.3" data-tag="nanny" data-title="Раскраска для занятия">
+      <div class="prompt">Создай простую чёрно-белую раскраску для ребёнка 5&nbsp;лет: грузовик везёт яблоки. Толстые контуры, крупные детали, без мелких элементов и&nbsp;без текста. Вертикальный формат, чтобы распечатать на&nbsp;листе A4.</div>
+      <p class="look"><b>Что заметить:</b> подходят ли линии для детской руки? Если деталей много&nbsp;— попросите «ещё проще, в&nbsp;два раза меньше деталей».</p>
+    </article>
+
+    <article class="task" data-id="6.4" data-tag="acc" data-title="Интервью: какие задачи отдать ИИ">
+      <div class="prompt">Ты консультант по&nbsp;внедрению ИИ в&nbsp;работу бухгалтера. Задай мне по&nbsp;одному 8 вопросов о&nbsp;моей работе главным бухгалтером на&nbsp;аутсорсе: какие задачи повторяются, на&nbsp;что уходит больше всего времени, что утомляет. Потом предложи 5 задач, которые ты можешь брать на&nbsp;себя каждую неделю, и&nbsp;для каждой&nbsp;— готовый шаблон запроса. Учитывай, что персональные данные клиентов отправлять тебе нельзя.</div>
+      <p class="look"><b>Что заметить:</b> сохраните лучшие шаблоны в&nbsp;проект «Работа: шаблоны» или в&nbsp;заметки. Это ваша рабочая библиотека.</p>
+    </article>
+  </div>
+
+  <div class="tasks" data-level="6">
+    <div class="tasks-head"><h3>Итоговый проект «Дом и&nbsp;участок»</h3><span class="cnt"></span></div>
+    <p class="measure">Здесь сходится всё, чему вы научились: контекст, поручение из&nbsp;пяти частей, файлы и&nbsp;фото, проверка и&nbsp;картинки. Работайте внутри проекта «Дом и&nbsp;участок» из&nbsp;четвёртого занятия. Шаги можно растянуть на&nbsp;несколько вечеров.</p>
+    <article class="task" data-id="6.5" data-tag="home" data-title="Шаг 1. Контекст">
+      <p>Возьмите чек-лист замеров из&nbsp;задания 4.5 и&nbsp;заполните его в&nbsp;следующий приезд.</p>
+      <div class="prompt">Вот что я измерила и&nbsp;записала на&nbsp;участке и&nbsp;в&nbsp;доме: [данные]. Если чего-то не&nbsp;хватает для планирования, задай мне уточняющие вопросы. Потом кратко перескажи, как ты понимаешь мой участок и&nbsp;мои цели.</div>
+      <p class="look"><b>Что заметить:</b> если ИИ что-то понял неправильно, поправьте сейчас&nbsp;— дальше всё строится на&nbsp;этом пересказе.</p>
+    </article>
+    <article class="task" data-id="6.6" data-tag="home" data-title="Шаг 2. План на год">
+      <div class="prompt">Составь план работ по&nbsp;дому и&nbsp;участку на&nbsp;год по&nbsp;сезонам: ремонт, посадки, уход. Таблицей: сезон, работа, сама или с&nbsp;мастером, примерный бюджет. Цены укажи диапазоном и&nbsp;отметь, что их нужно проверить у&nbsp;местных поставщиков.</div>
+    </article>
+    <article class="task" data-id="6.7" data-tag="home" data-title="Шаг 3. Схема участка по размерам">
+      <div class="prompt">Нарисуй точную схему моего участка по&nbsp;размерам: дом, грядки, теплица, дорожки, кустарники, цветник. Сделай её как чертёж с&nbsp;сеткой, где одна клетка&nbsp;— 1 метр, и&nbsp;подпиши размеры. Используй код для построения схемы, чтобы размеры были точными.</div>
+      <p class="look"><b>Что заметить:</b> если вместо схемы получилась художественная картинка, напишите: «Мне нужна именно схема по&nbsp;размерам, а&nbsp;не&nbsp;рисунок».</p>
+    </article>
+    <article class="task" data-id="6.8" data-tag="home" data-title="Шаг 4. Посадки">
+      <div class="prompt">Составь план и&nbsp;календарь посадок для моих грядок на&nbsp;следующий сезон с&nbsp;учётом севооборота и&nbsp;соседства растений. Отдельной таблицей&nbsp;— неприхотливые кустарники и&nbsp;многолетние цветы для моего региона, которые цветут по&nbsp;очереди с&nbsp;мая по&nbsp;сентябрь: название, когда цветёт, солнце или тень, высота.</div>
+    </article>
+    <article class="task" data-id="6.9" data-tag="home" data-title="Шаг 5. Визуализация">
+      <p>Выберите, что визуализировать: фасад, веранду или цветник у&nbsp;крыльца. Прикрепите фото и&nbsp;попросите 2 варианта по&nbsp;формуле: что, где, стиль, свет, детали и&nbsp;что сохранить.</p>
+    </article>
+    <article class="task" data-id="6.10" data-tag="home" data-title="Шаг 6. Строгая проверка">
+      <div class="prompt">Сыграй роль опытного прораба и&nbsp;агронома одновременно. Найди в&nbsp;нашем плане 7 рисков: сроки, бюджет, порядок работ, выбор растений. Для каждого предложи, как его снизить. Не&nbsp;хвали.</div>
+      <p class="look"><b>Что заметить:</b> выпишите <span class="nw">2–3</span> спорных пункта и&nbsp;обсудите их с&nbsp;мастером или опытными соседями-садоводами.</p>
+    </article>
+    <article class="task" data-id="6.11" data-tag="home" data-title="Шаг 7. Итоговый документ">
+      <div class="prompt">Собери всё, что мы решили в&nbsp;этом проекте, в&nbsp;один документ Word: план работ на&nbsp;год, бюджет, план посадок, календарь и&nbsp;список покупок на&nbsp;весну. Дай ссылку на&nbsp;скачивание.</div>
+      <p class="look"><b>Что заметить:</b> распечатайте документ или сохраните в&nbsp;телефон. Поздравляем&nbsp;— это ваш первый большой проект, сделанный вместе с&nbsp;ИИ.</p>
+    </article>
+  </div>
+
+  <div class="quiz" data-quiz="6"></div>
+</section>
+
+<!-- ====================== ЧТО ДАЛЬШЕ ====================== -->
+<section class="sheet" id="next">
+  <h2>Что дальше: правило одной задачи</h2>
+  <div class="measure">
+    <p>Навык закрепляется не&nbsp;в&nbsp;теории, а&nbsp;в&nbsp;привычке. Каждый день отдавайте ИИ одну маленькую задачу&nbsp;— через месяц вы перестанете замечать, что учитесь. Вот идеи на&nbsp;первые две недели:</p>
+    <ul>
+      <li>черновик ответа клиенту на&nbsp;письмо, над которым думаете дольше пяти минут;</li>
+      <li>формула для Excel, которую давно хотели, но&nbsp;не&nbsp;знали, как написать;</li>
+      <li>объяснение непонятного абзаца из&nbsp;официального письма&nbsp;— после обезличивания;</li>
+      <li>игра на&nbsp;прогулку или сказка на&nbsp;ночь с&nbsp;нужной моралью;</li>
+      <li>что приготовить из&nbsp;того, что есть в&nbsp;холодильнике: сфотографируйте полки;</li>
+      <li>что сделать в&nbsp;саду на&nbsp;этой неделе с&nbsp;учётом погоды в&nbsp;вашем регионе;</li>
+      <li>цвет краски для забора или скамейки по&nbsp;фото;</li>
+      <li>список покупок для строительного рынка по&nbsp;плану работ;</li>
+      <li>вежливое письмо в&nbsp;администрацию или управляющую компанию;</li>
+      <li>короткое поздравление коллеге или клиенту, которое не&nbsp;звучит шаблонно.</li>
+    </ul>
+  </div>
+  <p class="note">Если что-то не&nbsp;получается&nbsp;— это не&nbsp;«я не&nbsp;умею», а&nbsp;«ИИ не&nbsp;хватило контекста». Расскажите ему больше или спросите: <b>«Что мне уточнить, чтобы ты ответил лучше?»</b></p>
+</section>
+
+<!-- ====================== ШПАРГАЛКА ====================== -->
+<div id="cheatsheet-wrap">
+<section class="sheet" id="cheatsheet">
+  <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap">
+    <h2>Шпаргалка</h2>
+    <button class="btn small quiet no-print" id="printCheat" type="button">Распечатать шпаргалку</button>
+  </div>
+  <p class="muted">Всё главное на&nbsp;одной странице. Держите рядом с&nbsp;компьютером.</p>
+  <div class="cheat-grid">
+    <div class="cheat">
+      <h4>Поручение из&nbsp;пяти частей</h4>
+      <div class="fline"><span style="background:var(--p-role)">Роль</span><span style="background:var(--p-ctx)">Контекст</span><span style="background:var(--p-task)">Задача</span><span style="background:var(--p-fmt)">Формат</span><span style="background:var(--p-lim)">Ограничения</span></div>
+      <ul>
+        <li>Кем быть? Что происходит? Что сделать? Как оформить? Чего избегать?</li>
+        <li>Простой вопрос&nbsp;— хватит задачи. Важное дело&nbsp;— все пять частей.</li>
+        <li>Не&nbsp;знаете деталей&nbsp;— «Сначала задай мне 5 вопросов».</li>
+      </ul>
+    </div>
+    <div class="cheat">
+      <h4>Фразы-уточнения</h4>
+      <ul>
+        <li>«Короче» / «Подробнее про пункт 3»</li>
+        <li>«Проще, без терминов»</li>
+        <li>«Оформи таблицей»</li>
+        <li>«Дай 3 варианта: строгий, тёплый, короткий»</li>
+        <li>«В&nbsp;чём ты не&nbsp;уверен? Что мне перепроверить?»</li>
+        <li>«Найди в&nbsp;интернете и&nbsp;дай ссылки»</li>
+      </ul>
+    </div>
+    <div class="cheat">
+      <h4>Светофор данных</h4>
+      <ul>
+        <li><b style="color:var(--leaf)">Можно:</b> общие вопросы, законы, шаблоны, ваш дом и&nbsp;сад, описание ребёнка без имени.</li>
+        <li><b style="color:#8A5208">Обезличить:</b> выписки, акты, договоры, требования ФНС.</li>
+        <li><b style="color:#C23E2D">Нельзя:</b> паспорта, СНИЛС, карты, пароли, фото детей, сведения о&nbsp;здоровье.</li>
+        <li>Лучше отправлять задачу, а&nbsp;не&nbsp;данные.</li>
+      </ul>
+    </div>
+    <div class="cheat">
+      <h4>Проверка ответа</h4>
+      <ul>
+        <li>Это ответ на&nbsp;мой вопрос?</li>
+        <li>Цифры, даты, законы&nbsp;— сверить.</li>
+        <li>Ссылки&nbsp;— открыть.</li>
+        <li>Чего ИИ не&nbsp;знал о&nbsp;моей ситуации?</li>
+        <li>Что будет, если здесь ошибка?</li>
+        <li>Спрашивать нейтрально: «Какие слабые места?»</li>
+      </ul>
+    </div>
+    <div class="cheat">
+      <h4>Запрос для картинки</h4>
+      <ul>
+        <li>Что + где и&nbsp;что вокруг + стиль + ракурс и&nbsp;свет + детали.</li>
+        <li>Для своего фото: «…всё остальное сохрани без изменений».</li>
+        <li>По&nbsp;<span class="nw">1–2</span> правки за&nbsp;раз.</li>
+        <li>Нужны размеры&nbsp;— таблица и&nbsp;схема, а&nbsp;не&nbsp;картинка.</li>
+      </ul>
+    </div>
+    <div class="cheat">
+      <h4>Где что</h4>
+      <ul>
+        <li><b>Новый чат</b>&nbsp;— для каждой новой темы.</li>
+        <li><b>Проекты</b>&nbsp;— большие темы с&nbsp;файлами и&nbsp;инструкцией.</li>
+        <li><b>Временный чат</b>&nbsp;— ничего не&nbsp;запоминать.</li>
+        <li><b>«+»</b>&nbsp;— прикрепить файл или фото.</li>
+        <li><b>Микрофон</b>&nbsp;— надиктовать, <b>голосовой режим</b>&nbsp;— поговорить.</li>
+        <li><b>Настройки</b>&nbsp;— память, персонализация, данные.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+</div>
+
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <p>Практикум составлен в сентябре 2026 года. ChatGPT часто обновляется: если кнопка выглядит иначе, чем здесь описано, ищите похожую по смыслу или спросите того, кто прислал вам практикум.</p>
+    <p><button class="reset-link" id="resetProgress" type="button">Сбросить отметки о&nbsp;выполненных заданиях</button></p>
+  </div>
+</footer>
+
+<script>
+const STAGES = [
+  {n:1, topic:"Знакомство"},
+  {n:2, topic:"Как думает ИИ"},
+  {n:3, topic:"Как ставить задачу"},
+  {n:4, topic:"Файлы и фото"},
+  {n:5, topic:"Проверка ответов"},
+  {n:6, topic:"Картинки и проект"}
+];
+
+const GLOSSARY = {
+  model:["Языковая модель","Программа, которая научилась на огромном количестве текстов подбирать уместные слова одно за другим. Так она и составляет ответы."],
+  prompt:["Промпт","Ваше сообщение для ИИ: вопрос, просьба или поручение. Чем понятнее промпт, тем точнее ответ."],
+  halluc:["Галлюцинация","Когда ИИ уверенно пишет то, чего нет: выдуманный закон, цифру, ссылку или факт."],
+  memory:["Память","Функция, с которой ChatGPT запоминает факты о вас между разными чатами. Её можно посмотреть, исправить, очистить или отключить в настройках."],
+  temp:["Временный чат","Разговор, который не сохраняется в истории и не пополняет память. Подходит для разовых вопросов."],
+  pd:["Персональные данные","Любые сведения, по которым можно узнать человека: ФИО, телефон, адрес, паспорт, ИНН, СНИЛС, зарплата, фотография."],
+  project:["Проект","Папка в ChatGPT для большой темы. Внутри хранятся чаты, файлы и постоянная инструкция."]
+};
+
+const TOUR = [
+  ["Поле ввода","Сюда пишете сообщение обычными словами, как в мессенджере. Отправить — клавиша Enter или кнопка со стрелкой. Чтобы перейти на новую строку, нажмите Shift + Enter."],
+  ["Кнопка «+»","Прикрепить файл или фото, сделать снимок камерой. Здесь же спрятаны дополнительные инструменты: создание картинок, поиск в интернете, глубокое исследование."],
+  ["Микрофон","Надиктовать сообщение вместо набора. Текст появится в поле ввода — его можно поправить перед отправкой."],
+  ["Голосовой режим","Живой разговор голосом: вы говорите, ChatGPT отвечает вслух. Его можно перебивать и уточнять на ходу. Удобно, когда руки заняты — на кухне или на грядке."],
+  ["Выбор режима","Быстрый режим отвечает сразу — для повседневных вопросов. Думающий режим отвечает дольше, но лучше справляется со сложными задачами: расчётами, документами, планами. В зависимости от тарифа это переключатель режимов или кнопка вроде «Подумать»."],
+  ["Кнопки под ответом","Скопировать ответ, попросить ответить заново, оценить. Если ответ не понравился, кнопка повтора даст другой вариант."],
+  ["Новый чат","Чистый лист. Для каждой новой темы начинайте новый чат: так ChatGPT не путается в старых разговорах."],
+  ["Поиск","Находит старые чаты, файлы и картинки по слову. Не нужно помнить, когда был разговор."],
+  ["Проекты","Папки для больших тем, например «Дом и участок». Внутри хранятся чаты, файлы и постоянная инструкция. Подробно — в четвёртом занятии."],
+  ["Картинки и библиотека","Все созданные картинки и загруженные файлы в одном месте. Отсюда же можно начать новую картинку по шаблону."],
+  ["Профиль и настройки","Язык интерфейса, память, персонализация и управление данными. Сюда мы заглянем во втором и третьем занятиях."]
+];
+
+const SORT_OPTS = ["Поможет","Проверяйте","Не доверяйте"];
+const SORT_CARDS = [
+  {t:"Написать вежливое письмо клиенту о сроках сдачи документов", a:0, fb:"Это одна из самых сильных сторон ИИ. Прочитайте перед отправкой и подставьте детали."},
+  {t:"Придумать 10 игр для ребёнка на прогулке", a:0, fb:"Идей будет много — выберите те, что подходят по возрасту и безопасны."},
+  {t:"Показать, как будет выглядеть дом с новой крышей", a:0, fb:"Это визуализация для настроения и разговора с семьёй, а не строительный проект."},
+  {t:"Рассказать об изменениях в налогах за последний месяц", a:1, fb:"Свежие изменения ИИ может не знать или перепутать. Просите искать в интернете и сверяйте с КонсультантПлюс или сайтом ФНС."},
+  {t:"Посчитать итог по таблице на 300 строк", a:1, fb:"Считает ChatGPT обычно верно, но может неправильно прочитать столбец. Сверьте итог и пару строк сами."},
+  {t:"Подсказать, какие овощи хорошо растут рядом", a:1, fb:"Общие советы полезны, но многое зависит от региона и сорта. Сверяйтесь с пакетиком семян и опытом соседей."},
+  {t:"Сказать, какое лекарство и сколько дать ребёнку", a:2, fb:"Здоровье детей — только врач и родители. ИИ может помочь подготовить вопросы к врачу, но не решать."},
+  {t:"Рассчитать фундамент под пристройку", a:2, fb:"Ошибка стоит слишком дорого. ИИ поможет разобраться в терминах и составить вопросы, а расчёт — дело специалиста."},
+  {t:"Отправить за вас отчётность в налоговую", a:2, fb:"Отчётность, подпись и ответственность остаются за вами. ИИ может помочь проверить черновик — без персональных данных."}
+];
+
+const CLAIM_FB = {
+  bad:"<b>Верно, здесь ошибка.</b> С 1 января 2026 года основная ставка НДС — 22%: её повысил Федеральный закон от 28.11.2025 <span class=\"nw\">№ 425-ФЗ</span>. Модель могла выучить старые данные, а звучит всё равно уверенно. Два других утверждения верны: ставки 10% и 0% сохранились. <mark class=\"hl\">Любую цифру из налогов сверяйте</mark> с КонсультантПлюс, Гарантом или сайтом ФНС.",
+  good:"Это утверждение верно. Поищите ошибку в другом месте — обратите внимание на цифры."
+};
+
+const CTX = {
+  q:"Что посадить на грядке?",
+  facts:["Живу в средней полосе","Грядка 2 × 1 м, солнце до обеда","Бываю на участке только по выходным","Хочу зелень всё лето и свёклу на зиму, план — таблицей"],
+  pct:[10,30,55,75,95],
+  a:[
+    "<p>Можно посадить морковь, свёклу, редис, салат, лук, укроп, петрушку, кабачки или огурцы. Выбор зависит от ваших целей, климата и условий на участке.</p>",
+    "<p>Для средней полосы подойдут холодостойкие культуры: редис, салат, лук, укроп, морковь и свёкла. Теплолюбивые томаты и огурцы лучше растить в теплице или под укрытием.</p>",
+    "<p>На небольшой грядке с солнцем до обеда хорошо растут культуры, которым хватает полдня света: салат, шпинат, укроп, петрушка, свёкла, лук. Томатам и перцам солнца, скорее всего, будет мало.</p>",
+    "<p>Если вы бываете только по выходным, выбирайте то, что переживёт неделю без полива: свёклу, лук, укроп, петрушку. Замульчируйте грядку скошенной травой — земля дольше сохранит влагу. Редис и салат без частого полива быстро грубеют и уходят в стрелку.</p>",
+    "<p>План для грядки 2 × 1 м (сроки зависят от погоды):</p><table><tr><th>Когда</th><th>Что делаем</th></tr><tr><td>Май</td><td>Сеем свёклу на половину грядки, укроп и петрушку — на вторую половину</td></tr><tr><td>Июнь</td><td>Прореживаем свёклу, мульчируем, подсеваем укроп</td></tr><tr><td>Июль</td><td>Ещё раз подсеваем укроп, собираем зелень</td></tr><tr><td>Август</td><td>Собираем зелень, на освободившееся место сеем шпинат</td></tr><tr><td>Сентябрь</td><td>Убираем свёклу на хранение до заморозков</td></tr></table><p>Чтобы зелень не заканчивалась, подсевайте укроп небольшими порциями каждые 2–3 недели.</p>"
+  ]
+};
+
+const REGEN = [
+  "Урожай этого лета: кабачков хватит на всю родню — разбирайте, пока не выросли новые! 🥒",
+  "Кабачковый отчёт с грядки: план перевыполнен. Жду заявок на оладьи и икру!",
+  "Лето удалось! Кабачки опять победили. Кто первый за банкой икры?"
+];
+
+const LIGHT_LABELS = {g:"Можно", y:"Обезличить", r:"Нельзя"};
+const LIGHTS = [
+  {t:"Шаблон письма о сверке расчётов без названий и реквизитов", a:"g", fb:"В шаблоне нет ничьих данных."},
+  {t:"Банковская выписка клиента с номерами счетов и названиями контрагентов", a:"y", fb:"Уберите счета, названия и ИНН. А ещё лучше — опишите столбцы и попросите формулу."},
+  {t:"Пароль от личного кабинета налогоплательщика клиента", a:"r", fb:"Пароли и доступы не отправляем ни в какие чаты — никогда."},
+  {t:"Фото фасада вашего дома в деревне", a:"g", fb:"Это ваш дом, чужих персональных данных на фото нет. Следите только, чтобы в кадр не попали соседи и номера машин."},
+  {t:"Фото ребёнка, с которым вы занимаетесь", a:"r", fb:"Фото ребёнка — его персональные данные, и разрешения родителей на такое использование нет. Для идей хватит описания без фото."},
+  {t:"«Мальчик 6 лет, любит динозавров, быстро устаёт от спокойных игр»", a:"g", fb:"Без имени, фамилии и диагнозов по такому описанию человека не узнать."},
+  {t:"Требование ФНС с ИНН и названием организации", a:"y", fb:"Замените ИНН, название и ФИО руководителя. Суть требования ИИ поймёт и без них."},
+  {t:"Скан паспорта нового сотрудника клиента", a:"r", fb:"Паспортные данные — одни из самых чувствительных. Только не в чат."}
+];
+
+const PART_KEYS = ["role","ctx","task","fmt","lim"];
+const PART_NAMES = {role:"Роль", ctx:"Контекст", task:"Задача", fmt:"Формат", lim:"Ограничения"};
+const BUILDER = {
+  acc:{
+    label:"Бухгалтерия: письмо клиенту",
+    parts:{
+      role:"Ты опытный главный бухгалтер, который умеет вежливо и понятно общаться с клиентами.",
+      ctx:"Я веду бухгалтерию небольшой компании на аутсорсе. Директор присылает первичные документы с опозданием, и мы рискуем не успеть сдать отчётность.",
+      task:"Напиши письмо директору с просьбой присылать документы за месяц до 5-го числа следующего месяца.",
+      fmt:"Оформи как короткое деловое письмо: тема, 3 абзаца, в конце — список нужных документов.",
+      lim:"Тон вежливый, без упрёков и сложных терминов. Не больше 150 слов."
+    },
+    miss:{
+      role:"Нет роли: письмо может получиться суховатым, «не бухгалтерским».",
+      ctx:"Нет контекста: ИИ не знает, зачем письмо и в чём проблема.",
+      task:"Нет задачи: непонятно, что именно сделать.",
+      fmt:"Нет формата: неизвестно, нужны ли тема, список и какая длина.",
+      lim:"Нет ограничений: письмо может выйти длинным или с упрёками."
+    },
+    low:"<p>Уважаемый клиент!</p><p>Просим своевременно предоставлять первичные документы. Это необходимо для корректного ведения бухгалтерского учёта.</p><p>Благодарим за понимание.</p>",
+    mid:"<p><b>Тема:</b> Документы за месяц — до 5-го числа</p><p>Добрый день!</p><p>Просим присылать первичные документы за прошедший месяц до 5-го числа следующего месяца. Это нужно, чтобы вовремя сдавать отчётность и избежать штрафов.</p><p>Спасибо!</p>",
+    high:"<p><b>Тема:</b> Как нам вместе успевать с отчётностью</p><p>Добрый день, [Имя Отчество]!</p><p>Чтобы отчётность всегда сдавалась вовремя и без спешки, предлагаю договориться о простом правиле: документы за месяц присылать до 5-го числа следующего месяца.</p><p>Так у нас будет время всё проверить и заранее уточнить у вас детали, а не в последний день.</p><p>Что нужно прислать:</p><ul><li>акты и накладные от поставщиков;</li><li>счета и акты, выставленные покупателям;</li><li>новые договоры;</li><li>чеки и авансовые отчёты.</li></ul><p>Спасибо! Если вам удобнее другой способ передачи документов — подскажите.</p>"
+  },
+  nanny:{
+    label:"Няня: план занятий",
+    parts:{
+      role:"Ты опытный педагог дошкольного образования.",
+      ctx:"Я социальная няня. Сижу с мальчиком 5 лет 4 часа после садика. Он очень подвижный, любит машинки и быстро устаёт от спокойных занятий. Дома есть бумага, карандаши и пластилин.",
+      task:"Составь план на эти 4 часа: игры и занятия, которые развивают речь и мелкую моторику.",
+      fmt:"Таблицей: время, занятие, что понадобится, чем полезно.",
+      lim:"Без мультиков и гаджетов, каждое занятие — не дольше 20 минут, никаких покупных материалов."
+    },
+    miss:{
+      role:"Нет роли: идеи будут бытовыми, без педагогической логики.",
+      ctx:"Нет контекста: ИИ не знает возраст, характер ребёнка и что есть дома.",
+      task:"Нет задачи: непонятно, что именно сделать.",
+      fmt:"Нет формата: получится список без времени и материалов.",
+      lim:"Нет ограничений: в плане могут появиться мультфильмы и покупные материалы."
+    },
+    low:"<p>Вот несколько идей для занятий с ребёнком:</p><ul><li>почитать книгу;</li><li>порисовать;</li><li>поиграть в развивающие игры;</li><li>погулять на свежем воздухе;</li><li>посмотреть познавательный мультфильм.</li></ul>",
+    mid:"<p>План на 4 часа:</p><ul><li>Игра «Гараж»: считаем машинки и сортируем по цвету.</li><li>Лепим из пластилина дорогу и светофор.</li><li>Рисуем трассу и рассказываем, куда едет машина.</li><li>Прогулка и подвижные игры.</li><li>Спокойное чтение перед приходом родителей.</li></ul>",
+    high:"<table><tr><th>Время</th><th>За&shy;ня&shy;тие</th><th>Что нужно</th><th>Чем по&shy;лез&shy;но</th></tr><tr><td>0:00–0:15</td><td>«Ав&shy;то&shy;мой&shy;ка»: моем руки и рас&shy;ска&shy;зы&shy;ва&shy;ем, что было в са&shy;ди&shy;ке</td><td>—</td><td>Речь, пе&shy;ре&shy;ход к за&shy;ня&shy;ти&shy;ям</td></tr><tr><td>0:15–0:35</td><td>Лепим из плас&shy;ти&shy;ли&shy;на ко&shy;лё&shy;са и фары для ма&shy;ши&shy;нок</td><td>Плас&shy;ти&shy;лин</td><td>Мел&shy;кая мо&shy;то&shy;ри&shy;ка</td></tr><tr><td>0:35–0:55</td><td>По&shy;движ&shy;ная игра «Све&shy;то&shy;фор»: крас&shy;ный — стоим, зе&shy;лё&shy;ный — бежим</td><td>—</td><td>Вни&shy;ма&shy;ние, раз&shy;ряд&shy;ка</td></tr><tr><td>0:55–1:15</td><td>Ри&shy;су&shy;ем дорогу и при&shy;ду&shy;мы&shy;ва&shy;ем ис&shy;то&shy;рию, куда едет гру&shy;зо&shy;вик</td><td>Бу&shy;ма&shy;га, ка&shy;ран&shy;да&shy;ши</td><td>Речь, фан&shy;та&shy;зия</td></tr><tr><td>1:15–1:35</td><td>Пе&shy;ре&shy;кус и отдых</td><td>—</td><td>Вос&shy;ста&shy;но&shy;вить силы</td></tr><tr><td>…</td><td colspan=\"3\">и так до конца четырёх часов: спокойные занятия чередуются с подвижными</td></tr></table>"
+  },
+  home:{
+    label:"Огород: план посадок",
+    parts:{
+      role:"Ты опытный агроном, который хорошо знает условия средней полосы России.",
+      ctx:"У меня участок в деревне в средней полосе. Под огород — 4 грядки по 3 × 1 м, солнце с утра до 15:00. Бываю там только по выходным. Семья любит огурцы и зелень.",
+      task:"Составь план посадок на сезон: что сажать на каждую грядку и когда.",
+      fmt:"Таблицей по грядкам и месяцам, потом 5 коротких советов по уходу.",
+      lim:"Выбирай неприхотливые культуры, которые переживут неделю без полива; учитывай соседство растений."
+    },
+    miss:{
+      role:"Нет роли: советы будут общими, без знания местного климата.",
+      ctx:"Нет контекста: ИИ не знает регион, размер грядок, солнце и как часто вы бываете.",
+      task:"Нет задачи: непонятно, что именно сделать.",
+      fmt:"Нет формата: получится список без привязки к грядкам и месяцам.",
+      lim:"Нет ограничений: в план попадут капризные культуры, которым нужен ежедневный уход."
+    },
+    low:"<p>Для огорода подойдут:</p><ul><li>томаты;</li><li>огурцы;</li><li>картофель;</li><li>морковь;</li><li>капуста;</li><li>зелень.</li></ul><p>Сажайте после окончания заморозков и регулярно поливайте.</p>",
+    mid:"<p>Для средней полосы можно так:</p><ul><li>Грядка 1 — огурцы (июнь).</li><li>Грядка 2 — морковь и лук (май).</li><li>Грядка 3 — свёкла (май).</li><li>Грядка 4 — укроп, петрушка, салат (май–июль).</li></ul><p>Огурцы поливайте 2–3 раза в неделю.</p>",
+    high:"<table><tr><th>Гряд&shy;ка</th><th>Май</th><th>Июнь</th><th>Июль–ав&shy;густ</th></tr><tr><td>1</td><td>Лук-севок</td><td>Про&shy;пол&shy;ка</td><td>Убор&shy;ка лука, посев гор&shy;чи&shy;цы</td></tr><tr><td>2</td><td>Свёк&shy;ла</td><td>Про&shy;ре&shy;жи&shy;ва&shy;ние</td><td>Рост, убор&shy;ка в сен&shy;тяб&shy;ре</td></tr><tr><td>3</td><td>Укроп, пет&shy;руш&shy;ка</td><td>Под&shy;сев ук&shy;ро&shy;па</td><td>Сбор зе&shy;ле&shy;ни, под&shy;сев</td></tr><tr><td>4</td><td>Дуги и укрыв&shy;ной ма&shy;те&shy;ри&shy;ал</td><td>Огур&shy;цы рас&shy;са&shy;дой</td><td>Сбор огур&shy;цов</td></tr></table><p><b>Важно:</b> огурцы любят частый полив, а вы бываете раз в неделю. Поставьте рядом бочку с капельным поливом и замульчируйте грядку — иначе урожай будет слабым.</p><p><b>Советы по уходу:</b> мульча на всех грядках; полив в пятницу вечером и в воскресенье перед отъездом; …</p>"
+  }
+};
+
+const BAT = [
+  {
+    prompt:"<span class=\"seg-span seg-task\">Как сделать ремонт в доме?</span>",
+    answer:"<p>Ремонт дома включает несколько этапов: планирование, демонтаж, черновые работы и чистовую отделку. Сначала составьте бюджет, выберите материалы и найдите надёжных мастеров. Не забудьте про электрику и сантехнику…</p>",
+    comment:"всё правильно, но бесполезно: так можно ответить про любой дом в мире."
+  },
+  {
+    prompt:"<span class=\"seg-span seg-role\">Ты опытный прораб, который ремонтирует старые деревянные дома.</span> <span class=\"seg-span seg-ctx\">У меня деревянный дом 6 × 8 м 1970-х годов в деревне, приезжаю по выходным. Полы холодные, окна старые, фасад облез.</span> <span class=\"seg-span seg-task\">Составь порядок работ на ближайший год.</span> <span class=\"seg-span seg-fmt\">Таблицей: сезон, работа, сама или с мастером, примерный бюджет.</span> <span class=\"seg-span seg-lim\">Бюджет до 300 тысяч рублей. Сначала — то, что влияет на тепло.</span>",
+    answer:"<table><tr><th>Сезон</th><th>Работа</th><th>Кто</th><th>Бюд&shy;жет</th></tr><tr><td>Осень</td><td>Замена окон до хо&shy;ло&shy;дов</td><td>Мастер</td><td>80–160 тыс.&nbsp;₽</td></tr><tr><td>Осень</td><td>Утеп&shy;ле&shy;ние пола, если есть под&shy;пол</td><td>Мастер и по&shy;мощ&shy;ник</td><td>40–80 тыс.&nbsp;₽</td></tr><tr><td>Зима</td><td>За&shy;ме&shy;ры, выбор краски и ма&shy;те&shy;ри&shy;алов</td><td>Сама</td><td>—</td></tr><tr><td>Весна–лето</td><td>Под&shy;го&shy;тов&shy;ка и по&shy;крас&shy;ка фа&shy;са&shy;да в сухую по&shy;го&shy;ду</td><td>Сама или с по&shy;мощ&shy;ни&shy;ком</td><td>30–60 тыс.&nbsp;₽</td></tr></table><p>Цены примерные — уточните у местных мастеров. Перед утеплением пола проверьте, нет ли гнили в лагах.</p>",
+    comment:"конкретно, по сезонам, с бюджетом и важным предупреждением. Такой ответ уже можно обсуждать с мастером."
+  }
+];
+
+const REFINE = {
+  user:"Напиши клиенту письмо: в сверке с поставщиком расхождение 12 400 рублей, у нас нет акта за июль.",
+  base:"<p>Уважаемый [Имя Отчество]!</p><p>При сверке расчётов с поставщиком «[Компания]» нами было обнаружено расхождение в размере 12 400 рублей. Данное расхождение возникло в связи с тем, что акт выполненных работ за июль отражён в учёте поставщика, однако в оригинале в наш адрес не поступал. В связи с вышеизложенным просим вас запросить у поставщика указанный документ либо предоставить имеющуюся у вас копию.</p><p>С уважением, [ваше имя]</p>",
+  chips:[
+    {l:"Короче", a:"<p>[Имя Отчество], добрый день! В сверке с поставщиком «[Компания]» расхождение 12 400 ₽: у нас нет акта за июль. Пришлите, пожалуйста, его копию или запросите у поставщика.</p>"},
+    {l:"Проще, без канцелярита", a:"<p>[Имя Отчество], добрый день!</p><p>Мы сверили расчёты с поставщиком «[Компания]» — у нас с ним разница 12 400 рублей. Причина простая: поставщик учёл акт за июль, а к нам этот акт так и не пришёл.</p><p>Если у вас есть копия — перешлите, пожалуйста. Если нет, попросите поставщика прислать акт. Как только он будет у нас, всё сойдётся.</p><p>С уважением, [ваше имя]</p>"},
+    {l:"Сделай теплее", a:"<p>[Имя Отчество], добрый день! Надеюсь, неделя складывается удачно.</p><p>Небольшой вопрос по сверке с «[Компания]»: у нас не хватает одного документа — акта за июль на 12 400 рублей. У поставщика он есть, а до нас, видимо, не дошёл.</p><p>Буду очень благодарна, если перешлёте копию или попросите поставщика её прислать. Спасибо!</p>"},
+    {l:"Оформи итог таблицей", a:"<p>[Имя Отчество], добрый день! Итоги сверки с «[Компания]»:</p><table><tr><th>Показатель</th><th>Сумма</th></tr><tr><td>Задолженность по данным поставщика</td><td>86 400 ₽</td></tr><tr><td>Задолженность по нашим данным</td><td>74 000 ₽</td></tr><tr><td>Расхождение</td><td>12 400 ₽</td></tr><tr><td>Причина</td><td>Нет акта за июль</td></tr></table><p>Пришлите, пожалуйста, копию акта или запросите её у поставщика.</p>"},
+    {l:"Добавь, чем это грозит", a:"<p>[Имя Отчество], добрый день!</p><p>В сверке с поставщиком «[Компания]» расхождение 12 400 рублей: у нас нет акта за июль. Пришлите, пожалуйста, его копию или запросите у поставщика.</p><p>Без этого документа расход по нему не получится подтвердить в учёте, а расхождение с поставщиком так и останется в отчётности. Хорошо бы решить вопрос до конца квартала.</p><p>С уважением, [ваше имя]</p>"}
+  ]
+};
+
+const DOC_TABS = [
+  {l:"Документы", items:[
+    "Это договор аренды склада, данные обезличены. Выпиши таблицей сроки, суммы и штрафы. Отметь пункты, которые могут быть невыгодны арендатору.",
+    "Сравни две версии договора и перечисли все отличия таблицей: пункт, было, стало.",
+    "Это обезличенное требование налоговой. Объясни простыми словами, что от нас хотят, до какого срока и какие документы подготовить. Не додумывай то, чего нет в тексте."
+  ]},
+  {l:"Таблицы", items:[
+    "В файле обороты по месяцам. Посчитай итоги по кварталам, найди месяцы с резким ростом расходов и построй график.",
+    "Проверь таблицу: найди дубли, пустые ячейки и суммы, которые сильно выбиваются из общего ряда.",
+    "Вот два обезличенных акта сверки. Сопоставь их и покажи строки, которые не совпадают."
+  ]},
+  {l:"Фото и сканы", items:[
+    "Перепиши текст с фото чека в таблицу: товар, количество, цена, сумма. Проверь, сходится ли итог.",
+    "Это инструкция к удобрению. Выпиши дозировки для томатов и огурцов и когда их вносить.",
+    "Что за растение на фото и почему у него желтеют листья? Назови 3 вероятные причины и что проверить в первую очередь."
+  ]},
+  {l:"Скриншоты", items:[
+    "Это скриншот ошибки в программе. Что она означает и что попробовать сделать по шагам?",
+    "Объясни простыми словами, что показано на этом графике и какой вывод можно сделать.",
+    "На скриншоте таблица с сайта. Перенеси данные в таблицу, которую я смогу скопировать в Excel."
+  ]}
+];
+
+const LIBRARY = [
+  {l:"Бухгалтерия", items:[
+    ["Объяснить клиенту простыми словами","Ты главный бухгалтер. Объясни [что: термин, изменение, требование] директору небольшой компании, который не разбирается в бухгалтерии. Коротко, без терминов, с одним житейским примером. В конце — что ему нужно сделать."],
+    ["Формула для Excel","У меня таблица в Excel: в столбце A — даты, в B — контрагенты, в C — суммы. Напиши формулу, которая посчитает сумму по контрагенту из ячейки F1 за месяц, указанный в ячейке G1. Объясни по шагам, куда её вставить и как проверить."],
+    ["Чек-лист закрытия месяца","Составь чек-лист закрытия месяца для ООО на [система налогообложения] с [число] сотрудниками. Раздели по неделям и отметь пункты, которые чаще всего забывают. Укажи, какие сроки мне нужно сверить с официальным календарём."],
+    ["Твёрдое, но вежливое письмо","Клиент задерживает оплату моих услуг уже [срок]. Помоги написать вежливое, но твёрдое письмо: напомнить о договорённостях, назвать новую дату оплаты и последствия. Дай 2 варианта: мягкий и строгий."]
+  ]},
+  {l:"Няня", items:[
+    ["Игры на прогулке","Придумай 8 игр на прогулке для ребёнка [возраст] лет без игрушек — только из того, что есть на улице. Для каждой — правила в 2 предложениях. Отметь, какие подходят для дождливой погоды."],
+    ["Сказка на ночь","Придумай добрую сказку на 5 минут для ребёнка [возраст] лет, который [чего боится или что переживает]. Главный герой — [животное]. Спокойный финал, чтобы легче уснуть."],
+    ["Как поговорить с ребёнком","Ребёнок [возраст] лет [что происходит: не хочет одеваться, плачет, когда уходит мама]. Я няня, не родитель. Подскажи 5 спокойных фраз, которые могут помочь, и чего лучше не говорить."],
+    ["Отчёт для родителей","Помоги коротко и тепло написать родителям, как прошёл день с ребёнком: [что делали, как ел, какое было настроение]. 4–5 предложений, без лишних деталей."]
+  ]},
+  {l:"Дом и сад", items:[
+    ["Смета-черновик","Составь черновую смету на [работа, например покраску фасада деревянного дома 6 × 8 м]: материалы, количество, примерная цена диапазоном. Отметь, что цены нужно проверить в местных магазинах, и добавь запас 10–15%."],
+    ["Календарь посадок","Составь календарь посадок для [регион] на [культуры]: когда сеять на рассаду, когда высаживать в грунт, когда собирать. Таблицей. Отметь, что сроки зависят от погоды."],
+    ["Цветник, который цветёт всё лето","Подбери растения для цветника [размер] у крыльца: [солнце или тень], регион — [регион]. Чтобы что-то цвело с мая по сентябрь, а уход был минимальным. Таблица: растение, когда цветёт, высота, цвет."],
+    ["Выбор материала","Сравни [материал А] и [материал Б] для [задача, например утепления пола в деревянном доме]: цена, срок службы, сложность монтажа, плюсы и минусы. Таблицей, а в конце — что спросить у мастера."]
+  ]},
+  {l:"Общее", items:[
+    ["Помоги составить запрос","Я хочу [цель]. Помоги мне составить хороший запрос к тебе: задай вопросы о деталях, которые тебе нужны, а потом напиши готовый запрос целиком."],
+    ["Разложи решение по полочкам","Я выбираю между [А] и [Б]. Составь таблицу плюсов и минусов, задай мне 3 вопроса, которые помогут решить, а потом скажи, что бы ты выбрал на моём месте и почему."],
+    ["Сделай из заметок план","Вот мои заметки вперемешку: [текст]. Разбери их и сделай понятный план: что сделать, в каком порядке, до какого срока."],
+    ["Проверь мой текст","Проверь текст на ошибки и сделай его понятнее, но сохрани мой стиль: [текст]."]
+  ]}
+];
+
+const TRUST_LABELS = ["Можно сразу","Прочитать внимательно","Сверить с источником","Решает специалист"];
+const TRUST = [
+  {t:"Поздравление коллеге с днём рождения", r:0, fb:"Можно использовать сразу — только прочитайте перед отправкой и добавьте что-то личное."},
+  {t:"Идеи игр для ребёнка 4 лет на прогулке", r:1, fb:"Прочитайте внимательно: убедитесь, что игры безопасны для возраста и подходят к месту."},
+  {t:"Когда сеять рассаду томатов в вашем регионе", r:2, fb:"Сверьте с пакетиком семян и прогнозом погоды: сроки зависят от сорта и весны."},
+  {t:"Сроки сдачи отчётности в этом квартале", r:2, fb:"Обязательно сверьте с календарём бухгалтера в КонсультантПлюс или на сайте ФНС: ошибка стоит штрафа."},
+  {t:"Можно ли дать ребёнку жаропонижающее и сколько", r:3, fb:"Решают врач и родители. ИИ может помочь только сформулировать вопросы к врачу."},
+  {t:"Какой фундамент нужен под пристройку", r:3, fb:"Решает специалист: ошибка обойдётся очень дорого. ИИ поможет разобраться в терминах и подготовить вопросы."}
+];
+
+const CMP_FB = {
+  win:"<p><b>Верно, ответ Б надёжнее.</b> Он просит уточнить регион, честно говорит, что сроки зависят от погоды, и объясняет, почему нельзя использовать плёнку.</p><p>В ответе А опасные советы звучат уверенно: тюльпаны и нарциссы осенью не выкапывают, а сажают; сильная осенняя обрезка вредит многим кустарникам, например сирени; под плёнкой розы выпревают. А слово «гарантированно» — всегда повод насторожиться.</p>",
+  lose:"<p><b>Ответ А звучит бодро и уверенно, но в нём ошибки.</b> Тюльпаны и нарциссы осенью не выкапывают, а сажают; сильная осенняя обрезка вредит многим кустарникам, например сирени; под плёнкой розы выпревают. А слово «гарантированно» — всегда повод насторожиться.</p><p>Надёжнее ответ Б: он просит уточнить регион, честно говорит, что сроки зависят от погоды, и объясняет, почему нельзя использовать плёнку.</p>"
+};
+
+const LEAD = [
+  {
+    user:"Я решила этой осенью поменять в доме все окна на пластиковые. Правда же, это хорошая идея?",
+    ai:"<p>Да, отличная идея! Пластиковые окна хорошо сохраняют тепло, их легко мыть, и служат они много лет. Осень — удачное время, чтобы подготовить дом к зиме. Вы точно будете довольны результатом!</p>",
+    comment:"ИИ подхватил ваш настрой и не упомянул ни одного риска."
+  },
+  {
+    user:"Я думаю этой осенью поменять в доме все окна на пластиковые. Какие у этого плюсы, минусы и риски? Что учесть?",
+    ai:"<p><b>Плюсы:</b> меньше сквозняков, проще уход, лучше шумоизоляция.</p><p><b>Минусы и риски:</b> в деревянном доме пластиковые окна сильно уменьшают естественную вентиляцию — возможны сырость и конденсат, понадобятся проветривание или приточные клапаны. Деревянный дом даёт усадку, поэтому важен правильный монтаж с обсадой. Для работы в холод нужна специальная зимняя монтажная пена.</p><p><b>Что учесть:</b> спросите мастера про обсаду и вентиляцию, сравните цены с деревянными окнами со стеклопакетами.</p>",
+    comment:"нейтральный вопрос дал настоящий разбор — с рисками, о которых стоит спросить мастера."
+  }
+];
+
+const IMG_GROUPS = [
+  {key:"what", l:"Что", opts:[
+    ["Фасад дома","фасад одноэтажного деревянного дома в деревне, вид с улицы"],
+    ["Веранда","уютная летняя веранда деревянного дома"],
+    ["Кухня","кухня в деревенском доме"],
+    ["Участок","участок у деревенского дома с огородом и садом"],
+    ["Цветник у крыльца","цветник у деревянного крыльца"],
+    ["Баня","небольшая деревянная баня на участке"]
+  ]},
+  {key:"style", l:"Стиль", opts:[
+    ["Как фото","реалистичная фотография"],
+    ["Акварель","акварельный эскиз"],
+    ["План сверху","аккуратный план, вид сверху, с подписями"],
+    ["3D-визуализация","3D-визуализация"]
+  ]},
+  {key:"season", l:"Время года", opts:[
+    ["Весна","весна"],["Лето","лето"],["Осень","золотая осень"],["Зима","зима, снег"]
+  ]},
+  {key:"light", l:"Свет", opts:[
+    ["Солнечное утро","солнечное утро"],["Вечер","мягкий вечерний свет"],["Пасмурно","пасмурный день"]
+  ]},
+  {key:"format", l:"Формат", opts:[
+    ["Горизонтальный","горизонтальный 16:9"],["Квадрат","квадрат"],["Вертикальный","вертикальный, для телефона"]
+  ]}
+];
+
+const QUIZ = {
+  1:[
+    {q:"Что такое промпт?", o:["Название программы","Ваше сообщение-задание для ИИ","Платная подписка"], a:1, e:"Промпт — это любое ваше сообщение: вопрос, просьба или поручение."},
+    {q:"Когда лучше начинать новый чат?", o:["Каждый раз, когда начинаете новую тему","Никогда — удобнее всё в одном чате","Раз в месяц"], a:0, e:"Новая тема — новый чат. Так ИИ не путается в старых разговорах."},
+    {q:"Как ChatGPT составляет ответ?", o:["Находит готовый ответ в базе","Каждый раз составляет его заново, слово за словом","Спрашивает у сотрудника компании"], a:1, e:"Поэтому ответы меняются от раза к разу — и поэтому ИИ может ошибаться."}
+  ],
+  2:[
+    {q:"ChatGPT уверенно назвал номер закона. Что это значит?", o:["Номер точно правильный","Номер нужно проверить в официальном источнике","ИИ сверил его с КонсультантПлюс"], a:1, e:"Уверенный тон ничего не гарантирует: номера, цифры и даты всегда проверяем."},
+    {q:"Что можно отправить в ChatGPT без обработки?", o:["Выписку клиента с номерами счетов","Описание «девочка 5 лет, любит рисовать»","Скан паспорта сотрудника"], a:1, e:"Описание без имени и диагнозов не позволяет узнать человека. Выписку нужно обезличить, а паспорт — нельзя."},
+    {q:"Почему короткий вопрос даёт общий ответ?", o:["ИИ ленится","ИИ не знает вашей ситуации, пока вы её не опишете","На бесплатном тарифе ответы хуже"], a:1, e:"ИИ знает только то, что вы написали. Больше контекста — точнее ответ."}
+  ],
+  3:[
+    {q:"Какие части поручения обычно важнее всего?", o:["Роль","Контекст и задача","Вежливые слова"], a:1, e:"Роль помогает, но без контекста и понятной задачи даже «опытный бухгалтер» ответит общими словами."},
+    {q:"ChatGPT ответил почти так, как нужно. Что лучше сделать?", o:["Закрыть чат и решить, что ИИ бесполезен","Уточнить в том же чате, что поменять","Отправить тот же вопрос заглавными буквами"], a:1, e:"Первый ответ — черновик. Короткие уточнения доводят его до нужного вида."},
+    {q:"Зачем писать «Прежде чем отвечать, задай мне вопросы»?", o:["Чтобы ИИ сам выяснил недостающие детали","Чтобы ответ был короче","Так ИИ работает быстрее"], a:0, e:"Это лучший приём, когда вы не знаете, какие детали важны: ИИ спросит сам."}
+  ],
+  4:[
+    {q:"Что написать вместе с прикреплённым файлом?", o:["Ничего — ИИ сам поймёт","Что это за файл и что с ним сделать","Только «привет»"], a:1, e:"Главная ошибка — отправить файл без пояснения. Объясните, что это и что найти."},
+    {q:"Как проверить итог, который ChatGPT посчитал по таблице?", o:["Поверить — он же компьютер","Сверить пару цифр и итог с оригиналом","Задать тот же вопрос ещё раз"], a:1, e:"ИИ может неправильно прочитать столбец. Контрольная сверка занимает минуту."},
+    {q:"Нужно посчитать данные по выписке клиента. Какой путь самый безопасный?", o:["Загрузить выписку как есть","Описать столбцы и попросить формулу, а считать у себя в Excel","Отправить скриншот выписки"], a:1, e:"Отправляйте задачу, а не данные: так персональные данные останутся у вас."}
+  ],
+  5:[
+    {q:"ИИ дал ссылку на закон. Что делать?", o:["Открыть и проверить, что там написано то же самое","Ссылка есть — значит, всё верно","Не открывать: ссылки ИИ всегда выдуманы"], a:0, e:"Ссылки бывают и настоящими, и выдуманными. Проверка — открыть и прочитать."},
+    {q:"Какой вопрос даст более честный ответ?", o:["«Правда же, мой план хороший?»","«Какие слабые места у моего плана?»","«Похвали мой план»"], a:1, e:"ИИ склонен соглашаться. Нейтральный вопрос помогает получить настоящий разбор."},
+    {q:"Кто решает, сколько лекарства дать ребёнку?", o:["ChatGPT, если спросить подробно","Врач и родители ребёнка","Первый сайт в поиске"], a:1, e:"Здоровье детей — зона специалистов. ИИ может помочь только подготовить вопросы к врачу."}
+  ],
+  6:[
+    {q:"Нужны точные размеры грядок. Что лучше попросить?", o:["Красивую картинку участка","Таблицу и схему по размерам","Похожее фото из интернета"], a:1, e:"Картинки ИИ рисует на глаз. Для метров — таблица и схема с сеткой."},
+    {q:"Как лучше менять картинку дома?", o:["Каждый раз писать новый длинный запрос с нуля","По одному-два изменения и «остальное сохрани»","Просить «сделай красивее»"], a:1, e:"Небольшие правки проще контролировать, а фраза «остальное сохрани» бережёт то, что уже нравится."},
+    {q:"Визуализация ремонта от ИИ — это…", o:["готовый строительный проект","идея и настроение, которые нужно обсудить с мастером","точная смета"], a:1, e:"Визуализация помогает выбрать и договориться, а технические решения принимает мастер."}
+  ]
+};
+</script>
+
+<script>
+(function(){
+"use strict";
+const $ = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]));
+
+/* ---------- Копирование ---------- */
+function copyText(text, btn){
+  const done = () => { if(!btn) return; const old = btn.dataset.label || btn.textContent; btn.dataset.label = old; btn.textContent = "Скопировано"; btn.classList.add("ok"); setTimeout(()=>{ btn.textContent = old; btn.classList.remove("ok"); }, 1600); };
+  const fallback = () => { const ta = document.createElement("textarea"); ta.value = text; ta.style.position="fixed"; ta.style.opacity="0"; document.body.appendChild(ta); ta.select(); try{ document.execCommand("copy"); }catch(e){} ta.remove(); done(); };
+  if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(done, fallback); } else fallback();
+}
+function makeCopyBtn(getText){
+  const b = document.createElement("button"); b.type="button"; b.className="copy-btn"; b.textContent="Копировать";
+  b.addEventListener("click", () => copyText(getText(), b)); return b;
+}
+
+/* ---------- Хранилище прогресса ---------- */
+const KEY = "portfolio:chatgpt-praktikum:progress-v1";
+let state = { tasks:{} };
+function loadState(){
+  try{ const raw = localStorage.getItem(KEY); if(raw){ const d = JSON.parse(raw); if(d && d.tasks) state = d; } }catch(e){}
+}
+function saveState(){
+  try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){}
+}
+
+/* ---------- Термины ---------- */
+let pop = null;
+function closePop(){ if(pop){ pop.remove(); pop = null; } }
+$$(".term").forEach(btn => {
+  btn.type = "button";
+  btn.addEventListener("click", e => {
+    e.stopPropagation();
+    const g = GLOSSARY[btn.dataset.term]; if(!g) return;
+    const same = pop && pop.dataset.for === btn.dataset.term;
+    closePop(); if(same) return;
+    pop = document.createElement("div"); pop.className="term-pop"; pop.setAttribute("role","tooltip"); pop.dataset.for = btn.dataset.term;
+    pop.innerHTML = "<b>"+esc(g[0])+"</b>"+esc(g[1]);
+    document.body.appendChild(pop);
+    placePop(btn);
+  });
+});
+/* Подсказка не выходит за края экрана: по горизонтали прижимается к полям,
+   а если снизу не хватает места, открывается над термином. */
+function placePop(btn){
+  const gap = 8, edge = window.innerWidth <= 560 ? 16 : 12;
+  const vw = document.documentElement.clientWidth, vh = window.innerHeight;
+  const r = btn.getBoundingClientRect();
+  pop.style.maxWidth = Math.min(320, vw - edge*2)+"px";
+  const pw = pop.offsetWidth, ph = pop.offsetHeight;
+  const left = Math.max(edge, Math.min(r.left, vw - edge - pw));
+  const below = vh - r.bottom - gap, above = r.top - gap;
+  const top = (ph <= below || below >= above) ? r.bottom + gap : r.top - gap - ph;
+  pop.style.left = (left + window.scrollX)+"px"; pop.style.top = (top + window.scrollY)+"px";
+}
+document.addEventListener("click", closePop);
+document.addEventListener("keydown", e => { if(e.key === "Escape") closePop(); });
+/* На телефоне высота окна меняется, когда прячется адресная строка, —
+   подсказку закрываем, только если изменилась ширина. */
+let popVW = window.innerWidth;
+window.addEventListener("resize", () => { if(window.innerWidth !== popVW){ popVW = window.innerWidth; closePop(); } });
+
+/* ---------- Прогресс: растения и полоска ---------- */
+function renderStages(){
+  const box = $("#stages"), mini = $("#miniStages");
+  STAGES.forEach(s => {
+    const a = document.createElement("a"); a.className="stage"; a.href="#level"+s.n; a.dataset.level = s.n;
+    a.innerHTML = '<svg aria-hidden="true"><use href="#pl'+s.n+'"/></svg><span class="num">Занятие '+s.n+'</span><span class="name">'+esc(s.topic)+'</span><span class="prog-row"><span class="check" aria-hidden="true">✓</span><span class="prog"></span></span>';
+    box.appendChild(a);
+    const m = document.createElement("a"); m.className="mini-stage"; m.href="#level"+s.n; m.dataset.level = s.n; m.title = s.n+". "+s.topic;
+    m.innerHTML = '<span class="lbl">'+s.n+'. '+esc(s.topic)+'</span><span class="bar"><i></i></span>';
+    mini.appendChild(m);
+  });
+}
+function updateProgress(){
+  let total = 0, doneAll = 0;
+  STAGES.forEach(s => {
+    const tasks = $$('.level[data-level="'+s.n+'"] .task');
+    const done = tasks.filter(t => state.tasks[t.dataset.id]).length;
+    total += tasks.length; doneAll += done;
+    const st = $('.stage[data-level="'+s.n+'"]');
+    if(st){
+      st.classList.toggle("started", done > 0);
+      st.classList.toggle("done", tasks.length > 0 && done === tasks.length);
+      st.querySelector(".prog").textContent = done+" из "+tasks.length;
+    }
+    const m = $('.mini-stage[data-level="'+s.n+'"] i'); if(m) m.style.width = (tasks.length ? done/tasks.length*100 : 0)+"%";
+  });
+  $$(".tasks").forEach(b => {
+    const c = $(".cnt", b); if(!c) return;
+    const ts = $$(".task", b);
+    c.textContent = "Выполнено: "+ts.filter(t => state.tasks[t.dataset.id]).length+" из "+ts.length;
+  });
+  $("#topCount").innerHTML = '<span class="long">Выполнено </span>'+doneAll+" из "+total;
+}
+
+/* ---------- Задания ---------- */
+const TAGS = {gen:"Общее", acc:"Бухгалтерия", nanny:"Няня", home:"Дом и сад"};
+function initTasks(){
+  $$(".task").forEach(t => {
+    const body = document.createElement("div"); body.className="task-body";
+    while(t.firstChild) body.appendChild(t.firstChild);
+    const top = document.createElement("div"); top.className="task-top";
+    const chk = document.createElement("button"); chk.type="button"; chk.className="task-check";
+    chk.innerHTML = '<svg aria-hidden="true"><use href="#ic-check"/></svg>';
+    const title = document.createElement("div"); title.className="task-title";
+    title.innerHTML = esc(t.dataset.id)+". "+esc(t.dataset.title)+' <span class="tag '+t.dataset.tag+'">'+TAGS[t.dataset.tag]+'</span>';
+    top.appendChild(chk); top.appendChild(title);
+    t.appendChild(top); if(body.childNodes.length) t.appendChild(body);
+    const sync = () => { const on = !!state.tasks[t.dataset.id]; t.classList.toggle("done", on); chk.setAttribute("aria-pressed", on); chk.setAttribute("aria-label", (on ? "Снять отметку: " : "Отметить выполненным: ")+t.dataset.title); };
+    chk.addEventListener("click", () => { state.tasks[t.dataset.id] = !state.tasks[t.dataset.id]; sync(); updateProgress(); saveState(); });
+    t._sync = sync; sync();
+  });
+}
+function initPromptCopy(){
+  $$(".prompt").forEach(p => {
+    if(p.querySelector(".copy-btn")) return;
+    const text = p.textContent.trim();
+    p.textContent = text;
+    /* Неразрывные пробелы нужны только для вёрстки — в буфер обмена кладём обычные. */
+    const plain = text.replace(/\u00A0/g, " ");
+    p.insertBefore(makeCopyBtn(() => plain), p.firstChild);
+  });
+}
+
+/* ---------- Экскурсия ---------- */
+function initTour(){
+  let i = 0;
+  const els = $$("#tour .m-el");
+  const show = n => {
+    i = (n + TOUR.length) % TOUR.length;
+    els.forEach(e => e.classList.toggle("active", +e.dataset.step === i));
+    $("#tourTitle").textContent = (i+1)+". "+TOUR[i][0];
+    $("#tourText").textContent = TOUR[i][1];
+    $("#tourPos").textContent = (i+1)+" из "+TOUR.length;
+  };
+  els.forEach(e => e.addEventListener("click", () => show(+e.dataset.step)));
+  $("#tourPrev").addEventListener("click", () => show(i-1));
+  $("#tourNext").addEventListener("click", () => show(i+1));
+  show(0);
+}
+
+/* ---------- Игры-сортировки ---------- */
+function sortGame(listSel, scoreSel, items, optLabels, optKeys, btnClass){
+  const list = $(listSel), score = $(scoreSel); let right = 0, answered = 0;
+  const build = () => {
+  list.innerHTML = ""; right = 0; answered = 0; score.textContent = "";
+  items.forEach(it => {
+    const card = document.createElement("div"); card.className="sort-card";
+    card.innerHTML = '<div class="txt">'+esc(it.t)+'</div><div class="opts"></div><div class="fb" aria-live="polite"></div>';
+    const opts = card.querySelector(".opts");
+    optKeys.forEach((k, idx) => {
+      const b = document.createElement("button"); b.type="button";
+      b.className = btnClass ? btnClass+" "+k : "opt-btn"; b.textContent = optLabels[idx];
+      b.addEventListener("click", () => {
+        if(card.classList.contains("answered")) return;
+        card.classList.add("answered"); answered++;
+        b.classList.add("sel");
+        const ok = k === it.a; if(ok) right++;
+        card.classList.add(ok ? "ok" : "no");
+        const correctLabel = optLabels[optKeys.indexOf(it.a)];
+        card.querySelector(".fb").innerHTML = (ok ? "<b>Верно.</b> " : "<b>Не совсем: правильно — «"+esc(correctLabel)+"».</b> ")+esc(it.fb);
+        if(answered === items.length){
+          score.textContent = "Итого: "+right+" из "+items.length+". "+(right === items.length ? "Отлично!" : "Прочитайте пояснения — они важнее счёта.");
+          const again = document.createElement("button"); again.type="button"; again.className="btn small quiet"; again.textContent = "Пройти ещё раз"; again.style.marginLeft = "8px";
+          again.addEventListener("click", () => { build(); const f = list.querySelector("button"); if(f) f.focus(); });
+          score.appendChild(again);
+        }
+      });
+      opts.appendChild(b);
+    });
+    list.appendChild(card);
+  });
+  };
+  build();
+}
+
+/* ---------- Найди ошибку ---------- */
+function initFindError(){
+  const fb = $("#claimFb");
+  $$("#findError .claim").forEach(c => c.addEventListener("click", () => {
+    if(c.dataset.ok === "0"){ c.classList.add("bad"); fb.innerHTML = CLAIM_FB.bad; $$("#findError .claim").forEach(x => { if(x.dataset.ok === "1") x.classList.add("good"); }); }
+    else { c.classList.add("good"); if(!$("#findError .claim.bad")) fb.innerHTML = CLAIM_FB.good; }
+  }));
+}
+
+/* ---------- Ползунок контекста ---------- */
+function initCtx(){
+  const r = $("#ctxRange");
+  const render = () => {
+    const v = +r.value;
+    $("#ctxQ").textContent = CTX.q;
+    $("#ctxFacts").innerHTML = CTX.facts.slice(0, v).map(f => '<span class="fact">+ '+esc(f)+'</span>').join("");
+    const a = $("#ctxA"); a.classList.remove("fade-in"); void a.offsetWidth; a.classList.add("fade-in");
+    a.innerHTML = '<span class="who">ChatGPT</span>'+CTX.a[v];
+    $("#ctxPct").textContent = CTX.pct[v]+"%"; $("#ctxBar").style.width = CTX.pct[v]+"%";
+    r.setAttribute("aria-valuetext", v === 0 ? "Только вопрос" : "Добавлено деталей: "+v);
+  };
+  r.addEventListener("input", render); render();
+}
+
+/* ---------- Ответить заново ---------- */
+function initRegen(){
+  let i = 0; const a = $("#regenA");
+  const render = () => { a.classList.remove("fade-in"); void a.offsetWidth; a.classList.add("fade-in"); a.innerHTML = '<span class="who">ChatGPT, вариант '+(i+1)+'</span>'+esc(REGEN[i]); };
+  $("#regenBtn").addEventListener("click", () => { i = (i+1) % REGEN.length; render(); });
+  render();
+}
+
+/* ---------- Конструктор поручения ---------- */
+function initBuilder(){
+  let scen = "acc"; const on = {role:false, ctx:false, task:true, fmt:false, lim:false};
+  const tabs = $("#bTabs"), parts = $("#bParts");
+  Object.keys(BUILDER).forEach(k => {
+    const t = document.createElement("button"); t.type="button"; t.className="tab"; t.setAttribute("role","tab"); t.dataset.k = k; t.textContent = BUILDER[k].label;
+    t.addEventListener("click", () => { scen = k; render(); }); tabs.appendChild(t);
+  });
+  PART_KEYS.forEach((k, idx) => {
+    const b = document.createElement("button"); b.type="button"; b.className="part-tg pt-"+k; b.dataset.k = k;
+    b.innerHTML = '<span class="box" aria-hidden="true"></span>'+(idx+1)+". "+PART_NAMES[k];
+    b.addEventListener("click", () => { on[k] = !on[k]; render(); }); parts.appendChild(b);
+  });
+  const textOf = () => PART_KEYS.filter(k => on[k]).map(k => BUILDER[scen].parts[k]).join(" ");
+  const render = () => {
+    const S = BUILDER[scen];
+    $$("#bTabs .tab").forEach(t => t.setAttribute("aria-selected", t.dataset.k === scen));
+    $$("#bParts .part-tg").forEach(b => b.setAttribute("aria-pressed", on[b.dataset.k]));
+    const segs = PART_KEYS.filter(k => on[k]).map(k => '<span class="seg-span seg-'+k+'">'+esc(S.parts[k])+'</span>');
+    $("#bPrompt").innerHTML = segs.length ? segs.join(" ") : '<span class="muted">Включите хотя бы одну часть.</span>';
+    const extras = ["role","ctx","fmt","lim"].filter(k => on[k]).length;
+    let pct, html;
+    if(!on.task){ pct = extras * 5; html = "<p><i>Без задачи ИИ не понимает, что от него нужно. Скорее всего, он ответит общими рассуждениями или переспросит: «Чем я могу помочь?»</i></p>"; }
+    else { pct = 30 + extras * 17.5; html = extras <= 1 ? S.low : extras <= 3 ? S.mid : S.high; }
+    $("#bPct").textContent = Math.round(pct)+"%"; $("#bBar").style.width = pct+"%";
+    const a = $("#bAnswer"); a.classList.remove("fade-in"); void a.offsetWidth; a.classList.add("fade-in");
+    a.innerHTML = '<span class="who">ChatGPT</span>'+html;
+    $("#bMissing").innerHTML = PART_KEYS.filter(k => !on[k]).map(k => "<li>"+esc(S.miss[k])+"</li>").join("");
+    $("#bCopy").disabled = !PART_KEYS.some(k => on[k]);
+  };
+  $("#bCopy").addEventListener("click", e => { const t = textOf(); if(t) copyText(t, e.currentTarget); });
+  render();
+}
+
+/* ---------- Переключатели «до / после» ---------- */
+function initToggle(rootSel, boxSel, data, renderFn){
+  const btns = $$(rootSel+" .toggle2 button");
+  const show = v => { btns.forEach(b => b.setAttribute("aria-pressed", +b.dataset.v === v)); const box = $(boxSel); box.classList.remove("fade-in"); void box.offsetWidth; box.classList.add("fade-in"); box.innerHTML = renderFn(data[v]); };
+  btns.forEach(b => b.addEventListener("click", () => show(+b.dataset.v)));
+  show(0);
+}
+
+/* ---------- Уточнения в диалоге ---------- */
+function initRefine(){
+  const chat = $("#refineChat"), chips = $("#refineChips");
+  const render = (userMsg, answer, isBase) => {
+    chat.innerHTML = '<div class="bubble user"><span class="who">Вы</span>'+esc(userMsg)+'</div><div class="bubble ai fade-in"><span class="who">ChatGPT'+(isBase ? "" : ", после уточнения")+'</span>'+answer+'</div>';
+  };
+  REFINE.chips.forEach(c => {
+    const b = document.createElement("button"); b.type="button"; b.className="chip"; b.textContent = "«"+c.l+"»";
+    b.addEventListener("click", () => { $$(".chip", chips).forEach(x => x.setAttribute("aria-pressed", x === b)); render(c.l, c.a, false); });
+    chips.appendChild(b);
+  });
+  const reset = document.createElement("button"); reset.type="button"; reset.className="chip"; reset.textContent = "Начать сначала";
+  reset.addEventListener("click", () => { $$(".chip", chips).forEach(x => x.setAttribute("aria-pressed", false)); render(REFINE.user, REFINE.base, true); });
+  chips.appendChild(reset);
+  render(REFINE.user, REFINE.base, true);
+}
+
+/* ---------- Конструктор персонализации ---------- */
+function initCI(){
+  const root = $("#ciBuilder");
+  const build = () => {
+    const name = $("#ciName").value.trim(), region = $("#ciRegion").value.trim();
+    const about = [];
+    if(name) about.push("Меня зовут "+name+" — обращайся ко мне так.");
+    if($('[data-ci="acc"]', root).checked) about.push("Я главный бухгалтер на аутсорсе, веду несколько компаний в России. В вопросах налогов и учёта опирайся на законодательство РФ.");
+    if($('[data-ci="nanny"]', root).checked) about.push("Я работаю социальной няней.");
+    if($('[data-ci="home"]', root).checked) about.push("Я ремонтирую дом в деревне и занимаюсь огородом и цветами"+(region ? ": "+region : "")+". Учитывай местный климат.");
+    about.push("Персональные данные клиентов и детей я тебе не отправляю, поэтому работаем с обезличенными примерами.");
+    const style = [];
+    const map = {simple:"Пиши простым языком, термины объясняй.", short:"Сначала давай короткий вывод, потом подробности.", unsure:"Честно говори, в чём не уверен и что мне нужно перепроверить.", sources:"Для законов, налогов и цифр давай ссылки на официальные источники.", ask:"Если данных не хватает, сначала задавай уточняющие вопросы.", noemoji:"Не используй смайлики."};
+    $$("[data-cs]", root).forEach(c => { if(c.checked) style.push("— "+map[c.dataset.cs]); });
+    return "Обо мне:\n"+about.join(" ")+(style.length ? "\n\nКак отвечать:\n"+style.join("\n") : "");
+  };
+  const render = () => { $("#ciOut").textContent = build(); };
+  root.addEventListener("input", render); root.addEventListener("change", render);
+  $("#ciCopy").addEventListener("click", e => copyText(build(), e.currentTarget));
+  render();
+}
+
+/* ---------- Вкладки с запросами ---------- */
+function initTabs(tabsSel, panelSel, data, itemFn){
+  const tabs = $(tabsSel), panel = $(panelSel); let cur = 0;
+  data.forEach((d, i) => { const t = document.createElement("button"); t.type="button"; t.className="tab"; t.setAttribute("role","tab"); t.textContent = d.l; t.addEventListener("click", () => { cur = i; render(); }); tabs.appendChild(t); });
+  const render = () => {
+    $$(".tab", tabs).forEach((t, i) => t.setAttribute("aria-selected", i === cur));
+    panel.innerHTML = ""; panel.className = "tab-panel";
+    data[cur].items.forEach(it => panel.appendChild(itemFn(it)));
+  };
+  render();
+}
+function promptEl(text, title){
+  const wrap = document.createElement("div");
+  if(title){ const h = document.createElement("h4"); h.textContent = title; h.style.margin = "14px 0 2px"; wrap.appendChild(h); }
+  const p = document.createElement("div"); p.className="prompt"; p.textContent = text; p.insertBefore(makeCopyBtn(() => text), p.firstChild);
+  wrap.appendChild(p); return wrap;
+}
+
+/* ---------- Обезличиватель ---------- */
+const ANON_SAMPLE = "Акт сверки взаимных расчётов между ООО «Ромашка» (ИНН 7700000001, ОГРН 1027700000001) и ИП Смирновым А. В. (ИНН 500100000001).\nБухгалтер: Кузнецова Марина Игоревна, тел. +7 (900) 000-00-01, buh@romashka.example.\nРасчётный счёт: 40702810000000000001.\nСальдо на 30.06.2026: 154 300 руб. в пользу ООО «Ромашка».";
+function anonymize(text){
+  let segs = [{t:text}]; const counts = {}; const maps = {company:new Map(), person:new Map()};
+  const add = k => counts[k] = (counts[k]||0) + 1;
+  const rule = (re, fn) => {
+    const out = [];
+    segs.forEach(seg => {
+      if(seg.m){ out.push(seg); return; }
+      let last = 0, m; re.lastIndex = 0;
+      while((m = re.exec(seg.t)) !== null){
+        if(m[0] === ""){ re.lastIndex++; continue; }
+        const rep = fn(m);
+        out.push({t:seg.t.slice(last, m.index)});
+        if(rep.pre) out.push({t:rep.pre});
+        out.push({t:rep.t, m:true});
+        if(rep.post) out.push({t:rep.post});
+        last = m.index + m[0].length;
+      }
+      out.push({t:seg.t.slice(last)});
+    });
+    segs = out.filter(s => s.t !== "");
+  };
+  const label = (kind, key, word) => { const mp = maps[kind]; if(!mp.has(key)) mp.set(key, mp.size + 1); return word+" "+mp.get(key); };
+  rule(/(ООО|АО|ПАО|ЗАО|ОАО|НКО|АНО|ГУП|МУП)\s*[«"]([^»"\n]+)[»"]/g, m => { add("company"); return {pre:m[1]+" ", t:"«"+label("company", m[2].trim().toLowerCase(), "Компания")+"»"}; });
+  rule(/(ИНН|ОГРНИП|ОГРН|КПП|БИК|ОКПО)(\s*:?\s*)(\d{8,15})/g, m => { add("req"); return {pre:m[1]+m[2], t:"[скрыт]"}; });
+  rule(/(?<![А-ЯЁа-яё])(?!(?:Уважаем|Дорог|Добр)[а-яё]*\s)[А-ЯЁ][а-яё]+(?:-[А-ЯЁ][а-яё]+)?\s+[А-ЯЁ][а-яё]+\s+[А-ЯЁ][а-яё]+(?:ович|евич|ич|овна|евна|ична|инична)[а-яё]{0,3}(?![а-яё])/g, m => { add("person"); return {t:"["+label("person", m[0].toLowerCase(), "Человек")+"]"}; });
+  rule(/(?<![А-ЯЁа-яё])(?!(?:Уважаем|Дорог|Добр)[а-яё]*\s)[А-ЯЁ][а-яё]+\s+[А-ЯЁ][а-яё]+(?:ович|евич|ич|овна|евна|ична|инична)[а-яё]{0,3}(?![а-яё])/g, m => { add("person"); return {t:"["+label("person", m[0].toLowerCase(), "Человек")+"]"}; });
+  rule(/[А-ЯЁ][а-яё]+(?:-[А-ЯЁ][а-яё]+)?\s+[А-ЯЁ]\.\s?[А-ЯЁ]\./g, m => { add("person"); return {t:"["+label("person", m[0].replace(/\s/g,"").toLowerCase(), "Человек")+"]"}; });
+  rule(/[А-ЯЁ]\.\s?[А-ЯЁ]\.\s?[А-ЯЁ][а-яё]+/g, m => { add("person"); return {t:"["+label("person", m[0].replace(/\s/g,"").toLowerCase(), "Человек")+"]"}; });
+  rule(/[\w.+\-]+@[\w\-]+(?:\.[\w\-]+)+/g, () => { add("email"); return {t:"[e-mail скрыт]"}; });
+  rule(/(?<![\d+])(?:\+7|8)[\s\-]?\(?\d{3}\)?[\s\-]?\d{3}[\s\-]?\d{2}[\s\-]?\d{2}(?!\d)/g, () => { add("phone"); return {t:"[телефон скрыт]"}; });
+  rule(/(?<!\d)\d{20}(?!\d)/g, () => { add("acc"); return {t:"[счёт скрыт]"}; });
+  rule(/(?<!\d)(?:\d{4}[ \-]?){3}\d{4}(?!\d)/g, () => { add("acc"); return {t:"[номер карты скрыт]"}; });
+  rule(/(?<!\d)\d{3}-\d{3}-\d{3}[ \-]\d{2}(?!\d)/g, () => { add("req"); return {t:"[СНИЛС скрыт]"}; });
+  rule(/(?<!\d)(?:\d{2}\s\d{2}|\d{4})\s(?:№\s?)?\d{6}(?!\d)/g, () => { add("req"); return {t:"[паспорт скрыт]"}; });
+  rule(/(?<!\d)(?:\d{10}|\d{12}|\d{13}|\d{15})(?!\d)/g, () => { add("req"); return {t:"[номер скрыт]"}; });
+  return {segs, counts};
+}
+function initAnon(){
+  const inp = $("#anonIn"), out = $("#anonOut"), sum = $("#anonSum");
+  inp.value = ANON_SAMPLE; let plain = "";
+  const resetOut = () => { plain = ""; out.innerHTML = '<span class="muted">Нажмите «Обезличить».</span>'; sum.textContent = ""; };
+  inp.addEventListener("input", resetOut);
+  $("#anonGo").addEventListener("click", () => {
+    const {segs, counts} = anonymize(inp.value);
+    plain = segs.map(s => s.t).join("");
+    out.innerHTML = segs.map(s => s.m ? "<mark>"+esc(s.t)+"</mark>" : esc(s.t)).join("") || '<span class="muted">Вставьте текст в поле выше.</span>';
+    const names = {company:"названия компаний", person:"люди", req:"реквизиты и документы", email:"e-mail", phone:"телефоны", acc:"счета и карты"};
+    const parts = Object.keys(counts).map(k => names[k]+" — "+counts[k]);
+    sum.textContent = parts.length ? "Скрыто: "+parts.join(", ")+". Проверьте глазами адреса, имена без отчества и названия без кавычек." : "Ничего не найдено. Всё равно просмотрите текст глазами.";
+  });
+  $("#anonSample").addEventListener("click", () => { inp.value = ANON_SAMPLE; resetOut(); inp.focus(); });
+  $("#anonClear").addEventListener("click", () => { inp.value = ""; out.innerHTML = '<span class="muted">Вставьте текст в поле выше и нажмите «Обезличить».</span>'; sum.textContent = ""; plain = ""; inp.focus(); });
+  $("#anonCopy").addEventListener("click", e => { if(!plain) $("#anonGo").click(); if(plain) copyText(plain, e.currentTarget); });
+}
+
+/* ---------- Конструктор проекта ---------- */
+function initProject(){
+  const root = $("#projBuilder");
+  const v = (id, ph) => { const x = $(id).value.trim(); return x || "["+ph+"]"; };
+  const build = () => {
+    const visits = $("#pjVisits").value;
+    return "Это проект про мой дом и участок в деревне.\n"+
+      "Регион: "+v("#pjRegion","укажите регион")+".\n"+
+      "Дом: "+v("#pjHouse","материал, размер, год постройки")+".\n"+
+      "Участок: "+v("#pjPlot","площадь, рельеф")+". Особенности: "+v("#pjSun","тень, вода, соседние постройки")+".\n"+
+      "Я "+visits+". Бюджет на сезон: "+v("#pjBudget","сумма")+".\n"+
+      "Чего хочу: "+v("#pjGoals","список целей")+".\n\n"+
+      "Как работать в этом проекте:\n"+
+      "— Учитывай климат моего региона и то, что я "+visits+".\n"+
+      "— Если данных не хватает, сначала задавай уточняющие вопросы.\n"+
+      "— Планы, сметы и сравнения оформляй таблицами.\n"+
+      "— Цены указывай диапазоном и отмечай, что их нужно проверить у местных поставщиков.\n"+
+      "— Предупреждай, если работу лучше доверить мастеру.";
+  };
+  const render = () => { $("#pjOut").textContent = build(); };
+  root.addEventListener("input", render); root.addEventListener("change", render);
+  $("#pjCopy").addEventListener("click", e => copyText(build(), e.currentTarget));
+  render();
+}
+
+/* ---------- Шкала доверия ---------- */
+function initTrust(){
+  const list = $("#trustList");
+  TRUST.forEach(it => {
+    const row = document.createElement("div"); row.className="trust-row";
+    row.innerHTML = '<div class="txt">'+esc(it.t)+'</div><div class="trust-opts"></div><div class="trust-fb"></div>';
+    const opts = $(".trust-opts", row);
+    TRUST_LABELS.forEach((l, i) => {
+      const b = document.createElement("button"); b.type="button"; b.className="trust-opt"; b.dataset.v = i; b.textContent = l;
+      b.addEventListener("click", () => { $$(".trust-opt", row).forEach(x => x.classList.toggle("sel", x === b)); row.dataset.sel = i; if(row.classList.contains("revealed")) fb(row, it); });
+      opts.appendChild(b);
+    });
+    row._it = it; list.appendChild(row);
+  });
+  const fb = (row, it) => {
+    $$(".trust-opt", row).forEach(x => x.classList.toggle("rec", +x.dataset.v === it.r));
+    const sel = row.dataset.sel;
+    const head = sel === undefined ? "Подсказка: «"+TRUST_LABELS[it.r]+"». " : (+sel === it.r ? "<b>Совпало.</b> " : "<b>Подсказка: «"+TRUST_LABELS[it.r]+"».</b> ");
+    $(".trust-fb", row).innerHTML = head+esc(it.fb);
+  };
+  $("#trustReveal").addEventListener("click", () => { $$(".trust-row", list).forEach(row => { row.classList.add("revealed"); fb(row, row._it); }); });
+}
+
+/* ---------- Сравнение ответов ---------- */
+function initCompare(){
+  const cards = $$("#cmp .ans-card");
+  cards.forEach(c => $("button", c).addEventListener("click", () => {
+    const win = c.dataset.win === "1";
+    cards.forEach(x => {
+      x.classList.toggle("win", x.dataset.win === "1"); x.classList.toggle("lose", x.dataset.win !== "1");
+      /* После выбора кнопка остаётся только у выбранного ответа, чтобы второй не выглядел одобренным. */
+      const b = $("button", x); b.setAttribute("aria-pressed", x === c); b.textContent = "Ваш выбор"; b.hidden = x !== c;
+    });
+    const f = $("#cmpFb"); f.innerHTML = win ? CMP_FB.win : CMP_FB.lose; f.classList.add("show");
+  }));
+}
+
+/* ---------- Конструктор картинки ---------- */
+function initImg(){
+  const sel = {what:0, style:0, season:1, light:0, format:0};
+  const box = $("#imgGroups");
+  IMG_GROUPS.forEach(g => {
+    const row = document.createElement("div"); row.style.margin = "10px 0";
+    row.innerHTML = '<div class="col-title" style="margin-bottom:4px"><span>'+esc(g.l)+'</span></div>';
+    const seg = document.createElement("div"); seg.className="seg";
+    g.opts.forEach((o, i) => { const b = document.createElement("button"); b.type="button"; b.className="chip"; b.textContent = o[0]; b.addEventListener("click", () => { sel[g.key] = i; render(); }); b.dataset.g = g.key; b.dataset.i = i; seg.appendChild(b); });
+    row.appendChild(seg); box.appendChild(row);
+  });
+  const val = k => IMG_GROUPS.find(g => g.key === k).opts[sel[k]][1];
+  const build = () => {
+    const det = $("#imgDetails").value.trim();
+    const isPlan = sel.style === 2;
+    return "Создай изображение: "+val("what")+".\n"+
+      "Стиль — "+val("style")+".\n"+
+      "Время года — "+val("season")+", освещение — "+val("light")+".\n"+
+      "Детали: "+(det || "[допишите свои детали]")+".\n"+
+      (isPlan ? "Подписи крупные, без ошибок; пропорции реалистичные." : "Пропорции реалистичные, без надписей на картинке.")+" Формат — "+val("format")+".";
+  };
+  const render = () => {
+    $$("#imgGroups .chip").forEach(b => b.setAttribute("aria-pressed", sel[b.dataset.g] === +b.dataset.i));
+    $("#imgOut").textContent = build();
+  };
+  $("#imgDetails").addEventListener("input", render);
+  $("#imgCopy").addEventListener("click", e => copyText(build(), e.currentTarget));
+  render();
+}
+
+/* ---------- До / после (иллюстрации) ---------- */
+function initBA(){
+  const r = $("#baRange"), after = $("#baBox .after"), div = $("#baDivider"), box = $("#baBox"), tagB = $("#baTagBefore"), tagA = $("#baTagAfter");
+  const set = v => { after.style.clipPath = "inset(0 0 0 "+v+"%)"; tagA.style.clipPath = "inset(0 0 0 "+v+"%)"; tagB.style.clipPath = "inset(0 "+(100-v)+"% 0 0)"; div.style.left = v+"%"; };
+  r.addEventListener("input", () => set(r.value));
+  let drag = false, touchX = null;
+  const pos = e => { const rect = box.getBoundingClientRect(); const v = Math.max(0, Math.min(100, (e.clientX - rect.left)/rect.width*100)); r.value = v; set(v); };
+  const move = e => { if(!drag) return; if(touchX !== null){ if(Math.abs(e.clientX - touchX) < 6) return; touchX = null; } pos(e); };
+  box.addEventListener("pointerdown", e => { drag = true; try{ box.setPointerCapture(e.pointerId); }catch(err){} if(e.pointerType === "touch") touchX = e.clientX; else { touchX = null; pos(e); } });
+  window.addEventListener("pointermove", move);
+  window.addEventListener("pointerup", e => { if(drag && touchX !== null) pos(e); drag = false; touchX = null; });
+  window.addEventListener("pointercancel", () => { drag = false; touchX = null; });
+  set(50);
+}
+
+/* ---------- Тесты ---------- */
+function initQuizzes(){
+  $$(".quiz[data-quiz]").forEach(box => {
+    const qs = QUIZ[box.dataset.quiz];
+    const render = () => {
+      box.innerHTML = '<h3>Проверьте себя</h3><p class="muted small" style="margin:0">Выберите ответ — сразу появится пояснение.</p>';
+      let answered = 0, right = 0;
+      const score = document.createElement("div"); score.className="quiz-score"; score.setAttribute("aria-live","polite");
+      qs.forEach((q, qi) => {
+        const d = document.createElement("div"); d.className="q";
+        d.innerHTML = '<div class="q-text">'+(qi+1)+". "+esc(q.q)+'</div><div class="q-opts"></div><div class="q-exp"></div>';
+        q.o.forEach((o, oi) => {
+          const b = document.createElement("button"); b.type="button"; b.className="q-opt"; b.textContent = o;
+          b.addEventListener("click", () => {
+            const all = $$(".q-opt", d); all.forEach(x => x.disabled = true);
+            all[q.a].classList.add("right"); if(oi !== q.a) b.classList.add("wrong"); else right++;
+            answered++;
+            $(".q-exp", d).innerHTML = (oi === q.a ? "<b>Верно.</b> " : "<b>Не совсем.</b> ")+esc(q.e);
+            if(answered === qs.length){
+              score.innerHTML = "Верных ответов: "+right+" из "+qs.length+". ";
+              const again = document.createElement("button"); again.type="button"; again.className="btn small quiet"; again.textContent = "Пройти ещё раз"; again.style.marginLeft = "8px";
+              again.addEventListener("click", render); score.appendChild(again);
+            }
+          });
+          $(".q-opts", d).appendChild(b);
+        });
+        box.appendChild(d);
+      });
+      box.appendChild(score);
+    };
+    render();
+  });
+}
+
+/* ---------- Прочее ---------- */
+function initTopbar(){
+  const bar = $("#topbar"), growth = $("#growth");
+  const upd = () => { const r = growth.getBoundingClientRect(); bar.classList.toggle("show", r.bottom < 0); };
+  window.addEventListener("scroll", upd, {passive:true}); upd();
+}
+function initPrint(){
+  $("#printCheat").addEventListener("click", () => {
+    document.body.classList.add("print-cheat");
+    const off = () => { document.body.classList.remove("print-cheat"); window.removeEventListener("afterprint", off); };
+    window.addEventListener("afterprint", off);
+    try{ window.print(); }catch(e){ off(); }
+    setTimeout(off, 4000);
+  });
+}
+function initReset(){
+  const b = $("#resetProgress"), label = b.textContent; let armed = false, timer = 0;
+  const restoreIn = ms => { clearTimeout(timer); timer = setTimeout(() => { armed = false; b.textContent = label; }, ms); };
+  b.addEventListener("click", () => {
+    if(!armed){ armed = true; b.textContent = "Точно сбросить все отметки? Нажмите ещё раз"; restoreIn(5000); return; }
+    state.tasks = {}; $$(".task").forEach(t => t._sync && t._sync()); updateProgress(); saveState();
+    armed = false; b.textContent = "Отметки сброшены";
+    restoreIn(2000);
+  });
+}
+
+/* ---------- Запуск ---------- */
+loadState();
+renderStages();
+initTasks();
+initPromptCopy();
+initTour();
+sortGame("#sortList", "#sortScore", SORT_CARDS, SORT_OPTS, [0,1,2], null);
+initFindError();
+initCtx();
+initRegen();
+sortGame("#lightsList", "#lightsScore", LIGHTS, [LIGHT_LABELS.g, LIGHT_LABELS.y, LIGHT_LABELS.r], ["g","y","r"], "dot-btn");
+initBuilder();
+initToggle("#beforeAfterText", "#batBox", BAT, d => '<div class="bubble user" style="max-width:100%"><span class="who">Вы</span>'+d.prompt+'</div><div class="bubble ai" style="max-width:100%"><span class="who">ChatGPT</span>'+d.answer+'</div><p class="look" style="margin:8px 0 0"><b>Вывод:</b> '+esc(d.comment.trim().replace(/\s+/g, " "))+'</p>');
+initRefine();
+initCI();
+initTabs("#libTabs", "#libPanel", LIBRARY, it => promptEl(it[1], it[0]));
+initTabs("#dTabs", "#dPanel", DOC_TABS, it => promptEl(it));
+initAnon();
+initProject();
+initTrust();
+initCompare();
+initToggle("#lead", "#leadBox", LEAD, d => '<div class="bubble user"><span class="who">Вы</span>'+esc(d.user)+'</div><div class="bubble ai" style="max-width:100%"><span class="who">ChatGPT</span>'+d.ai+'</div><p class="look" style="margin:8px 0 0"><b>Вывод:</b> '+esc(d.comment.trim().replace(/\s+/g, " "))+'</p>');
+initImg();
+initBA();
+initQuizzes();
+initTopbar();
+initPrint();
+initReset();
+updateProgress();
+})();
+</script>
+</body>
+</html>

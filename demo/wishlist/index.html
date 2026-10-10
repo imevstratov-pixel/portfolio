@@ -1,0 +1,1542 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>Даня — Вишлист на ДР 🎂 (демо)</title>
+<meta name="description" content="Демо-копия вишлиста на день рождения: бронь подарков, складчина, фонд хотелок и режим именинника. Все данные вымышленные и хранятся только в браузере.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --rausch: #ff385c; --deep-rausch: #e00b41;
+  --text-primary: #222222; --text-secondary: #6a6a6a; --text-disabled: rgba(0,0,0,0.24);
+  --bg-primary: #ffffff; --bg-secondary: #f7f7f7; --bg-tertiary: #f2f2f2;
+  --border-color: #dddddd; --badge-glad: #00a699; --badge-charged: #4a90d9; --badge-premium: #914ce6;
+  --shadow-card: rgba(0,0,0,0.02) 0px 0px 0px 1px, rgba(0,0,0,0.04) 0px 2px 6px, rgba(0,0,0,0.1) 0px 4px 8px;
+  --shadow-hover: rgba(0,0,0,0.08) 0px 4px 12px, rgba(0,0,0,0.04) 0px 2px 6px;
+  --shadow-modal: rgba(0,0,0,0.15) 0px 10px 40px, rgba(0,0,0,0.05) 0px 2px 10px;
+  --radius-sm: 8px; --radius-md: 14px; --radius-lg: 20px; --radius-xl: 32px; --radius-full: 50%;
+  --sp-1:4px;--sp-2:8px;--sp-3:12px;--sp-4:16px;--sp-5:20px;--sp-6:24px;--sp-8:32px;--sp-10:40px;--sp-12:48px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Inter',-apple-system,system-ui,sans-serif;color:var(--text-primary);background:var(--bg-primary);-webkit-font-smoothing:antialiased;}
+h1{font-size:28px;font-weight:700;line-height:1.43;letter-spacing:-0.44px;}
+h2{font-size:22px;font-weight:600;line-height:1.18;letter-spacing:-0.44px;}
+h3{font-size:18px;font-weight:600;line-height:1.25;letter-spacing:-0.18px;}
+
+/* HEADER */
+.header{position:sticky;top:0;z-index:100;background:var(--bg-primary);border-bottom:1px solid var(--border-color);padding:var(--sp-4) var(--sp-6);}
+.header-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:var(--sp-4);}
+.header-left{display:flex;align-items:center;gap:var(--sp-3);}
+.logo-emoji{font-size:28px;}
+.header-title{font-size:18px;font-weight:700;letter-spacing:-0.18px;}
+/* "Дани" is now secretly clickable */
+.header-title .danya-name{color:var(--rausch);cursor:pointer;transition:opacity 0.15s;}
+.header-title .danya-name:hover{opacity:0.75;}
+.countdown{display:flex;align-items:center;gap:var(--sp-2);background:var(--bg-tertiary);padding:var(--sp-2) var(--sp-3);border-radius:var(--radius-xl);font-size:13px;font-weight:600;white-space:nowrap;}
+.countdown-number{color:var(--rausch);font-variant-numeric:tabular-nums;}
+.header-right{display:flex;align-items:center;gap:var(--sp-2);position:relative;}
+.copy-link-btn{display:flex;align-items:center;gap:var(--sp-1);padding:var(--sp-2) var(--sp-3);border-radius:var(--radius-xl);border:1.5px solid var(--border-color);background:var(--bg-primary);font-size:13px;font-weight:500;color:var(--text-secondary);cursor:pointer;transition:all 0.2s;font-family:inherit;white-space:nowrap;}
+.copy-link-btn:hover{border-color:var(--rausch);color:var(--rausch);}
+.header-user{display:flex;align-items:center;gap:var(--sp-2);cursor:pointer;padding:var(--sp-1) var(--sp-2);border-radius:var(--radius-xl);transition:background 0.2s;position:relative;}
+.header-user:hover{background:var(--bg-tertiary);}
+.header-avatar{width:32px;height:32px;border-radius:var(--radius-full);object-fit:cover;border:2px solid var(--border-color);}
+.header-username{font-size:14px;font-weight:500;}
+
+/* PROFILE POPOUT — desktop */
+.profile-popout{
+  position:absolute;top:calc(100% + 10px);right:0;
+  background:var(--bg-primary);border-radius:var(--radius-lg);
+  box-shadow:var(--shadow-modal);border:1px solid var(--border-color);
+  padding:var(--sp-4);width:256px;z-index:200;
+  opacity:0;pointer-events:none;
+  transform:translateY(-8px) scale(0.96);
+  transition:opacity 0.22s ease,transform 0.22s ease;
+}
+.profile-popout.visible{opacity:1;pointer-events:auto;transform:translateY(0) scale(1);}
+.profile-popout-top{display:flex;align-items:center;gap:var(--sp-3);margin-bottom:var(--sp-3);}
+.profile-popout-avatar{width:44px;height:44px;border-radius:var(--radius-full);border:2px solid var(--bg-tertiary);flex-shrink:0;}
+.profile-popout-name{font-size:15px;font-weight:600;}
+.profile-popout-hint{font-size:12px;color:var(--text-secondary);margin-bottom:var(--sp-3);line-height:1.45;border-top:1px solid var(--border-color);padding-top:var(--sp-3);}
+.profile-popout-tg{display:flex;gap:var(--sp-2);align-items:center;}
+.profile-popout-input{flex:1;padding:var(--sp-2) var(--sp-3);border-radius:var(--radius-sm);border:1.5px solid var(--border-color);font-family:inherit;font-size:14px;color:var(--text-primary);outline:none;transition:border-color 0.2s;min-width:0;}
+.profile-popout-input:focus{border-color:var(--text-primary);}
+.profile-popout-save{padding:var(--sp-2) var(--sp-3);border-radius:var(--radius-sm);background:var(--text-primary);color:white;border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:background 0.2s;white-space:nowrap;flex-shrink:0;}
+.profile-popout-save:hover{background:var(--rausch);}
+
+/* PROFILE POPOUT — mobile bottom sheet */
+@media(max-width:600px){
+  .profile-popout{
+    position:fixed;bottom:0;left:0;right:0;top:auto;
+    width:100%;border-radius:var(--radius-lg) var(--radius-lg) 0 0;
+    padding:var(--sp-5) var(--sp-5) calc(var(--sp-6) + env(safe-area-inset-bottom,0px));
+    transform:translateY(100%);
+    max-height:80vh;overflow-y:auto;
+  }
+  .profile-popout.visible{transform:translateY(0);}
+}
+
+/* VISITOR BAR */
+.visitor-bar{max-width:1200px;margin:var(--sp-4) auto 0;padding:0 var(--sp-6);display:flex;align-items:center;gap:var(--sp-3);}
+.visitor-avatars{display:flex;align-items:center;}
+.chip-wrap{
+  position:relative;margin-left:-8px;cursor:pointer;
+  display:inline-flex;align-items:center;
+  border-radius:var(--radius-xl);
+  transition:margin 0.3s ease,background 0.2s,padding 0.3s ease;
+  z-index:1;
+  user-select:none;-webkit-user-select:none;
+  touch-action:manipulation;
+}
+.chip-wrap:first-child{margin-left:0;}
+.chip-wrap:hover{z-index:5;}
+.chip-wrap.wiggling{animation:wiggle 0.45s ease-in-out;}
+@keyframes wiggle{0%,100%{transform:rotate(0deg);}15%{transform:rotate(-14deg);}35%{transform:rotate(11deg);}55%{transform:rotate(-8deg);}75%{transform:rotate(5deg);}}
+.chip-wrap img{width:28px;height:28px;border-radius:var(--radius-full);border:2px solid var(--bg-primary);object-fit:cover;display:block;flex-shrink:0;}
+.chip-name{max-width:0;overflow:hidden;white-space:nowrap;font-size:12px;font-weight:600;color:var(--text-primary);transition:max-width 0.32s ease,padding 0.32s ease,opacity 0.28s;opacity:0;padding:0;}
+.chip-wrap.expanded{background:var(--bg-tertiary);padding:2px 8px 2px 2px;margin-left:4px;}
+.chip-wrap.expanded:first-child{margin-left:0;}
+.chip-wrap.expanded .chip-name{max-width:110px;opacity:1;padding-left:5px;}
+.visitor-count{font-size:13px;font-weight:500;color:var(--text-secondary);}
+
+/* FILTERS */
+.filters-bar{max-width:1200px;margin:var(--sp-5) auto 0;padding:0 var(--sp-6);display:flex;gap:var(--sp-2);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.filters-bar::-webkit-scrollbar{display:none;}
+.filter-pill{flex-shrink:0;padding:var(--sp-2) var(--sp-4);border-radius:var(--radius-xl);border:1.5px solid var(--border-color);background:var(--bg-primary);font-size:14px;font-weight:500;color:var(--text-primary);cursor:pointer;transition:all 0.2s;white-space:nowrap;user-select:none;font-family:inherit;}
+.filter-pill:hover{border-color:var(--text-primary);}
+.filter-pill.active{background:var(--text-primary);color:var(--bg-primary);border-color:var(--text-primary);}
+.filter-pill.pulse{border-color:var(--badge-premium);color:var(--badge-premium);animation:pill-pulse 2s ease-in-out infinite;}
+.filter-pill.pulse.active{background:var(--badge-premium);color:white;border-color:var(--badge-premium);animation:none;}
+@keyframes pill-pulse{0%,100%{box-shadow:0 0 0 0 rgba(145,76,230,0.3);}50%{box-shadow:0 0 0 6px rgba(145,76,230,0);}}
+
+/* GIFT GRID */
+.gifts-container{max-width:1200px;margin:var(--sp-6) auto;padding:0 var(--sp-6);}
+.gifts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:var(--sp-6);}
+
+/* GIFT CARD */
+.gift-card{border-radius:var(--radius-lg);overflow:hidden;background:var(--bg-primary);box-shadow:var(--shadow-card);transition:transform 0.25s ease,box-shadow 0.25s ease;position:relative;}
+.gift-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-hover);}
+.gift-card.chipping{box-shadow:var(--shadow-card),0 0 0 2px rgba(145,76,230,0.35);}
+.gift-card.chipping:hover{box-shadow:var(--shadow-hover),0 0 0 2px rgba(145,76,230,0.5);}
+.gift-card.solo-claimed{opacity:0.65;}
+.gift-card.solo-claimed:hover{opacity:0.8;}
+.gift-image-wrap{position:relative;width:100%;padding-top:66%;overflow:hidden;background:var(--bg-tertiary);}
+.gift-image-wrap img{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;transition:transform 0.4s ease;}
+.gift-card:hover .gift-image-wrap img{transform:scale(1.03);}
+.gift-no-image{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:48px;background:linear-gradient(135deg,var(--bg-tertiary) 0%,#e8e8e8 100%);}
+.gift-badge{position:absolute;top:var(--sp-3);left:var(--sp-3);padding:var(--sp-1) var(--sp-3);border-radius:var(--radius-md);font-size:12px;font-weight:600;color:white;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);}
+.gift-badge.glad{background:rgba(0,166,153,0.88);}
+.gift-badge.charged{background:rgba(74,144,217,0.88);}
+.gift-badge.premium{background:rgba(145,76,230,0.88);}
+.last-slot-badge{position:absolute;top:var(--sp-3);right:var(--sp-3);padding:var(--sp-1) var(--sp-3);border-radius:var(--radius-md);font-size:11px;font-weight:700;color:white;background:rgba(255,56,92,0.92);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);animation:last-slot-pulse 1.6s ease-in-out infinite;}
+/* Admin view: the ✕ delete button takes the top-right corner, so the badge sits right under it */
+.last-slot-badge.below-delete{top:calc(var(--sp-3) + 32px + var(--sp-2));}
+@keyframes last-slot-pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.07);}}
+.gift-solo-overlay{position:absolute;bottom:0;left:0;right:0;padding:var(--sp-3) var(--sp-4);background:linear-gradient(transparent,rgba(0,0,0,0.55));color:white;font-size:13px;font-weight:600;}
+.gift-details{padding:var(--sp-4);}
+.gift-name{font-size:16px;font-weight:600;line-height:1.25;letter-spacing:-0.18px;margin-bottom:var(--sp-1);}
+.gift-price-row{display:flex;align-items:baseline;gap:var(--sp-2);margin-bottom:var(--sp-3);}
+.gift-price{font-size:15px;font-weight:700;}
+.gift-price-per{font-size:13px;font-weight:500;color:var(--badge-premium);}
+.gift-link{display:inline-flex;align-items:center;gap:var(--sp-1);font-size:13px;font-weight:500;color:var(--text-secondary);text-decoration:none;margin-bottom:var(--sp-3);transition:color 0.2s;}
+.gift-link:hover{color:var(--text-primary);}
+
+/* CHIP-IN SLOTS */
+.chip-slots{margin-bottom:var(--sp-4);}
+.chip-slots-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--sp-2);}
+.chip-slots-label{font-size:12px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.5px;}
+.chip-flip-btn{font-size:11px;font-weight:600;color:var(--badge-premium);background:rgba(145,76,230,0.09);border:none;border-radius:var(--radius-sm);padding:3px 9px;cursor:pointer;font-family:inherit;transition:all 0.2s;}
+.chip-flip-btn:hover{background:rgba(145,76,230,0.2);}
+
+/* Smooth flip — fade + spring slide */
+.chip-face-back{display:none;}
+.chip-flip-container.flipped .chip-face-front{display:none;}
+.chip-flip-container.flipped .chip-face-back{
+  display:block;
+  animation:smooth-reveal 0.38s cubic-bezier(0.34,1.4,0.64,1) both;
+}
+@keyframes smooth-reveal{
+  0%{opacity:0;transform:translateY(12px) scale(0.96);}
+  55%{opacity:1;}
+  100%{opacity:1;transform:translateY(0) scale(1);}
+}
+
+.chip-bar{display:flex;gap:3px;height:40px;border-radius:var(--radius-sm);overflow:hidden;background:var(--bg-tertiary);position:relative;}
+.chip-slot{flex:1;display:flex;align-items:center;justify-content:center;position:relative;border-radius:6px;transition:all 0.4s ease;overflow:hidden;}
+.chip-slot.filled{animation:slot-fill-in 0.6s ease-out backwards;}
+.chip-slot.filled img{width:28px;height:28px;border-radius:var(--radius-full);border:2px solid rgba(255,255,255,0.8);position:relative;z-index:1;}
+.chip-slot.empty{border:2px dashed rgba(145,76,230,0.3);background:rgba(145,76,230,0.04);}
+.chip-slot.empty::after{content:'?';font-size:16px;font-weight:700;color:rgba(145,76,230,0.25);}
+.chip-slot.filled:nth-child(1){animation-delay:0s}.chip-slot.filled:nth-child(2){animation-delay:.1s}.chip-slot.filled:nth-child(3){animation-delay:.2s}.chip-slot.filled:nth-child(4){animation-delay:.3s}.chip-slot.filled:nth-child(5){animation-delay:.4s}.chip-slot.filled:nth-child(6){animation-delay:.5s}.chip-slot.filled:nth-child(7){animation-delay:.6s}.chip-slot.filled:nth-child(8){animation-delay:.7s}
+@keyframes slot-fill-in{from{transform:scaleY(0);opacity:0;}to{transform:scaleY(1);opacity:1;}}
+.chip-slot.filled.c0{background:linear-gradient(135deg,#ff385c,#ff6b81)}.chip-slot.filled.c1{background:linear-gradient(135deg,#4a90d9,#6db3f8)}.chip-slot.filled.c2{background:linear-gradient(135deg,#00a699,#2ec4b6)}.chip-slot.filled.c3{background:linear-gradient(135deg,#914ce6,#b47aff)}.chip-slot.filled.c4{background:linear-gradient(135deg,#ff9f43,#ffbe76)}.chip-slot.filled.c5{background:linear-gradient(135deg,#e84393,#fd79a8)}.chip-slot.filled.c6{background:linear-gradient(135deg,#0984e3,#74b9ff)}.chip-slot.filled.c7{background:linear-gradient(135deg,#6c5ce7,#a29bfe)}
+.chip-progress-text{display:flex;justify-content:space-between;align-items:center;margin-top:var(--sp-2);font-size:12px;color:var(--text-secondary);}
+.chip-progress-text strong{color:var(--badge-premium);font-weight:600;}
+.chip-contributors{padding:var(--sp-1) 0 var(--sp-2);}
+.chip-contributor-card{display:flex;align-items:center;gap:var(--sp-2);padding:var(--sp-2) var(--sp-1);border-radius:var(--radius-sm);transition:background 0.15s;}
+.chip-contributor-card:hover{background:var(--bg-tertiary);}
+.chip-contributor-card img{width:32px;height:32px;border-radius:var(--radius-full);border:2px solid var(--bg-tertiary);flex-shrink:0;}
+.chip-contributor-info{flex:1;min-width:0;}
+.chip-contributor-name{font-size:13px;font-weight:600;line-height:1.2;}
+.chip-contributor-tg{font-size:11px;color:var(--badge-charged);font-weight:500;margin-top:1px;}
+.chip-contributor-tg a{color:inherit;text-decoration:none;}
+.chip-contributor-tg a:hover{text-decoration:underline;}
+.chip-cta{margin-top:var(--sp-2);padding:var(--sp-2) var(--sp-3);background:rgba(74,144,217,0.09);border-radius:var(--radius-sm);font-size:11px;color:var(--badge-charged);font-weight:500;text-align:center;line-height:1.45;}
+
+/* ACTIONS */
+.gift-actions{display:flex;gap:var(--sp-2);}
+.btn{flex:1;padding:var(--sp-3) var(--sp-4);border-radius:var(--radius-sm);border:none;font-family:inherit;font-size:14px;font-weight:500;cursor:pointer;transition:all 0.2s;text-align:center;line-height:1.25;}
+.btn-primary{background:var(--text-primary);color:var(--bg-primary);}
+.btn-primary:hover{background:var(--rausch);}
+.btn-primary:active{transform:scale(0.96);}
+.btn-secondary{background:var(--bg-tertiary);color:var(--text-primary);}
+.btn-secondary:hover{background:var(--border-color);}
+.btn-together{background:var(--badge-premium);color:white;}
+.btn-together:hover{background:#7b3ec9;}
+.btn-cancel{background:transparent;color:var(--text-secondary);border:1.5px solid var(--border-color);}
+.btn-cancel:hover{border-color:var(--rausch);color:var(--rausch);}
+.btn:disabled{opacity:0.4;cursor:not-allowed;}
+.btn-solo-link{display:block;text-align:center;margin-top:var(--sp-2);font-size:12px;font-weight:500;color:var(--text-secondary);cursor:pointer;background:none;border:none;font-family:inherit;text-decoration:underline;text-decoration-style:dashed;transition:color 0.2s;}
+.btn-solo-link:hover{color:var(--text-primary);}
+.my-status{display:flex;align-items:center;justify-content:center;gap:var(--sp-2);padding:var(--sp-3);background:rgba(145,76,230,0.08);border-radius:var(--radius-sm);font-size:14px;font-weight:500;color:var(--badge-premium);margin-bottom:var(--sp-2);}
+.my-status.solo{background:rgba(0,166,153,0.08);color:var(--badge-glad);}
+
+/* MODALS */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1000;opacity:0;pointer-events:none;transition:opacity 0.3s;padding:var(--sp-4);}
+.modal-overlay.visible{opacity:1;pointer-events:auto;}
+.modal{background:var(--bg-primary);border-radius:var(--radius-xl);padding:var(--sp-8);max-width:420px;width:100%;box-shadow:var(--shadow-modal);transform:translateY(20px);transition:transform 0.3s;text-align:center;}
+.modal-overlay.visible .modal{transform:translateY(0);}
+.modal h2{margin-bottom:var(--sp-2);}
+.modal p{color:var(--text-secondary);font-size:14px;margin-bottom:var(--sp-5);line-height:1.5;}
+.modal-avatar-preview{width:80px;height:80px;border-radius:var(--radius-full);margin:0 auto var(--sp-4);border:3px solid var(--bg-tertiary);overflow:hidden;background:var(--bg-tertiary);}
+.modal-avatar-preview img{width:100%;height:100%;}
+.avatar-refresh{display:inline-flex;align-items:center;gap:var(--sp-1);font-size:13px;font-weight:500;color:var(--rausch);cursor:pointer;margin-bottom:var(--sp-4);border:none;background:none;font-family:inherit;transition:opacity 0.2s;}
+.avatar-refresh:hover{opacity:0.7;}
+.modal-input{width:100%;padding:var(--sp-3) var(--sp-4);border-radius:var(--radius-sm);border:1.5px solid var(--border-color);font-family:inherit;font-size:16px;font-weight:500;color:var(--text-primary);outline:none;transition:border-color 0.2s;margin-bottom:var(--sp-2);text-align:center;}
+.modal-input:focus{border-color:var(--text-primary);}
+.modal-input::placeholder{color:var(--text-disabled);font-weight:400;}
+.modal-input.input-valid{border-color:var(--badge-glad);}
+.modal-input.input-invalid{border-color:var(--rausch);}
+.field-hint{font-size:11px;color:var(--text-secondary);text-align:center;margin-bottom:var(--sp-3);margin-top:-4px;line-height:1.4;}
+.field-hint.hint-error{color:var(--rausch);}
+.modal .btn{width:100%;margin-bottom:var(--sp-2);}
+.add-gift-form .form-group{margin-bottom:var(--sp-4);text-align:left;}
+.add-gift-form label{display:block;font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:var(--sp-1);text-transform:uppercase;letter-spacing:0.5px;}
+.add-gift-form input{width:100%;padding:var(--sp-3) var(--sp-4);border-radius:var(--radius-sm);border:1.5px solid var(--border-color);font-family:inherit;font-size:15px;font-weight:500;color:var(--text-primary);outline:none;transition:border-color 0.2s;text-align:left;}
+.add-gift-form input:focus{border-color:var(--text-primary);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-3);}
+
+/* ADMIN */
+.admin-bar{max-width:1200px;margin:var(--sp-4) auto 0;padding:0 var(--sp-6);}
+.admin-card{background:#fef3f5;border:1.5px solid #fdd;border-radius:var(--radius-lg);padding:var(--sp-5);}
+.admin-card h3{color:var(--rausch);margin-bottom:var(--sp-3);display:flex;align-items:center;gap:var(--sp-2);}
+.progress-bar-wrap{background:var(--bg-tertiary);border-radius:var(--radius-xl);height:8px;overflow:hidden;margin-bottom:var(--sp-3);}
+.progress-bar-fill{height:100%;background:var(--rausch);border-radius:var(--radius-xl);transition:width 0.6s ease;}
+.admin-stats{display:flex;gap:var(--sp-6);font-size:14px;color:var(--text-secondary);}
+.admin-stats strong{color:var(--text-primary);}
+.admin-guests{display:flex;flex-wrap:wrap;gap:var(--sp-2);margin-top:var(--sp-3);}
+.admin-guest-chip{display:flex;align-items:center;gap:var(--sp-2);padding:var(--sp-1) var(--sp-3) var(--sp-1) var(--sp-1);background:var(--bg-primary);border-radius:var(--radius-xl);border:1px solid var(--border-color);font-size:13px;font-weight:500;}
+.admin-guest-chip img{width:24px;height:24px;border-radius:var(--radius-full);}
+.admin-guest-tg{font-size:11px;color:var(--badge-charged);font-weight:400;margin-left:2px;}
+.add-gift-btn{border:2px dashed var(--border-color);border-radius:var(--radius-lg);display:flex;align-items:center;justify-content:center;min-height:280px;cursor:pointer;transition:all 0.2s;background:transparent;font-family:inherit;width:100%;color:var(--text-secondary);}
+.add-gift-btn:hover{border-color:var(--rausch);color:var(--rausch);}
+.add-gift-btn-inner{text-align:center;}
+.add-gift-btn-inner .plus{font-size:32px;font-weight:300;display:block;margin-bottom:var(--sp-2);}
+.add-gift-btn-inner span{font-size:14px;font-weight:500;}
+.gift-delete-btn{position:absolute;top:var(--sp-3);right:var(--sp-3);width:32px;height:32px;border-radius:var(--radius-full);background:rgba(0,0,0,0.5);color:white;border:none;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;z-index:2;transition:background 0.2s;}
+.gift-delete-btn:hover{background:var(--rausch);}
+
+/* ADMIN AUTH / EASTER EGG */
+.poop-piece{position:fixed;pointer-events:none;z-index:9998;font-size:30px;animation:poop-fall 2s ease-in forwards;}
+@keyframes poop-fall{0%{transform:translateY(-60px) rotate(0deg);opacity:1;}100%{transform:translateY(110vh) rotate(400deg);opacity:0.7;}}
+.liar-overlay{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;pointer-events:none;animation:liar-appear 0.25s cubic-bezier(0.34,1.56,0.64,1),liar-fade 0.4s ease-in 1.6s forwards;}
+.liar-text{font-size:clamp(50px,14vw,118px);font-weight:900;letter-spacing:-3px;text-transform:uppercase;background:linear-gradient(135deg,#ff385c 0%,#ff9f43 50%,#914ce6 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;text-align:center;line-height:0.95;filter:drop-shadow(0 6px 32px rgba(255,56,92,0.45));animation:liar-shake 0.07s linear infinite;}
+@keyframes liar-appear{from{opacity:0;transform:scale(0.45) rotate(-6deg);}to{opacity:1;transform:scale(1) rotate(0deg);}}
+@keyframes liar-fade{from{opacity:1;}to{opacity:0;transform:scale(1.35);}}
+@keyframes liar-shake{0%,100%{transform:rotate(-1.5deg);}50%{transform:rotate(1.5deg);}}
+
+/* FOOTER */
+.footer{max-width:1200px;margin:var(--sp-12) auto var(--sp-8);padding:0 var(--sp-6);display:flex;justify-content:center;flex-wrap:wrap;gap:var(--sp-2);}
+.admin-login-btn{background:none;border:none;font-family:inherit;font-size:12px;color:var(--text-disabled);cursor:pointer;transition:color 0.2s;padding:var(--sp-2) var(--sp-3);border-radius:var(--radius-sm);}
+.admin-login-btn:hover{color:var(--text-secondary);}
+.footer-portfolio{flex-basis:100%;text-align:center;}
+.footer-portfolio-link{display:inline-block;padding:var(--sp-2) var(--sp-3);border-radius:var(--radius-sm);font-size:13px;font-weight:500;color:var(--text-secondary);text-decoration:none;transition:color 0.2s;}
+.footer-portfolio-link:hover{color:var(--text-primary);text-decoration:underline;text-underline-offset:3px;}
+
+/* DEMO ADDITIONS */
+.demo-banner{background:var(--bg-secondary);border-bottom:1px solid var(--border-color);color:var(--text-secondary);font-size:12px;font-weight:500;line-height:1.4;text-align:center;padding:6px var(--sp-4);}
+.admin-demo-btn{width:100%;margin-bottom:var(--sp-2);}
+.admin-exit-btn{display:inline-block;margin-top:var(--sp-4);font-size:12px;font-weight:500;color:var(--text-secondary);cursor:pointer;background:none;border:none;font-family:inherit;text-decoration:underline;text-decoration-style:dashed;padding:0;transition:color 0.2s;}
+.admin-exit-btn:hover{color:var(--rausch);}
+.demo-fill-btn{margin:0 auto var(--sp-1);}
+@media(max-width:550px){.demo-banner{font-size:11px;}}
+
+/* CONFETTI & TOAST */
+.confetti-piece{position:fixed;pointer-events:none;z-index:9999;border-radius:2px;animation:confetti-fall 2.5s ease-out forwards;}
+@keyframes confetti-fall{0%{transform:translateY(0) rotate(0deg);opacity:1;}100%{transform:translateY(100vh) rotate(720deg);opacity:0;}}
+.toast-container{position:fixed;bottom:var(--sp-6);left:50%;transform:translateX(-50%);z-index:2000;display:flex;flex-direction:column;gap:var(--sp-2);align-items:center;width:max-content;max-width:min(480px,calc(100vw - 2 * var(--sp-4)));}
+.toast{padding:var(--sp-3) var(--sp-5);background:var(--text-primary);color:var(--bg-primary);border-radius:var(--radius-xl);font-size:14px;font-weight:500;line-height:1.4;text-align:center;box-shadow:var(--shadow-modal);animation:toast-in 0.3s ease,toast-out 0.3s ease 2.2s forwards;max-width:100%;overflow-wrap:anywhere;}
+@keyframes toast-in{from{transform:translateY(20px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+@keyframes toast-out{from{opacity:1;}to{opacity:0;pointer-events:none;}}
+.empty-state{text-align:center;padding:var(--sp-12) var(--sp-6);color:var(--text-secondary);}
+.empty-state .emoji{font-size:48px;margin-bottom:var(--sp-4);}
+
+/* RESPONSIVE */
+@media(max-width:744px){
+  .gifts-grid{grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:var(--sp-4);}
+  .header-inner{flex-wrap:wrap;}
+  .countdown{font-size:12px;padding:var(--sp-1) var(--sp-3);}
+  .header-username{display:none;}
+  .admin-stats{flex-direction:column;gap:var(--sp-2);}
+  .copy-link-btn .copy-label{display:none;}
+}
+@keyframes input-shake{0%,100%{transform:translateX(0);}20%{transform:translateX(-8px);}40%{transform:translateX(8px);}60%{transform:translateX(-5px);}80%{transform:translateX(5px);}}
+.input-shake{animation:input-shake 0.38s ease-in-out;}
+@media(max-width:550px){
+  .gifts-grid{grid-template-columns:1fr;gap:var(--sp-4);}
+  h1{font-size:22px;}
+  .header{padding:var(--sp-3) var(--sp-4);}
+  .gifts-container,.filters-bar,.visitor-bar,.admin-bar{padding:0 var(--sp-4);}
+  .modal{padding:var(--sp-6);}
+  .form-row{grid-template-columns:1fr;}
+}
+
+/* DREAM FUND */
+.dream-fund-wrap{max-width:1200px;margin:var(--sp-5) auto var(--sp-2);padding:0 var(--sp-6);overflow:hidden;max-height:900px;transition:max-height 0.4s cubic-bezier(0.4,0,0.2,1),opacity 0.3s ease,margin 0.3s ease;}
+.dream-fund-wrap.df-collapsed{max-height:0;opacity:0;margin-top:0;margin-bottom:0;}
+/* Mobile gutter must come after the base rule above, otherwise the base padding wins */
+@media(max-width:550px){.dream-fund-wrap{padding:0 var(--sp-4);}}
+.dream-fund-card{border-radius:var(--radius-lg);overflow:hidden;background:var(--bg-primary);box-shadow:var(--shadow-card);}
+.dream-gallery{position:relative;width:100%;padding-top:52%;overflow:hidden;background:var(--bg-tertiary);}
+.gallery-track{position:absolute;inset:0;display:flex;transition:transform 0.4s cubic-bezier(0.25,0.8,0.25,1);}
+.gallery-slide{min-width:100%;height:100%;position:relative;overflow:hidden;}
+.gallery-slide img{width:100%;height:100%;object-fit:cover;}
+.gallery-slide-caption{position:absolute;bottom:0;left:0;right:0;padding:var(--sp-3) var(--sp-4);background:linear-gradient(transparent,rgba(0,0,0,0.62));color:white;font-size:14px;font-weight:600;}
+/* With several slides the dots sit at the bottom, so the caption text is lifted above them */
+.dream-gallery.has-dots .gallery-slide-caption{padding-bottom:calc(var(--sp-3) + 7px + var(--sp-3));}
+.gallery-nav{position:absolute;top:50%;transform:translateY(-50%);width:36px;height:36px;border-radius:var(--radius-full);background:rgba(255,255,255,0.92);border:none;cursor:pointer;font-size:22px;display:flex;align-items:center;justify-content:center;color:var(--text-primary);box-shadow:0 2px 8px rgba(0,0,0,0.15);transition:all 0.2s;z-index:2;line-height:1;}
+.gallery-nav:hover{background:white;box-shadow:0 3px 14px rgba(0,0,0,0.2);}
+.gallery-nav.prev{left:var(--sp-3);}
+.gallery-nav.next{right:var(--sp-3);}
+.gallery-nav:disabled{opacity:0.3;cursor:default;pointer-events:none;}
+.gallery-dots{position:absolute;bottom:var(--sp-3);left:50%;transform:translateX(-50%);display:flex;gap:6px;align-items:center;}
+.gallery-dot{width:7px;height:7px;border-radius:var(--radius-full);background:rgba(255,255,255,0.55);border:none;cursor:pointer;transition:all 0.25s;padding:0;flex-shrink:0;}
+.gallery-dot.active{background:white;width:20px;}
+.dream-fund-body{padding:var(--sp-5);}
+.dream-fund-heading{font-size:18px;font-weight:700;margin-bottom:var(--sp-1);}
+.dream-fund-sub{font-size:13px;color:var(--text-secondary);margin-bottom:var(--sp-4);line-height:1.5;}
+.dream-fund-stats{display:flex;align-items:center;gap:var(--sp-3);margin-bottom:var(--sp-4);}
+.dream-stats-avatars{display:flex;align-items:center;}
+.dream-stats-avatar{width:28px;height:28px;border-radius:var(--radius-full);border:2.5px solid var(--bg-primary);margin-left:-8px;object-fit:cover;flex-shrink:0;}
+.dream-stats-avatar:first-child{margin-left:0;}
+.dream-stats-amount{font-size:16px;font-weight:700;color:var(--text-primary);}
+.dream-stats-label{font-size:12px;color:var(--text-secondary);margin-top:1px;}
+.dream-my-status{background:rgba(0,166,153,0.08);color:var(--badge-glad);border-radius:var(--radius-sm);padding:var(--sp-2) var(--sp-3);font-size:14px;font-weight:500;display:flex;align-items:center;gap:var(--sp-2);margin-bottom:var(--sp-2);}
+
+/* ONBOARDING */
+.onboarding-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1100;opacity:0;pointer-events:none;transition:opacity 0.3s;padding:var(--sp-4);}
+.onboarding-overlay.visible{opacity:1;pointer-events:auto;}
+.onboarding-modal{background:var(--bg-primary);border-radius:var(--radius-xl);padding:var(--sp-8);max-width:440px;width:100%;box-shadow:var(--shadow-modal);transform:translateY(20px);transition:transform 0.3s;}
+.onboarding-overlay.visible .onboarding-modal{transform:translateY(0);}
+.onboarding-screen{display:none;}
+.onboarding-screen.active{display:block;}
+.onboarding-dots{display:flex;justify-content:center;gap:6px;margin-bottom:var(--sp-5);}
+.onboarding-dot{width:8px;height:8px;border-radius:var(--radius-full);background:var(--border-color);transition:all 0.25s;}
+.onboarding-dot.active{background:var(--rausch);width:20px;}
+.ob-option-row{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-3);margin:var(--sp-4) 0 var(--sp-5);}
+.ob-option{background:var(--bg-secondary);border-radius:var(--radius-md);padding:var(--sp-4);text-align:center;}
+.ob-option-emoji{font-size:30px;margin-bottom:var(--sp-2);display:block;}
+.ob-option-title{font-size:14px;font-weight:700;margin-bottom:var(--sp-1);}
+.ob-option-desc{font-size:12px;color:var(--text-secondary);line-height:1.5;}
+.ob-steps{margin:var(--sp-4) 0;display:flex;flex-direction:column;gap:var(--sp-3);}
+.ob-step{display:flex;align-items:flex-start;gap:var(--sp-3);}
+.ob-step-num{width:24px;height:24px;border-radius:var(--radius-full);background:var(--rausch);color:white;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.ob-step-text{font-size:14px;line-height:1.5;}
+.ob-note{background:var(--bg-tertiary);border-radius:var(--radius-sm);padding:var(--sp-3) var(--sp-4);font-size:12px;color:var(--text-secondary);line-height:1.5;margin:var(--sp-3) 0 var(--sp-4);text-align:center;}
+.ob-skip{display:block;text-align:center;margin:var(--sp-3) auto 0;font-size:13px;color:var(--text-disabled);cursor:pointer;background:none;border:none;font-family:inherit;transition:color 0.2s;}
+.ob-skip:hover{color:var(--text-secondary);}
+@media(max-width:550px){
+  .onboarding-modal{padding:var(--sp-6);max-height:88vh;overflow-y:auto;}
+  .ob-option-row{grid-template-columns:1fr 1fr;}
+}
+
+/* ADD GIFT MODAL — type switcher */
+.form-type-switcher{display:flex;gap:3px;margin-bottom:var(--sp-4);background:var(--bg-tertiary);border-radius:var(--radius-sm);padding:3px;}
+.type-switch-btn{flex:1;padding:var(--sp-2) var(--sp-3);border-radius:6px;border:none;font-family:inherit;font-size:13px;font-weight:500;cursor:pointer;background:transparent;color:var(--text-secondary);transition:all 0.2s;}
+.type-switch-btn.active{background:var(--bg-primary);color:var(--text-primary);box-shadow:0 1px 4px rgba(0,0,0,0.1);}
+</style>
+</head>
+<body>
+
+<div class="demo-banner" role="note">Демо-версия: данные вымышленные, бронировать можно понарошку</div>
+
+<!-- Registration Modal -->
+<div class="modal-overlay" id="regModal">
+  <div class="modal">
+    <h2>Привет! 👋</h2>
+    <p>Добро пожаловать в вишлист Дани.<br>Представься — и выбирай подарок!</p>
+    <div class="modal-avatar-preview" id="avatarPreview">
+      <img id="avatarImg" src="" alt="avatar">
+    </div>
+    <button class="avatar-refresh" id="refreshAvatar" type="button">🎲 Другая аватарка</button>
+    <input class="modal-input" id="nameInput" type="text" placeholder="Как тебя зовут?" maxlength="30" autocomplete="off">
+    <input class="modal-input" id="tgInput" type="text" placeholder="@твоя_телега" maxlength="33" autocomplete="off" spellcheck="false">
+    <div class="field-hint" id="tgHint">В демо подойдёт любой выдуманный ник, он останется только в твоём браузере</div>
+    <button class="btn btn-primary" id="regBtn" disabled>Поехали!</button>
+    <button class="btn-solo-link demo-fill-btn" id="demoFillBtn" type="button">или заполни за меня (демо)</button>
+    <div style="margin-top:var(--sp-4);padding-top:var(--sp-4);border-top:1px solid var(--border-color)">
+      <p style="font-size:13px;color:var(--text-secondary);margin-bottom:var(--sp-2)">Уже регался раньше?</p>
+      <div style="display:flex;gap:var(--sp-2)">
+        <input class="modal-input" id="loginTgInput" type="text" placeholder="@твоя_телега" style="margin-bottom:0;flex:1;min-width:0;width:auto;text-align:left;font-size:15px" spellcheck="false">
+        <button class="btn btn-secondary" id="loginByTgBtn" style="white-space:nowrap;flex:0 0 auto;width:auto;padding:var(--sp-3) var(--sp-4)">Войти</button>
+      </div>
+      <div class="field-hint" id="loginTgHint" style="margin-top:var(--sp-2)">В демо можно войти как гость @masha_demo</div>
+    </div>
+  </div>
+</div>
+
+<!-- Onboarding Modal -->
+<div class="onboarding-overlay" id="onboardingModal">
+  <div class="onboarding-modal">
+    <div class="onboarding-dots" id="onboardingDots">
+      <div class="onboarding-dot active"></div>
+      <div class="onboarding-dot"></div>
+      <div class="onboarding-dot"></div>
+    </div>
+
+    <!-- Экран 1: два способа -->
+    <div class="onboarding-screen active" id="obScreen1">
+      <h2 style="text-align:center;margin-bottom:var(--sp-2)">Как это работает 👀</h2>
+      <p style="text-align:center;font-size:14px;color:var(--text-secondary)">Есть два способа порадовать:</p>
+      <div class="ob-option-row">
+        <div class="ob-option">
+          <span class="ob-option-emoji">🎁</span>
+          <div class="ob-option-title">Беру сам!</div>
+          <div class="ob-option-desc">Покупаешь подарок самостоятельно и даришь. Классика!</div>
+        </div>
+        <div class="ob-option">
+          <span class="ob-option-emoji">🤝</span>
+          <div class="ob-option-title">Скидываюсь!</div>
+          <div class="ob-option-desc">Несколько человек скидываются на один подарок — кто-то один покупает и дарит от всех</div>
+        </div>
+      </div>
+      <button class="btn btn-primary" style="width:100%" onclick="nextOnboarding()">Дальше →</button>
+      <button class="ob-skip" onclick="skipOnboarding()">Пропустить</button>
+    </div>
+
+    <!-- Экран 2: как работает вскладчину -->
+    <div class="onboarding-screen" id="obScreen2">
+      <h2 style="text-align:center;margin-bottom:var(--sp-2)">Скидываетесь вместе? 🤝</h2>
+      <p style="text-align:center;font-size:14px;color:var(--text-secondary)">Вот что делать после нажатия «Скинусь!»:</p>
+      <div class="ob-steps">
+        <div class="ob-step"><div class="ob-step-num">1</div><div class="ob-step-text">Ты в списке — круто! Открой карточку и посмотри, кто ещё скидывается</div></div>
+        <div class="ob-step"><div class="ob-step-num">2</div><div class="ob-step-text">Напишите друг другу в Telegram → договоритесь, кто покупает</div></div>
+        <div class="ob-step"><div class="ob-step-num">3</div><div class="ob-step-text">Остальные скидывают деньги тому, кто покупает — напрямую, как удобно</div></div>
+        <div class="ob-step"><div class="ob-step-num">4</div><div class="ob-step-text">На ДР дарите вместе 🎁🎉</div></div>
+      </div>
+      <div class="ob-note">💡 Деньги через приложение не ходят — только живая координация между вами 🙌</div>
+      <button class="btn btn-primary" style="width:100%" onclick="nextOnboarding()">Дальше →</button>
+      <button class="ob-skip" onclick="skipOnboarding()">Пропустить</button>
+    </div>
+
+    <!-- Экран 3: хотелки -->
+    <div class="onboarding-screen" id="obScreen3">
+      <div style="text-align:center;font-size:52px;margin-bottom:var(--sp-3)">💸</div>
+      <h2 style="text-align:center;margin-bottom:var(--sp-2)">Не нашёл что подарить?</h2>
+      <p style="font-size:14px;color:var(--text-secondary);text-align:center;line-height:1.6;margin-bottom:var(--sp-5)">В разделе <strong style="color:var(--text-primary)">«Хотелки»</strong> можно скинуть любую сумму — Даня знает, куда потратит, и не спустит на кофе 😄</p>
+      <button class="btn btn-primary" style="width:100%" onclick="skipOnboarding()">Всё понял, выбираю подарок! 🎉</button>
+    </div>
+  </div>
+</div>
+
+<!-- Admin Auth Modal -->
+<div class="modal-overlay" id="adminAuthModal">
+  <div class="modal">
+    <h2 style="font-size:32px;margin-bottom:var(--sp-1)">🔐 Докажи</h2>
+    <p>Это только для именинника 🎂</p>
+    <input class="modal-input" id="adminPassInput" type="password" placeholder="Пароль..." autocomplete="off">
+    <div class="field-hint">В демо пароля нет: любой ввод покажет пасхалку, а админку открывает кнопка ниже</div>
+    <button class="btn btn-primary" id="adminAuthBtn">Войти</button>
+    <button class="btn btn-together admin-demo-btn" id="adminDemoBtn">Открыть админку (демо)</button>
+    <button class="btn btn-cancel" id="adminAuthCancelBtn">Отмена</button>
+  </div>
+</div>
+
+<!-- Dream Fund Contribution Modal -->
+<div class="modal-overlay" id="dreamContributeModal">
+  <div class="modal">
+    <div id="dreamContributeForm">
+      <h2>Скинуться в фонд 💸</h2>
+      <p>Введи любую сумму — я отложу её именно на вещи из галереи</p>
+      <input class="modal-input" id="dreamAmountInput" type="number" placeholder="Сумма в рублях" min="1" style="margin-bottom:var(--sp-2)">
+      <div class="field-hint">Любая сумма — любой жест 🙏</div>
+      <button class="btn btn-primary" id="dreamSubmitBtn" style="width:100%;margin-bottom:var(--sp-2)" disabled>Скинуть!</button>
+      <button class="btn btn-cancel" id="dreamCancelBtn" style="width:100%">Отмена</button>
+    </div>
+    <div id="dreamSuccessState" style="display:none">
+      <div style="font-size:52px;margin-bottom:var(--sp-3)">🫶</div>
+      <h2 style="margin-bottom:var(--sp-2)">Спасибо!</h2>
+      <div style="background:var(--bg-tertiary);border-radius:var(--radius-md);padding:var(--sp-4);margin:var(--sp-3) 0;font-size:14px;line-height:1.6;color:var(--text-secondary);text-align:left">
+        <strong style="color:var(--text-primary);display:block;margin-bottom:var(--sp-1)">Моё обещание 🤝</strong>
+        Я отложу твои деньги именно на вещи из этого раздела и не потрачу ни на кофе, ни на другую ерунду. Честно!
+      </div>
+      <button class="btn btn-primary" id="dreamCloseSuccessBtn" style="width:100%">Отлично! 🎉</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Gift Modal -->
+<div class="modal-overlay" id="addGiftModal">
+  <div class="modal" style="text-align:left">
+    <h2 style="text-align:center">Добавить ✨</h2>
+    <div class="add-gift-form">
+      <div class="form-type-switcher">
+        <button class="type-switch-btn active" id="switchToGift">🎁 Подарок</button>
+        <button class="type-switch-btn" id="switchToDream">💫 Фонд мечты</button>
+      </div>
+      <p style="text-align:center;margin-top:calc(-1 * var(--sp-2));margin-bottom:var(--sp-4);font-size:13px;color:var(--text-secondary)" id="addModalSub">Заполни карточку — друзья сами решат, как дарить</p>
+      <div class="form-group"><label>Название</label><input type="text" id="giftNameInput" placeholder="Наушники Sony WH-1000XM5"></div>
+      <div class="form-group"><label>Фото (URL)</label><input type="url" id="giftPhotoInput" placeholder="https://...jpg"></div>
+      <div id="giftOnlyFields">
+        <div class="form-group"><label>Цена (₽)</label><input type="number" id="giftPriceInput" placeholder="5000"></div>
+        <div class="form-group"><label>Ссылка на маркетплейс</label><input type="url" id="giftLinkInput" placeholder="https://..."></div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:24px">
+        <button class="btn btn-secondary" id="cancelAddGift" style="flex:1">Отмена</button>
+        <button class="btn btn-primary" id="saveGift" style="flex:1">Добавить</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Header -->
+<header class="header">
+  <div class="header-inner">
+    <div class="header-left">
+      <span class="logo-emoji">🎂</span>
+      <div class="header-title">Вишлист <span class="danya-name" id="danyaTitle">Дани</span></div>
+    </div>
+    <div class="countdown" id="countdown"></div>
+    <div class="header-right">
+      <button class="copy-link-btn" id="copyLinkBtn" title="Поделиться">🔗 <span class="copy-label">Поделиться</span></button>
+      <div class="header-user" id="headerUser" style="display:none">
+        <img class="header-avatar" id="headerAvatar" src="" alt="">
+        <span class="header-username" id="headerName"></span>
+        <div class="profile-popout" id="profilePopout">
+          <div class="profile-popout-top">
+            <img class="profile-popout-avatar" id="popoutAvatar" src="" alt="">
+            <div class="profile-popout-name" id="popoutName"></div>
+          </div>
+          <div class="profile-popout-hint">Имя и аватарка не меняются 😇<br>Можно обновить Telegram:</div>
+          <div class="profile-popout-tg">
+            <input class="profile-popout-input" id="popoutTgInput" type="text" placeholder="@ник_в_телеге" spellcheck="false">
+            <button class="profile-popout-save" id="popoutSaveBtn">OK</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- Admin panel -->
+<div class="admin-bar" id="adminBar" style="display:none">
+  <div class="admin-card">
+    <h3>🔑 Панель администратора</h3>
+    <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progressBar" style="width:0%"></div></div>
+    <div class="admin-stats">
+      <div>Подарков выбрано: <strong id="claimedCount">0</strong> из <strong id="totalCount">0</strong></div>
+      <div>Гостей зашло: <strong id="guestCount">0</strong></div>
+    </div>
+    <div class="admin-guests" id="adminGuests"></div>
+    <button class="admin-exit-btn" id="adminExitBtn" type="button">Вернуться в гостевой режим (демо)</button>
+  </div>
+</div>
+
+<!-- Visitor counter -->
+<div class="visitor-bar" id="visitorBar" style="display:none">
+  <div class="visitor-avatars" id="visitorAvatars"></div>
+  <span class="visitor-count" id="visitorCount"></span>
+</div>
+
+<!-- Filters -->
+<div class="filters-bar" id="filtersBar">
+  <button class="filter-pill active" data-filter="all">Все подарки</button>
+  <button class="filter-pill" data-filter="available">Доступные</button>
+  <button class="filter-pill pulse" data-filter="chipping">🤝 Скидываются</button>
+  <button class="filter-pill" data-filter="glad">🟢 Даня будет рад</button>
+  <button class="filter-pill" data-filter="charged">🔵 Я заряженный</button>
+  <button class="filter-pill" data-filter="premium">🟣 Скинуться с кем-то</button>
+</div>
+
+<!-- Dream Fund -->
+<div class="dream-fund-wrap" id="dreamFundWrap" style="display:none"></div>
+
+<!-- Gift grid -->
+<div class="gifts-container">
+  <div class="gifts-grid" id="giftsGrid"></div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<footer class="footer">
+  <div class="footer-portfolio"><a class="footer-portfolio-link" href="../../">Портфолио Даниила Евстратова</a></div>
+  <button class="admin-login-btn" id="adminLoginBtn">войти как именинник</button>
+  <button class="admin-login-btn" id="demoResetBtn">сбросить демо</button>
+</footer>
+
+<script>
+/* CONFIG (portfolio demo copy)
+   This copy never talks to a backend: no Firebase SDK, no keys, no admin password.
+   All data lives in this browser only (localStorage, with an in-memory fallback). */
+const DEMO_MODE = true;
+const DEMO_VERSION = 1;
+// Next 25 April (today counts), so the countdown never gets stuck after the date
+const BIRTHDAY = (() => { const n=new Date(), today=new Date(n.getFullYear(),n.getMonth(),n.getDate()); let b=new Date(n.getFullYear(),3,25); if (b<today) b=new Date(n.getFullYear()+1,3,25); return b; })();
+const AVG_CONTRIBUTION = 3000;
+
+/* SAFE STORAGE: prefixed keys, keeps working if storage is blocked */
+const LS = (() => {
+  const PREFIX = 'demoWishlist:', mem = {};
+  return {
+    get(k) { try { const v = localStorage.getItem(PREFIX+k); if (v !== null) return v; } catch(e) {} return k in mem ? mem[k] : null; },
+    set(k, v) { mem[k] = String(v); try { localStorage.setItem(PREFIX+k, String(v)); } catch(e) {} },
+    remove(k) { delete mem[k]; try { localStorage.removeItem(PREFIX+k); } catch(e) {} },
+    clearAll() { Object.keys(mem).forEach(k => delete mem[k]); try { Object.keys(localStorage).filter(k => k.startsWith(PREFIX)).forEach(k => localStorage.removeItem(k)); } catch(e) {} }
+  };
+})();
+
+/* LOCAL AVATARS: seeded inline SVG instead of an external avatar service */
+function seededRandom(seed) {
+  let h = 2166136261;
+  for (let i = 0; i < seed.length; i++) { h ^= seed.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return () => { h = (h + 0x6D2B79F5) | 0; let t = h; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+}
+const AV_BG = ['#b6e3f4','#c0aede','#d1d4f9','#ffd5dc','#ffdfbf'];
+const AV_SKIN = ['#ffe0c7','#f9d4b4','#f2c29b','#e0a87c','#c98b5e','#9e6b4a'];
+const AV_HAIR = ['#2d2a32','#4a3226','#7a4a2a','#b5763c','#e3b55f','#c94f3d','#3b4a7a'];
+const AV_SHIRT = ['#ff385c','#4a90d9','#00a699','#914ce6','#ff9f43','#222222','#e84393'];
+function getAvatarUrl(seed, opts = {}) {
+  const r = seededRandom(String(seed)), pick = a => a[Math.floor(r()*a.length)];
+  const bg = opts.bg || pick(AV_BG), skin = pick(AV_SKIN), hair = pick(AV_HAIR), shirt = pick(AV_SHIRT), cap = pick(AV_SHIRT);
+  let style = Math.floor(r()*5); const mouth = Math.floor(r()*3), glasses = r() < 0.22, freckles = r() < 0.25;
+  if (opts.crown) style = 0;
+  const back = style === 1 ? `<path d="M25 48C23 30 36 22 50 22S77 30 75 48L79 90C70 95 30 95 21 90Z" fill="${hair}"/>` : '';
+  const fronts = [
+    `<path d="M27 52C25 30 37 23 50 23S75 30 73 52C71 42 66 37 58 35C52 40 42 41 33 38C30 42 28 46 27 52Z" fill="${hair}"/>`,
+    `<path d="M28 47C28 30 38 24 50 24S72 30 72 47C64 41 58 35 50 33C44 38 36 43 28 47Z" fill="${hair}"/>`,
+    `<g fill="${hair}"><circle cx="31" cy="42" r="7"/><circle cx="36" cy="33" r="8"/><circle cx="44" cy="27" r="8"/><circle cx="53" cy="26" r="8"/><circle cx="62" cy="30" r="8"/><circle cx="68" cy="38" r="7"/><circle cx="70" cy="46" r="5"/><circle cx="29" cy="49" r="4.5"/></g>`,
+    `<circle cx="50" cy="19" r="8.5" fill="${hair}"/><path d="M27 50C26 31 38 24 50 24S74 31 73 50C70 41 64 36 56 34C49 37 40 37 32 40C29 43 28 46 27 50Z" fill="${hair}"/>`,
+    `<path d="M26 45C26 27 38 20 50 20S74 27 74 45Z" fill="${cap}"/><rect x="24" y="41" width="52" height="7" rx="3.5" fill="${cap}"/><rect x="24" y="41" width="52" height="7" rx="3.5" fill="#000" opacity=".12"/><circle cx="50" cy="20" r="3" fill="${cap}"/>`
+  ];
+  const mouths = [
+    `<path d="M44 63Q50 68.5 56 63" fill="none" stroke="#6b2f2f" stroke-width="2.1" stroke-linecap="round"/>`,
+    `<path d="M43.5 62Q50 71 56.5 62Z" fill="#6b2f2f"/><path d="M46.5 66.2Q50 69.4 53.5 66.2Q50 64.8 46.5 66.2Z" fill="#ff8a8a"/>`,
+    `<path d="M45 64Q51 67 56 62.5" fill="none" stroke="#6b2f2f" stroke-width="2.1" stroke-linecap="round"/>`
+  ];
+  const crown = opts.crown ? `<path d="M35 26L37.5 11L44.5 19L50 8L55.5 19L62.5 11L65 26Z" fill="#ffc83d" stroke="#e8a317" stroke-width="1.4" stroke-linejoin="round"/><circle cx="50" cy="21" r="2" fill="#ff385c"/><circle cx="41" cy="22.5" r="1.4" fill="#4a90d9"/><circle cx="59" cy="22.5" r="1.4" fill="#00a699"/>` : '';
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="${bg}"/>${back}`
+    + `<path d="M18 100C20 84 34 79 50 79S80 84 82 100Z" fill="${shirt}"/>`
+    + `<rect x="44" y="68" width="12" height="13" rx="5" fill="${skin}"/><rect x="44" y="68" width="12" height="13" rx="5" fill="#000" opacity=".08"/>`
+    + `<ellipse cx="28.5" cy="54" rx="3.4" ry="4.6" fill="${skin}"/><ellipse cx="71.5" cy="54" rx="3.4" ry="4.6" fill="${skin}"/>`
+    + `<ellipse cx="50" cy="52" rx="22" ry="25" fill="${skin}"/>`
+    + `<circle cx="35" cy="61" r="3.6" fill="#ff7b8f" opacity=".3"/><circle cx="65" cy="61" r="3.6" fill="#ff7b8f" opacity=".3"/>`
+    + (freckles ? `<g fill="#9e6b4a" opacity=".45"><circle cx="37" cy="58" r=".8"/><circle cx="34" cy="59.5" r=".8"/><circle cx="63" cy="58" r=".8"/><circle cx="66" cy="59.5" r=".8"/></g>` : '')
+    + `<path d="M36.5 46.5Q41 44 45 46.5M55 46.5Q59 44 63.5 46.5" fill="none" stroke="${hair}" stroke-width="1.8" stroke-linecap="round"/>`
+    + `<ellipse cx="41" cy="53" rx="2.6" ry="3.2" fill="#2d2a32"/><ellipse cx="59" cy="53" rx="2.6" ry="3.2" fill="#2d2a32"/><circle cx="41.9" cy="52" r=".9" fill="#fff"/><circle cx="59.9" cy="52" r=".9" fill="#fff"/>`
+    + `<path d="M50 55.5q-1.6 3 .6 3.6" fill="none" stroke="#000" stroke-opacity=".18" stroke-width="1.4" stroke-linecap="round"/>`
+    + (glasses ? `<g fill="none" stroke="#2d2a32" stroke-width="1.6"><circle cx="41" cy="53" r="6"/><circle cx="59" cy="53" r="6"/><path d="M47 53h6"/></g>` : '')
+    + mouths[mouth] + fronts[style] + crown + `</svg>`;
+  return 'data:image/svg+xml,' + encodeURIComponent(svg);
+}
+
+/* LOCAL GIFT PICTURES: soft studio-style cards with an emoji, no external images */
+function giftArt(emoji, c1, c2, w = 600, h = 400, k = 0.4) {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}">`
+    + `<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/></linearGradient>`
+    + `<radialGradient id="s"><stop offset="0" stop-color="#000" stop-opacity=".2"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient></defs>`
+    + `<rect width="${w}" height="${h}" fill="url(#g)"/>`
+    + `<circle cx="${w*0.84}" cy="${h*0.16}" r="${h*0.34}" fill="#fff" opacity=".2"/><circle cx="${w*0.1}" cy="${h*0.92}" r="${h*0.3}" fill="#fff" opacity=".16"/>`
+    + `<circle cx="${w/2}" cy="${h*0.5}" r="${h*k*0.75}" fill="#fff" opacity=".35"/>`
+    + `<ellipse cx="${w/2}" cy="${h*(0.5+k*0.75)}" rx="${h*k*0.75}" ry="${h*0.05}" fill="url(#s)"/>`
+    + `<text x="${w/2}" y="${h*0.5}" text-anchor="middle" dominant-baseline="central" font-size="${Math.round(h*k)}" font-family="Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif">${emoji}</text></svg>`;
+  return 'data:image/svg+xml,' + encodeURIComponent(svg);
+}
+
+/* DEMO DATA: all people, nicknames and amounts are made up */
+const DEMO_NOW = Date.now(), HOUR = 36e5, DAY = 864e5;
+const DEMO_USERS = {
+  demo_masha:  { name:'Маша',   telegram:'@masha_demo',  joined:9 },
+  demo_lesha:  { name:'Лёша',   telegram:'@lesha_demo',  joined:9 },
+  demo_katya:  { name:'Катя',   telegram:'@katya_demo',  joined:8 },
+  demo_artem:  { name:'Артём',  telegram:'@artem_demo',  joined:7 },
+  demo_olya:   { name:'Оля',    telegram:'@olya_demo',   joined:6 },
+  demo_nikita: { name:'Никита', telegram:'@nikita_demo', joined:5 },
+  demo_sonya:  { name:'Соня',   telegram:'@sonya_demo',  joined:4 },
+  demo_dima:   { name:'Дима',   telegram:'@dima_demo',   joined:3 },
+  demo_vika:   { name:'Вика',   telegram:'@vika_demo',   joined:2 },
+  demo_zhenya: { name:'Женя',   telegram:'@zhenya_demo', joined:1 }
+};
+const DEMO_GIFTS = [
+  { id:'demo_projector',  name:'Проектор Xiaomi Smart Projector L1', price:17325, emoji:'📽️', c:['#d1d4f9','#a9b6ff'], q:'Xiaomi Smart Projector L1', age:12,
+    claims:[['demo_masha','together',30],['demo_lesha','together',22],['demo_katya','together',6]] },
+  { id:'demo_headphones', name:'Наушники Sony WH-1000XM5', price:23990, emoji:'🎧', c:['#ffd5dc','#ffadc0'], q:'Sony WH-1000XM5', age:11,
+    claims:[['demo_artem','together',70],['demo_olya','together',60],['demo_nikita','together',48],['demo_sonya','together',40],['demo_dima','together',26],['demo_vika','together',12],['demo_zhenya','together',2]] },
+  { id:'demo_keyboard',   name:'Механическая клавиатура Keychron K2', price:8990, emoji:'⌨️', c:['#c0aede','#a58be6'], q:'Keychron K2', age:10,
+    claims:[['demo_dima','together',9]] },
+  { id:'demo_grinder',    name:'Жерновая кофемолка Kitfort', price:4490, emoji:'☕', c:['#ffdfbf','#ffc28c'], q:'жерновая кофемолка Kitfort', age:9,
+    claims:[['demo_katya','solo',40]] },
+  { id:'demo_lego',       name:'LEGO Icons «Бонсай»', price:4999, emoji:'🌳', c:['#d3f2df','#9ddcb8'], q:'LEGO Icons Бонсай 10281', age:8, claims:[] },
+  { id:'demo_thermos',    name:'Термокружка Stanley 470 мл', price:2990, emoji:'🥤', c:['#b6e3f4','#86cdef'], q:'термокружка Stanley 470', age:7, claims:[] },
+  { id:'demo_boardgame',  name:'Настольная игра «Каркассон»', price:2190, emoji:'🎲', c:['#ffe7a8','#ffd062'], q:'Каркассон настольная игра', age:6, claims:[] },
+  { id:'demo_climbing',   name:'Сертификат на скалодром', price:1800, emoji:'🧗', c:['#ffd9c7','#ffb59a'], q:'', age:5, claims:[] },
+  { id:'demo_plant',      name:'Монстера в керамическом горшке', price:1490, emoji:'🪴', c:['#e3f5d6','#b7e29b'], q:'монстера в горшке', age:4, claims:[] },
+  { id:'demo_book',       name:'Книга «Атомные привычки», Джеймс Клир', price:890, emoji:'📚', c:['#fff1c9','#ffdb7d'], q:'Атомные привычки Джеймс Клир', age:3, claims:[] }
+];
+const DEMO_DREAMS = [
+  { id:'demo_dream_bike',   name:'Городской велосипед', emoji:'🚲', c:['#b6e3f4','#8fc3ff'] },
+  { id:'demo_dream_camera', name:'Плёночная камера', emoji:'📷', c:['#ffdfbf','#ffb08a'] },
+  { id:'demo_dream_trip',   name:'Поездка на Байкал', emoji:'🏔️', c:['#d1d4f9','#a3b1ff'] }
+];
+const DEMO_CONTRIBUTIONS = [['demo_masha',1000,50],['demo_lesha',1500,36],['demo_nikita',2000,20],['demo_sonya',500,8]];
+
+function buildDemoData() {
+  const users = {}, gifts = {}, items = {}, contributions = {};
+  Object.entries(DEMO_USERS).forEach(([id,u]) => {
+    users[id] = { name:u.name, avatar:getAvatarUrl('wishlist-demo-'+id), telegram:u.telegram, joinedAt:DEMO_NOW-u.joined*DAY, lastSeen:DEMO_NOW-u.joined*HOUR };
+  });
+  const claimFrom = (uid, type, hoursAgo) => ({ userId:uid, userName:users[uid].name, avatar:users[uid].avatar, telegram:users[uid].telegram, type, timestamp:DEMO_NOW-hoursAgo*HOUR });
+  DEMO_GIFTS.forEach(g => {
+    const gift = { name:g.name, price:g.price, link:g.q ? 'https://market.yandex.ru/search?text='+encodeURIComponent(g.q) : '', photo:giftArt(g.emoji,g.c[0],g.c[1]), createdAt:DEMO_NOW-g.age*DAY };
+    if (g.claims.length) { gift.claims = {}; g.claims.forEach(([uid,type,h],i) => { gift.claims[g.id+'_claim_'+i] = claimFrom(uid,type,h); }); }
+    gifts[g.id] = gift;
+  });
+  DEMO_DREAMS.forEach((d,i) => { items[d.id] = { name:d.name, photo:giftArt(d.emoji,d.c[0],d.c[1],800,416,0.28), createdAt:DEMO_NOW-(10-i)*DAY }; });
+  DEMO_CONTRIBUTIONS.forEach(([uid,amount,h],i) => { const c = claimFrom(uid,'',h); delete c.type; contributions['demo_contrib_'+i] = { ...c, amount }; });
+  return { _demoVersion:DEMO_VERSION, users, gifts, dreamFund:{ items, contributions } };
+}
+
+/* FAKE DB: same tiny API as the Realtime Database calls used below */
+class FakeDB {
+  constructor() { this._listeners = []; this._initIfNeeded(); }
+  _getData() { try { return JSON.parse(LS.get('db') || '{}'); } catch(e) { return {}; } }
+  _setData(d) { LS.set('db', JSON.stringify(d)); }
+  _initIfNeeded() {
+    const data = this._getData();
+    if (data._demoVersion !== DEMO_VERSION) { const fresh = buildDemoData(); this._setData(fresh); return fresh; }
+    return data;
+  }
+  ref(path) {
+    const self = this, parts = path.split('/').filter(Boolean);
+    const read = () => { let v = self._getData(); for (const p of parts) v = v?.[p]; return v || null; };
+    return {
+      on(ev, cb) { const fire = () => cb({ val: read }); fire(); self._listeners.push(fire); },
+      once(ev, cb) { const v = read(); setTimeout(() => cb({ val: () => v }), 250); },
+      set(val) { const d = self._initIfNeeded(); let o = d; for (let i = 0; i < parts.length-1; i++) { if (!o[parts[i]]) o[parts[i]] = {}; o = o[parts[i]]; } o[parts[parts.length-1]] = val; self._setData(d); self._notifyAll(); },
+      update(val) { const d = self._initIfNeeded(); let o = d; for (const p of parts) { if (!o[p]) o[p] = {}; o = o[p]; } Object.assign(o, val); self._setData(d); self._notifyAll(); },
+      push() { const id = 'id_' + Math.random().toString(36).substr(2,9) + Date.now().toString(36); return self.ref(path+'/'+id); },
+      remove() { const d = self._getData(); let o = d; for (let i = 0; i < parts.length-1; i++) { if (!o[parts[i]]) return; o = o[parts[i]]; } delete o[parts[parts.length-1]]; self._setData(d); self._notifyAll(); }
+    };
+  }
+  _notifyAll() { this._listeners.forEach(fn => { try { fn(); } catch(e) { console.warn(e); } }); }
+}
+
+/* APP STATE */
+const db = new FakeDB();
+console.log('%c🎁 DEMO MODE', 'color:#ff385c;font-weight:bold');
+const ADMIN_AVATAR = getAvatarUrl('danya-birthday-king-2026', { bg:'#ffd5dc', crown:true });
+
+let isAdmin = false, currentUser = null, gifts = {}, users = {}, activeFilter = 'all';
+if (LS.get('admin') === 'yes') isAdmin = true;
+
+/* UTILS (getAvatarUrl lives in CONFIG above) */
+function generateRandomSeed() { return Math.random().toString(36).substring(2,10) + Date.now().toString(36); }
+// Safe for both text and quoted attribute values (alt="", title="", src="", href="")
+const HTML_ESCAPES = { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' };
+function escapeHtml(t) { return String(t ?? '').replace(/[&<>"']/g, c => HTML_ESCAPES[c]); }
+function formatPrice(p) { return new Intl.NumberFormat('ru-RU').format(p) + ' ₽'; }
+function pluralize(n, one, two, five) { const m10=n%10, m100=n%100; if(m100>=11&&m100<=19) return five; if(m10===1) return one; if(m10>=2&&m10<=4) return two; return five; }
+function getPriceCategory(p) { if(p<=2000) return {key:'glad',label:'Даня будет рад',color:'glad'}; if(p<=5000) return {key:'charged',label:'Я заряженный',color:'charged'}; return {key:'premium',label:'Скинуться с кем-то',color:'premium'}; }
+function getSlotsNeeded(p) { return Math.max(2, Math.ceil(p/AVG_CONTRIBUTION)); }
+
+/* TELEGRAM VALIDATION
+   Valid: @username, where the username is 5–32 chars of a-z A-Z 0-9 _ */
+function isValidTelegram(val) {
+  return /^@[a-zA-Z0-9_]{5,32}$/.test(val.trim());
+}
+function formatTelegram(v) {
+  if (!v) return '';
+  v = v.trim();
+  // strip non-ascii except @ and underscore
+  v = v.replace(/[^@a-zA-Z0-9_]/g, '');
+  if (v && !v.startsWith('@')) v = '@' + v;
+  return v;
+}
+
+/* COUNTDOWN — минуты только за час до ДР */
+function updateCountdown() {
+  const diff = BIRTHDAY - new Date(), el = document.getElementById('countdown');
+  if (diff <= 0) { el.innerHTML = '🎉 <span class="countdown-number">Сегодня ДР!</span>'; checkBirthday(); return; }
+  const d = Math.floor(diff/864e5), h = Math.floor((diff%864e5)/36e5), m = Math.floor((diff%36e5)/6e4);
+  let t = '🎂 До ДР: ';
+  if (d > 0) t += `<span class="countdown-number">${d}д</span> `;
+  t += `<span class="countdown-number">${h}ч</span>`;
+  if (diff < 36e5) t += ` <span class="countdown-number">${m}м</span>`;
+  el.innerHTML = t;
+}
+updateCountdown(); setInterval(updateCountdown, 60000);
+
+/* BIRTHDAY CONFETTI */
+function checkBirthday() {
+  const now = new Date();
+  let done = false;
+  try { done = !!sessionStorage.getItem('demoWishlist:bday_done'); } catch(e) {}
+  if (now.getMonth()===3 && now.getDate()===25 && !done) {
+    try { sessionStorage.setItem('demoWishlist:bday_done','1'); } catch(e) {}
+    for (let i=0; i<6; i++) setTimeout(showConfetti, i*700);
+  }
+}
+checkBirthday();
+
+/* REGISTRATION */
+let regAvatarSeed = generateRandomSeed();
+const TG_HINT_DEFAULT = 'В демо подойдёт любой выдуманный ник, он останется только в твоём браузере';
+const LOGIN_HINT_DEFAULT = 'В демо можно войти как гость @masha_demo';
+
+function initRegistration() {
+  if (isAdmin) { currentUser = { id:'admin', name:'Даня 🎂', avatar:ADMIN_AVATAR, isAdmin:true, telegram:'' }; onUserReady(); return; }
+  const saved = LS.get('user');
+  if (saved) { try { currentUser = JSON.parse(saved); onUserReady(); return; } catch(e) {} }
+
+  document.getElementById('regModal').classList.add('visible');
+  updateRegAvatar();
+
+  document.getElementById('refreshAvatar').addEventListener('click', () => { regAvatarSeed = generateRandomSeed(); updateRegAvatar(); });
+
+  const nameInput = document.getElementById('nameInput');
+  const tgInput = document.getElementById('tgInput');
+  const tgHint = document.getElementById('tgHint');
+  const regBtn = document.getElementById('regBtn');
+
+  function updateBtnState() {
+    const nameOk = nameInput.value.trim().length > 0;
+    const tgVal = tgInput.value.trim();
+    const tgOk = tgVal === '' ? false : isValidTelegram(tgVal.startsWith('@') ? tgVal : '@'+tgVal);
+    regBtn.disabled = !(nameOk && tgOk);
+  }
+
+  nameInput.addEventListener('input', updateBtnState);
+  nameInput.addEventListener('keydown', (e) => { if (e.key==='Enter') tgInput.focus(); });
+
+  tgInput.addEventListener('input', () => {
+    // strip cyrillic and non-valid chars in real-time (keep @ _ a-z A-Z 0-9)
+    const cur = tgInput.selectionStart;
+    const clean = tgInput.value.replace(/[^@a-zA-Z0-9_]/g, '');
+    if (clean !== tgInput.value) { tgInput.value = clean; tgInput.setSelectionRange(cur, cur); }
+
+    const v = tgInput.value.trim();
+    const checkVal = v.startsWith('@') ? v : (v ? '@'+v : '');
+    if (!v) {
+      tgInput.classList.remove('input-valid','input-invalid');
+      tgHint.textContent = TG_HINT_DEFAULT;
+      tgHint.classList.remove('hint-error');
+    } else if (isValidTelegram(checkVal)) {
+      tgInput.classList.add('input-valid'); tgInput.classList.remove('input-invalid');
+      tgHint.textContent = '✓ Отлично!';
+      tgHint.classList.remove('hint-error');
+    } else {
+      tgInput.classList.add('input-invalid'); tgInput.classList.remove('input-valid');
+      tgHint.textContent = 'Только латиница, цифры и _ · минимум 5 символов';
+      tgHint.classList.add('hint-error');
+    }
+    updateBtnState();
+  });
+
+  tgInput.addEventListener('blur', () => {
+    const v = tgInput.value.trim();
+    if (v && !v.startsWith('@')) tgInput.value = '@' + v;
+    tgInput.dispatchEvent(new Event('input'));
+  });
+
+  tgInput.addEventListener('keydown', (e) => { if (e.key==='Enter' && !regBtn.disabled) regBtn.click(); });
+
+  // Demo helper: fill in a made-up guest in one click
+  document.getElementById('demoFillBtn').addEventListener('click', () => {
+    const names = ['Аня','Саша','Полина','Миша','Лиза','Егор','Даша','Костя'];
+    const nick = ['anya','sasha','polina','misha','liza','egor','dasha','kostya'];
+    const i = Math.floor(Math.random()*names.length);
+    nameInput.value = names[i];
+    tgInput.value = '@' + nick[i] + '_guest' + Math.floor(10 + Math.random()*90);
+    nameInput.dispatchEvent(new Event('input'));
+    tgInput.dispatchEvent(new Event('input'));
+    regBtn.focus();
+  });
+
+  regBtn.addEventListener('click', () => {
+    const name = nameInput.value.trim(); if (!name) return;
+    let tg = tgInput.value.trim();
+    if (!tg.startsWith('@')) tg = '@' + tg;
+    if (!isValidTelegram(tg)) { showToast('Проверь Telegram!'); return; }
+    const userId = 'user_' + generateRandomSeed();
+    currentUser = { id:userId, name, avatar:getAvatarUrl(regAvatarSeed), telegram:tg };
+    LS.set('user', JSON.stringify(currentUser));
+    db.ref('users/'+userId).set({ name, avatar:currentUser.avatar, telegram:tg, joinedAt:Date.now() });
+    document.getElementById('regModal').classList.remove('visible');
+    onUserReady();
+    showToast(`Привет, ${name}! 🎉`);
+    setTimeout(showOnboarding, 500);
+  });
+
+  // Login by Telegram
+  const loginTgInput = document.getElementById('loginTgInput');
+  const loginTgHint = document.getElementById('loginTgHint');
+  const loginByTgBtn = document.getElementById('loginByTgBtn');
+
+  loginTgInput.addEventListener('input', () => {
+    const cur=loginTgInput.selectionStart;
+    const clean=loginTgInput.value.replace(/[^@a-zA-Z0-9_]/g,'');
+    if (clean!==loginTgInput.value) { loginTgInput.value=clean; loginTgInput.setSelectionRange(cur,cur); }
+    loginTgInput.classList.remove('input-valid','input-invalid');
+    loginTgHint.textContent=LOGIN_HINT_DEFAULT;
+    loginTgHint.classList.remove('hint-error');
+  });
+  loginTgInput.addEventListener('blur', () => {
+    const v=loginTgInput.value.trim();
+    if (v && !v.startsWith('@')) loginTgInput.value='@'+v;
+  });
+  loginTgInput.addEventListener('keydown', e => { if(e.key==='Enter') loginByTgBtn.click(); });
+
+  loginByTgBtn.addEventListener('click', () => {
+    let tg=loginTgInput.value.trim();
+    if (!tg) return;
+    if (!tg.startsWith('@')) tg='@'+tg;
+    loginByTgBtn.disabled=true;
+    loginByTgBtn.textContent='Ищу...';
+    db.ref('users').once('value', snap => {
+      loginByTgBtn.disabled=false;
+      loginByTgBtn.textContent='Войти';
+      const allUsers=snap.val()||{};
+      const found=Object.entries(allUsers).find(([,u])=>u.telegram&&u.telegram.toLowerCase()===tg.toLowerCase());
+      if (found) {
+        const [uid, u]=found;
+        currentUser={id:uid, name:u.name, avatar:u.avatar, telegram:u.telegram||''};
+        LS.set('user',JSON.stringify(currentUser));
+        document.getElementById('regModal').classList.remove('visible');
+        onUserReady();
+        showToast(`С возвращением, ${u.name}! 👋`);
+      } else {
+        loginTgInput.classList.add('input-invalid','input-shake');
+        loginTgHint.textContent='Такого акка нет — зарегайся выше 👆';
+        loginTgHint.classList.add('hint-error');
+        loginTgInput.addEventListener('animationend',()=>loginTgInput.classList.remove('input-shake'),{once:true});
+      }
+    });
+  });
+}
+
+function updateRegAvatar() { document.getElementById('avatarImg').src = getAvatarUrl(regAvatarSeed); }
+
+function onUserReady() {
+  document.getElementById('headerUser').style.display = 'flex';
+  document.getElementById('headerAvatar').src = currentUser.avatar;
+  document.getElementById('headerName').textContent = currentUser.name;
+  if (isAdmin) document.getElementById('adminBar').style.display = 'block';
+  if (!isAdmin && currentUser.id) {
+    db.ref('users/'+currentUser.id).update({ name:currentUser.name, avatar:currentUser.avatar, telegram:currentUser.telegram||'', lastSeen:Date.now() });
+  }
+  initProfilePopout();
+  listenForGifts(); listenForUsers(); listenForDreamFund(); setupFilters();
+}
+
+/* ADMIN AUTH — triggered from footer btn AND from "Дани" title */
+function showAdminAuthModal() {
+  document.getElementById('adminAuthModal').classList.add('visible');
+  document.getElementById('adminPassInput').value = '';
+  setTimeout(() => document.getElementById('adminPassInput').focus(), 120);
+}
+
+document.getElementById('adminLoginBtn').addEventListener('click', showAdminAuthModal);
+document.getElementById('danyaTitle').addEventListener('click', showAdminAuthModal);
+document.getElementById('adminAuthCancelBtn').addEventListener('click', () => { document.getElementById('adminAuthModal').classList.remove('visible'); });
+document.getElementById('adminPassInput').addEventListener('keydown', (e) => { if (e.key==='Enter') document.getElementById('adminAuthBtn').click(); });
+document.getElementById('adminAuthBtn').addEventListener('click', () => {
+  document.getElementById('adminAuthModal').classList.remove('visible');
+  // Demo: there is no password at all, so every attempt counts as wrong and shows the easter egg
+  spawnPoopRain(); showLiarBanner();
+});
+document.getElementById('adminDemoBtn').addEventListener('click', () => {
+  document.getElementById('adminAuthModal').classList.remove('visible');
+  activateAdmin();
+});
+
+function activateAdmin() {
+  // Demo: remember the guest profile so the visitor can switch back
+  const prev = LS.get('user');
+  try { if (prev && !JSON.parse(prev).isAdmin) LS.set('guest_backup', prev); } catch(e) {}
+  isAdmin = true;
+  LS.set('admin','yes');
+  currentUser = { id:'admin', name:'Даня 🎂', avatar:ADMIN_AVATAR, isAdmin:true, telegram:'' };
+  LS.set('user', JSON.stringify(currentUser));
+  document.getElementById('headerUser').style.display = 'flex';
+  document.getElementById('headerAvatar').src = ADMIN_AVATAR;
+  document.getElementById('headerName').textContent = 'Даня 🎂';
+  document.getElementById('adminBar').style.display = 'block';
+  // Demo: match what the birthday person sees on a fresh load
+  document.getElementById('visitorBar').style.display = 'none';
+  document.getElementById('profilePopout').classList.remove('visible');
+  renderGifts(); updateAdminStats(); renderDreamFund();
+  if (Object.keys(gifts).length === 0) { listenForGifts(); listenForUsers(); }
+  showToast('Добро пожаловать, именинник! 🎂👑');
+}
+
+/* DEMO CONTROLS: back to guest view, full reset */
+function deactivateAdmin() {
+  LS.remove('admin');
+  const backup = LS.get('guest_backup');
+  if (backup) LS.set('user', backup); else LS.remove('user');
+  LS.remove('guest_backup');
+  location.reload();
+}
+document.getElementById('adminExitBtn').addEventListener('click', deactivateAdmin);
+document.getElementById('demoResetBtn').addEventListener('click', () => {
+  LS.clearAll();
+  try { sessionStorage.removeItem('demoWishlist:bday_done'); } catch(e) {}
+  location.reload();
+});
+
+function spawnPoopRain() {
+  for (let i=0; i<28; i++) {
+    const p = document.createElement('div'); p.className='poop-piece'; p.textContent='💩';
+    p.style.cssText = `left:${Math.random()*100}vw;top:-50px;animation-delay:${(Math.random()*1.3).toFixed(2)}s;animation-duration:${(Math.random()*0.9+1.4).toFixed(2)}s`;
+    document.body.appendChild(p); setTimeout(()=>p.remove(), 3500);
+  }
+}
+function showLiarBanner() {
+  const el = document.createElement('div'); el.className='liar-overlay';
+  el.innerHTML = '<div class="liar-text">ВРУНИШКА</div>';
+  document.body.appendChild(el); setTimeout(()=>el.remove(), 2300);
+}
+
+/* DATA LISTENERS (local demo store) */
+function listenForGifts() { db.ref('gifts').on('value', (s) => { gifts=s.val()||{}; renderGifts(); updateAdminStats(); updateChippingPill(); }); }
+function listenForUsers() { db.ref('users').on('value', (s) => { users=s.val()||{}; renderVisitors(); updateAdminStats(); }); }
+
+/* RENDER GIFTS */
+function renderGifts() {
+  const grid = document.getElementById('giftsGrid');
+  const entries = Object.entries(gifts);
+  if (entries.length===0 && !isAdmin) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="emoji">🎁</div><h3>Подарки скоро появятся!</h3><p style="margin-top:8px;font-size:13px">Даня ещё наполняет свой вишлист</p></div>`; return;
+  }
+  const sorted = [...entries].sort(([,a],[,b]) => {
+    const ac=getTogetherClaims(a).length, bc=getTogetherClaims(b).length, as_=getSoloClaim(a), bs=getSoloClaim(b);
+    if(ac>0&&bc===0) return -1; if(bc>0&&ac===0) return 1;
+    if(as_&&!bs) return 1; if(bs&&!as_) return -1;
+    return (b.createdAt||0)-(a.createdAt||0);
+  });
+  let html = '';
+  sorted.forEach(([id,gift]) => {
+    if (!matchesFilter(gift,id)) return;
+    const cat=getPriceCategory(gift.price), tog=getTogetherClaims(gift), solo=getSoloClaim(gift);
+    const isChipping=tog.length>0&&!solo, isSoloClaimed=!!solo;
+    const myTog=tog.find(c=>c.userId===currentUser?.id), isMeSolo=solo?.userId===currentUser?.id;
+    const slotsNeeded=getSlotsNeeded(gift.price), isLastSlot=isChipping&&(slotsNeeded-tog.length===1);
+    const cardClass=isAdmin?'':(isSoloClaimed&&!isMeSolo?'solo-claimed':isChipping?'chipping':'');
+    html += `<div class="gift-card ${cardClass}" data-id="${id}">
+      <div class="gift-image-wrap">
+        ${gift.photo?`<img src="${escapeHtml(gift.photo)}" alt="${escapeHtml(gift.name)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="gift-no-image" style="display:none">🎁</div>`:'<div class="gift-no-image">🎁</div>'}
+        <span class="gift-badge ${cat.color}">${cat.label}</span>
+        ${isLastSlot?`<span class="last-slot-badge${isAdmin?' below-delete':''}">🔥 Последний слот!</span>`:''}
+        ${isAdmin?`<button class="gift-delete-btn" onclick="deleteGift('${id}')" title="Удалить">✕</button>`:''}
+        ${isSoloClaimed&&!isAdmin?'<div class="gift-solo-overlay">Уже берут 🎁</div>':''}
+      </div>
+      <div class="gift-details">
+        <div class="gift-name">${escapeHtml(gift.name)}</div>
+        <div class="gift-price-row">
+          <span class="gift-price">${formatPrice(gift.price)}</span>
+          ${isChipping?`<span class="gift-price-per">~${formatPrice(Math.ceil(gift.price/Math.max(tog.length,slotsNeeded)))} / чел</span>`:''}
+        </div>
+        ${gift.link?`<a class="gift-link" href="${escapeHtml(gift.link)}" target="_blank" rel="noopener noreferrer">Посмотреть на маркетплейсе →</a>`:''}
+        ${!isAdmin&&isChipping?renderChipSlots(tog,slotsNeeded,gift.price):''}
+        ${!isAdmin?renderActions(id,gift,tog,solo,myTog,isMeSolo):''}
+      </div>
+    </div>`;
+  });
+  if (isAdmin) html += `<button class="add-gift-btn" onclick="showAddGiftModal()"><div class="add-gift-btn-inner"><span class="plus">+</span><span>Добавить подарок</span></div></button>`;
+  grid.innerHTML = html;
+  document.querySelectorAll('.chip-flip-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const container = btn.closest('.chip-slots').querySelector('.chip-flip-container');
+      const flipped = container.classList.toggle('flipped');
+      btn.textContent = flipped ? '← Назад' : '👥 Кто скидывается?';
+    });
+  });
+}
+
+function getTogetherClaims(gift) { if (!gift.claims) return []; return Object.values(gift.claims).filter(c=>c.type==='together'); }
+function getSoloClaim(gift) { if (!gift.claims) return null; return Object.values(gift.claims).find(c=>c.type==='solo')||null; }
+
+/* CHIP-IN SLOTS */
+/* Demo: nicknames are made up, so never send visitors to a real Telegram account */
+function demoTelegram(e) { e.preventDefault(); e.stopPropagation(); showToast('В демо Telegram не открывается'); }
+
+function renderChipSlots(claims, totalSlots, price) {
+  let slotsHtml = '';
+  for (let i=0; i<totalSlots; i++) {
+    if (i<claims.length) { const c=claims[i]; slotsHtml+=`<div class="chip-slot filled c${i%8}" title="${escapeHtml(c.userName)}"><img src="${c.avatar}" alt="${escapeHtml(c.userName)}" referrerpolicy="no-referrer"></div>`; }
+    else slotsHtml+='<div class="chip-slot empty"></div>';
+  }
+  const perPerson=Math.ceil(price/Math.max(claims.length,1)), targetPer=Math.ceil(price/totalSlots);
+  let backHtml = '<div class="chip-contributors">';
+  if (claims.length>0) {
+    claims.forEach(c => {
+      const tg = c.telegram ? `<div class="chip-contributor-tg"><a href="#" onclick="demoTelegram(event)" title="Ник вымышленный">${escapeHtml(c.telegram)}</a></div>` : '<div class="chip-contributor-tg" style="color:var(--text-disabled)">телеграм не указан</div>';
+      backHtml += `<div class="chip-contributor-card"><img src="${c.avatar}" alt="${escapeHtml(c.userName)}" referrerpolicy="no-referrer"><div class="chip-contributor-info"><div class="chip-contributor-name">${escapeHtml(c.userName)}</div>${tg}</div></div>`;
+    });
+    backHtml += '<div class="chip-cta">💬 Спишись с ребятами и договоритесь о переводе!</div>';
+  } else backHtml += '<div style="font-size:13px;color:var(--text-secondary);padding:12px 0;text-align:center">Пока никого нет — будь первым!</div>';
+  backHtml += '</div>';
+  return `<div class="chip-slots">
+    <div class="chip-slots-header">
+      <div class="chip-slots-label">Вскладчину · ${claims.length} из ${totalSlots}</div>
+      <button class="chip-flip-btn">👥 Кто скидывается?</button>
+    </div>
+    <div class="chip-flip-container">
+      <div class="chip-face chip-face-front">
+        <div class="chip-bar">${slotsHtml}</div>
+        <div class="chip-progress-text"><span>Сейчас <strong>${formatPrice(perPerson)}</strong> / чел</span><span>Цель <strong>${formatPrice(targetPer)}</strong> / чел</span></div>
+      </div>
+      <div class="chip-face chip-face-back">${backHtml}</div>
+    </div>
+  </div>`;
+}
+
+/* ACTIONS */
+function renderActions(id, gift, tog, solo, myTog, isMeSolo) {
+  if (isMeSolo) return `<div class="my-status solo">✓ Ты берёшь этот подарок</div><div class="gift-actions"><button class="btn btn-cancel" onclick="unclaimGift('${id}')">Отменить</button></div>`;
+  if (myTog) return `<div class="my-status">✓ Ты в деле — скидываетесь!</div><div class="gift-actions"><button class="btn btn-cancel" onclick="unclaimGift('${id}')">Выйти</button></div>`;
+  if (solo) return `<div class="gift-actions"><button class="btn btn-secondary" disabled>Уже забронирован</button></div>`;
+  if (tog.length>0) return `<div class="gift-actions"><button class="btn btn-together" onclick="claimGift('${id}','together')">Тоже скинусь! 🤝</button></div><button class="btn-solo-link" onclick="claimGift('${id}','solo')">или возьму сам</button>`;
+  return `<div class="gift-actions"><button class="btn btn-primary" onclick="claimGift('${id}','solo')">Беру! 🎁</button><button class="btn btn-together" onclick="claimGift('${id}','together')">Скинусь! 🤝</button></div>`;
+}
+
+/* CLAIM / UNCLAIM */
+function claimGift(giftId, type) {
+  if (!currentUser||isAdmin) return;
+  if (type==='solo') { const t=getTogetherClaims(gifts[giftId]); if(t.length>0&&!confirm(`${t.length} ${pluralize(t.length,'человек','человека','человек')} уже ${pluralize(t.length,'скидывается','скидываются','скидываются')}. Точно хочешь забрать целиком?`)) return; }
+  db.ref(`gifts/${giftId}/claims`).push().set({ userId:currentUser.id, userName:currentUser.name, avatar:currentUser.avatar, telegram:currentUser.telegram||'', type, timestamp:Date.now() });
+  showConfetti();
+  showToast(type==='solo'?'Отлично! Подарок за тобой 🎉':'Ты в деле! 🤝');
+}
+function unclaimGift(giftId) {
+  if (!currentUser) return;
+  const claims = gifts[giftId]?.claims; if (!claims) return;
+  Object.entries(claims).forEach(([k,c]) => { if(c.userId===currentUser.id) db.ref(`gifts/${giftId}/claims/${k}`).remove(); });
+  showToast('Бронь отменена');
+}
+
+/* FILTERS */
+function setupFilters() {
+  document.querySelectorAll('.filter-pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      document.querySelector('.filter-pill.active').classList.remove('active');
+      pill.classList.add('active');
+      activeFilter=pill.dataset.filter;
+      renderGifts();
+      updateDreamFundVisibility();
+    });
+  });
+}
+function matchesFilter(gift, id) {
+  if (activeFilter==='all') return true;
+  const cat=getPriceCategory(gift.price), tog=getTogetherClaims(gift), solo=getSoloClaim(gift);
+  switch(activeFilter) { case 'chipping': return tog.length>0&&!solo; case 'glad': return cat.key==='glad'; case 'charged': return cat.key==='charged'; case 'premium': return cat.key==='premium'; case 'available': return !solo; default: return true; }
+}
+function updateChippingPill() {
+  const pill = document.querySelector('[data-filter="chipping"]');
+  const count = Object.values(gifts).filter(g=>getTogetherClaims(g).length>0&&!getSoloClaim(g)).length;
+  if (count>0) { pill.textContent=`🤝 Скидываются (${count})`; pill.classList.add('pulse'); }
+  else { pill.textContent='🤝 Скидываются'; pill.classList.remove('pulse'); }
+}
+
+/* ADMIN PANEL */
+let addGiftType = 'gift';
+function showAddGiftModal(type) {
+  addGiftType = type || 'gift';
+  const isDream = addGiftType === 'dream';
+  document.getElementById('switchToGift').classList.toggle('active', !isDream);
+  document.getElementById('switchToDream').classList.toggle('active', isDream);
+  document.getElementById('giftOnlyFields').style.display = isDream ? 'none' : 'block';
+  document.getElementById('addModalSub').textContent = isDream
+    ? 'Фото появится в галерее фонда мечты'
+    : 'Заполни карточку — друзья сами решат, как дарить';
+  document.getElementById('giftNameInput').placeholder = isDream ? 'Велосипед Trek / Часы Seiko' : 'Наушники Sony WH-1000XM5';
+  document.getElementById('addGiftModal').classList.add('visible');
+  setTimeout(() => document.getElementById('giftNameInput').focus(), 80);
+}
+document.getElementById('cancelAddGift').addEventListener('click', () => { document.getElementById('addGiftModal').classList.remove('visible'); clearAddGiftForm(); });
+document.getElementById('saveGift').addEventListener('click', () => {
+  const name=document.getElementById('giftNameInput').value.trim(), photo=document.getElementById('giftPhotoInput').value.trim();
+  if (!name) { showToast('Укажи название!'); return; }
+  if (addGiftType === 'dream') {
+    db.ref('dreamFund/items').push().set({name, photo, createdAt:Date.now()});
+    document.getElementById('addGiftModal').classList.remove('visible'); clearAddGiftForm(); showToast('Добавлено в фонд мечты! 💫');
+  } else {
+    const price=parseInt(document.getElementById('giftPriceInput').value)||0, link=document.getElementById('giftLinkInput').value.trim();
+    if (!price) { showToast('Укажи цену!'); return; }
+    db.ref('gifts').push().set({name,price,link,photo,createdAt:Date.now()});
+    document.getElementById('addGiftModal').classList.remove('visible'); clearAddGiftForm(); showToast('Подарок добавлен! 🎁');
+  }
+});
+function clearAddGiftForm() {
+  ['giftNameInput','giftPriceInput','giftLinkInput','giftPhotoInput'].forEach(id=>document.getElementById(id).value='');
+  addGiftType='gift';
+  document.getElementById('switchToGift').classList.add('active');
+  document.getElementById('switchToDream').classList.remove('active');
+  document.getElementById('giftOnlyFields').style.display='block';
+  document.getElementById('addModalSub').textContent='Заполни карточку — друзья сами решат, как дарить';
+  document.getElementById('giftNameInput').placeholder='Наушники Sony WH-1000XM5';
+}
+function deleteGift(id) { if(confirm('Удалить этот подарок?')) { db.ref('gifts/'+id).remove(); showToast('Подарок удалён'); } }
+function updateAdminStats() {
+  if (!isAdmin) return;
+  const entries=Object.entries(gifts), total=entries.length;
+  const claimed=entries.filter(([,g])=>getSoloClaim(g)||getTogetherClaims(g).length>0).length;
+  document.getElementById('claimedCount').textContent=claimed;
+  document.getElementById('totalCount').textContent=total;
+  document.getElementById('progressBar').style.width=total>0?(claimed/total*100)+'%':'0%';
+  const ue=Object.entries(users).filter(([id])=>id!=='admin');
+  document.getElementById('guestCount').textContent=ue.length;
+  document.getElementById('adminGuests').innerHTML=ue.map(([,u])=>{
+    const tg=u.telegram?`<span class="admin-guest-tg">${escapeHtml(u.telegram)}</span>`:'';
+    return `<span class="admin-guest-chip"><img src="${u.avatar}" alt="">${escapeHtml(u.name)}${tg}</span>`;
+  }).join('');
+}
+
+/* VISITORS — wiggle on hover, tap on mobile, hold 0.5s on desktop */
+function renderVisitors() {
+  if (isAdmin) return;
+  const entries = Object.entries(users).filter(([id])=>id!=='admin');
+  if (entries.length===0) { document.getElementById('visitorBar').style.display='none'; return; }
+  document.getElementById('visitorBar').style.display='flex';
+  document.getElementById('visitorAvatars').innerHTML = entries.slice(0,8).map(([uid,u]) =>
+    `<div class="chip-wrap" data-uid="${uid}"><img src="${u.avatar}" alt="${escapeHtml(u.name)}" referrerpolicy="no-referrer"><span class="chip-name">${escapeHtml(u.name)}</span></div>`
+  ).join('');
+  document.getElementById('visitorCount').textContent = `${entries.length} ${pluralize(entries.length,'гость','гостя','гостей')} уже заглянули`;
+
+  document.querySelectorAll('#visitorAvatars .chip-wrap').forEach(wrap => {
+    let holdTimer = null;
+    let touchStartTime = 0;
+    let touchMoved = false;
+
+    // — Desktop: hover → wiggle, mousedown hold 500ms → expand —
+    wrap.addEventListener('mouseenter', () => {
+      wrap.classList.remove('wiggling'); void wrap.offsetWidth; wrap.classList.add('wiggling');
+    });
+    wrap.addEventListener('animationend', () => wrap.classList.remove('wiggling'));
+    wrap.addEventListener('mousedown', () => { holdTimer = setTimeout(()=>wrap.classList.add('expanded'), 500); });
+    wrap.addEventListener('mouseup', () => clearTimeout(holdTimer));
+    wrap.addEventListener('mouseleave', () => { clearTimeout(holdTimer); setTimeout(()=>wrap.classList.remove('expanded'), 350); });
+
+    // — Mobile: quick tap toggles expand; long press also expands —
+    wrap.addEventListener('touchstart', (e) => {
+      touchStartTime = Date.now();
+      touchMoved = false;
+      holdTimer = setTimeout(()=>wrap.classList.add('expanded'), 500);
+    }, { passive: true });
+
+    wrap.addEventListener('touchmove', () => { touchMoved = true; clearTimeout(holdTimer); }, { passive: true });
+
+    wrap.addEventListener('touchend', (e) => {
+      clearTimeout(holdTimer);
+      if (touchMoved) return;
+      const elapsed = Date.now() - touchStartTime;
+      if (elapsed < 400) {
+        // Quick tap: toggle
+        e.preventDefault(); // prevent ghost click
+        if (wrap.classList.contains('expanded')) {
+          wrap.classList.remove('expanded');
+        } else {
+          // collapse others first
+          document.querySelectorAll('#visitorAvatars .chip-wrap.expanded').forEach(w => w.classList.remove('expanded'));
+          wrap.classList.add('expanded');
+          setTimeout(()=>wrap.classList.remove('expanded'), 2800);
+        }
+      }
+    });
+  });
+}
+
+/* PROFILE POPOUT */
+function initProfilePopout() {
+  if (isAdmin) return;
+  const headerUser = document.getElementById('headerUser');
+  const popout = document.getElementById('profilePopout');
+
+  headerUser.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (isAdmin) return; // demo: guest switched to admin without a reload
+    if (popout.contains(e.target)) return; // clicks inside the popout must not toggle it (fixes OK re-opening it)
+    const show = !popout.classList.contains('visible');
+    popout.classList.toggle('visible', show);
+    if (show) {
+      document.getElementById('popoutAvatar').src = currentUser.avatar;
+      document.getElementById('popoutName').textContent = currentUser.name;
+      document.getElementById('popoutTgInput').value = currentUser.telegram || '';
+      setTimeout(()=>document.getElementById('popoutTgInput').focus(), 150);
+    }
+  });
+
+  // Close on outside click
+  document.addEventListener('click', (e) => { if (!headerUser.contains(e.target)) popout.classList.remove('visible'); });
+
+  const popoutInput = document.getElementById('popoutTgInput');
+  popoutInput.addEventListener('input', () => {
+    // Strip non-valid chars in real time
+    const cur = popoutInput.selectionStart;
+    const clean = popoutInput.value.replace(/[^@a-zA-Z0-9_]/g, '');
+    if (clean !== popoutInput.value) { popoutInput.value = clean; popoutInput.setSelectionRange(cur, cur); }
+  });
+  popoutInput.addEventListener('blur', () => {
+    const v = popoutInput.value.trim();
+    if (v && !v.startsWith('@')) popoutInput.value = '@' + v;
+  });
+  popoutInput.addEventListener('keydown', (e) => {
+    if (e.key==='Enter') document.getElementById('popoutSaveBtn').click();
+    if (e.key==='Escape') popout.classList.remove('visible');
+  });
+
+  document.getElementById('popoutSaveBtn').addEventListener('click', () => {
+    let tg = popoutInput.value.trim();
+    if (tg && !tg.startsWith('@')) tg = '@' + tg;
+    if (tg && !isValidTelegram(tg)) { showToast('Неверный формат Telegram'); return; }
+    currentUser.telegram = tg;
+    LS.set('user', JSON.stringify(currentUser));
+    if (currentUser.id) db.ref('users/'+currentUser.id).update({ telegram:tg });
+    popout.classList.remove('visible');
+    showToast(tg ? `Telegram обновлён: ${tg} ✓` : 'Telegram удалён');
+  });
+}
+
+/* COPY LINK */
+document.getElementById('copyLinkBtn').addEventListener('click', () => {
+  const url = window.location.origin + window.location.pathname;
+  const fallback = () => { const ta=document.createElement('textarea'); ta.value=url; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); } catch(e) {} ta.remove(); showToast('Ссылка скопирована! 🔗'); };
+  if (navigator.clipboard) navigator.clipboard.writeText(url).then(()=>showToast('Ссылка скопирована! 🔗')).catch(fallback);
+  else fallback();
+});
+
+/* CONFETTI & TOAST */
+function showConfetti() {
+  const colors=['#ff385c','#ff6b81','#ffd700','#4a90d9','#914ce6','#00a699','#ff9f43'];
+  for (let i=0; i<60; i++) {
+    const p=document.createElement('div'); p.className='confetti-piece';
+    p.style.cssText=`left:${Math.random()*100}vw;top:-10px;width:${Math.random()*8+4}px;height:${Math.random()*12+4}px;background:${colors[Math.floor(Math.random()*colors.length)]};animation-delay:${Math.random()*0.5}s;animation-duration:${Math.random()*1.5+2}s`;
+    document.body.appendChild(p); setTimeout(()=>p.remove(),4000);
+  }
+}
+function showToast(msg) {
+  const t=document.createElement('div'); t.className='toast'; t.textContent=msg;
+  document.getElementById('toastContainer').appendChild(t); setTimeout(()=>t.remove(),2600);
+}
+
+/* ONBOARDING */
+let onboardingStep = 1;
+function showOnboarding() {
+  if (LS.get('onboarded')) return;
+  onboardingStep = 1;
+  updateOnboardingScreen();
+  document.getElementById('onboardingModal').classList.add('visible');
+}
+function nextOnboarding() {
+  onboardingStep++;
+  if (onboardingStep > 3) { skipOnboarding(); return; }
+  updateOnboardingScreen();
+}
+function skipOnboarding() {
+  LS.set('onboarded', 'yes');
+  document.getElementById('onboardingModal').classList.remove('visible');
+}
+function updateOnboardingScreen() {
+  document.querySelectorAll('.onboarding-screen').forEach((s, i) => s.classList.toggle('active', i + 1 === onboardingStep));
+  document.querySelectorAll('#onboardingDots .onboarding-dot').forEach((d, i) => d.classList.toggle('active', i + 1 === onboardingStep));
+}
+
+/* ADD GIFT TYPE SWITCHER */
+document.getElementById('switchToGift').addEventListener('click', () => {
+  addGiftType='gift';
+  document.getElementById('switchToGift').classList.add('active');
+  document.getElementById('switchToDream').classList.remove('active');
+  document.getElementById('giftOnlyFields').style.display='block';
+  document.getElementById('addModalSub').textContent='Заполни карточку — друзья сами решат, как дарить';
+  document.getElementById('giftNameInput').placeholder='Наушники Sony WH-1000XM5';
+});
+document.getElementById('switchToDream').addEventListener('click', () => {
+  addGiftType='dream';
+  document.getElementById('switchToDream').classList.add('active');
+  document.getElementById('switchToGift').classList.remove('active');
+  document.getElementById('giftOnlyFields').style.display='none';
+  document.getElementById('addModalSub').textContent='Фото появится в галерее фонда мечты';
+  document.getElementById('giftNameInput').placeholder='Велосипед Trek / Часы Seiko';
+});
+
+/* DREAM FUND */
+let dreamItems={}, dreamContributions={}, galleryIndex=0;
+
+function listenForDreamFund() {
+  db.ref('dreamFund/items').on('value', s => { dreamItems=s.val()||{}; renderDreamFund(); });
+  db.ref('dreamFund/contributions').on('value', s => { dreamContributions=s.val()||{}; renderDreamFund(); });
+}
+
+function renderDreamFund() {
+  const wrap = document.getElementById('dreamFundWrap');
+  if (!wrap) return;
+  const itemEntries = Object.entries(dreamItems).sort(([,a],[,b])=>(a.createdAt||0)-(b.createdAt||0));
+  const contribEntries = Object.entries(dreamContributions);
+
+  if (itemEntries.length===0 && !isAdmin) { wrap.style.display='none'; return; }
+  wrap.style.display='block';
+  galleryIndex = Math.max(0, Math.min(galleryIndex, Math.max(0, itemEntries.length-1)));
+
+  // Gallery
+  let galleryHtml='';
+  if (itemEntries.length===0) {
+    galleryHtml=`<div class="dream-gallery"><div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--text-secondary);background:linear-gradient(135deg,var(--bg-tertiary),#e4e4e4)"><span style="font-size:48px">💫</span><span style="font-size:13px">Добавь фото — они появятся здесь</span></div></div>`;
+  } else {
+    const navHtml = itemEntries.length>1 ? `
+      <button class="gallery-nav prev" ${galleryIndex===0?'disabled':''} onclick="moveGallery(-1)">‹</button>
+      <button class="gallery-nav next" ${galleryIndex===itemEntries.length-1?'disabled':''} onclick="moveGallery(1)">›</button>
+      <div class="gallery-dots">${itemEntries.map((_,i)=>`<button class="gallery-dot ${i===galleryIndex?'active':''}" onclick="moveGalleryTo(${i})"></button>`).join('')}</div>` : '';
+    galleryHtml=`<div class="dream-gallery${itemEntries.length>1?' has-dots':''}" id="dreamGallery">
+      <div class="gallery-track" id="galleryTrack" style="transform:translateX(-${galleryIndex*100}%)">
+        ${itemEntries.map(([id,item])=>`<div class="gallery-slide">
+          ${item.photo?`<img src="${escapeHtml(item.photo)}" alt="${escapeHtml(item.name)}" referrerpolicy="no-referrer" onerror="this.style.display='none'">`:
+          `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--bg-tertiary),#e0e0e0);font-size:64px">💫</div>`}
+          <div class="gallery-slide-caption">${escapeHtml(item.name)}</div>
+          ${isAdmin?`<button class="gift-delete-btn" onclick="deleteDreamItem('${id}')" title="Удалить">✕</button>`:''}
+        </div>`).join('')}
+      </div>
+      ${navHtml}
+    </div>`;
+  }
+
+  // Stats
+  const totalAmount = contribEntries.reduce((s,[,c])=>s+(c.amount||0), 0);
+  const topContribs = [...contribEntries].sort(([,a],[,b])=>(b.timestamp||0)-(a.timestamp||0)).slice(0,5);
+  const myContribs = currentUser ? contribEntries.filter(([,c])=>c.userId===currentUser.id) : [];
+  const myTotal = myContribs.reduce((s,[,c])=>s+(c.amount||0), 0);
+
+  let statsHtml='';
+  if (!isAdmin && contribEntries.length>0) {
+    statsHtml=`<div class="dream-fund-stats">
+      <div class="dream-stats-avatars">${topContribs.map(([,c])=>`<img class="dream-stats-avatar" src="${c.avatar}" alt="${escapeHtml(c.userName)}" title="${escapeHtml(c.userName)}" referrerpolicy="no-referrer">`).join('')}</div>
+      <div><div class="dream-stats-amount">${formatPrice(totalAmount)}</div><div class="dream-stats-label">уже отложено друзьями</div></div>
+    </div>`;
+  }
+
+  let actionHtml='';
+  if (isAdmin) {
+    actionHtml=`<button class="btn btn-secondary" onclick="showAddGiftModal('dream')">+ Добавить в галерею</button>`;
+  } else if (myTotal>0) {
+    actionHtml=`<div class="dream-my-status">✓ Ты уже скинул ${formatPrice(myTotal)} 🙏</div><button class="btn btn-secondary" onclick="showDreamContributeModal()">Добавить ещё</button>`;
+  } else {
+    actionHtml=`<button class="btn btn-primary" onclick="showDreamContributeModal()">Скинуть деньги 💸</button>`;
+  }
+
+  wrap.innerHTML=`<div class="dream-fund-card">
+    ${galleryHtml}
+    <div class="dream-fund-body">
+      <div class="dream-fund-heading">Хотелки 💸</div>
+      <div class="dream-fund-sub">Если не нашёл подходящего подарка — деньгами тоже зайдёт 😊</div>
+      ${statsHtml}${actionHtml}
+    </div>
+  </div>`;
+  updateDreamFundVisibility();
+
+  // Touch swipe
+  if (itemEntries.length>1) {
+    const gal=document.getElementById('dreamGallery');
+    if (gal && !gal._swipeSetup) {
+      gal._swipeSetup=true;
+      let sx=0;
+      gal.addEventListener('touchstart', e=>{sx=e.touches[0].clientX;},{passive:true});
+      gal.addEventListener('touchend', e=>{const dx=e.changedTouches[0].clientX-sx; if(Math.abs(dx)>45) moveGallery(dx<0?1:-1);},{passive:true});
+    }
+  }
+}
+
+function updateGalleryDisplay() {
+  const track=document.getElementById('galleryTrack');
+  if (!track) { renderDreamFund(); return; }
+  track.style.transform=`translateX(-${galleryIndex*100}%)`;
+  const n=Object.keys(dreamItems).length;
+  document.querySelectorAll('#dreamFundWrap .gallery-dot').forEach((d,i)=>d.classList.toggle('active',i===galleryIndex));
+  const prev=document.querySelector('#dreamFundWrap .gallery-nav.prev');
+  const next=document.querySelector('#dreamFundWrap .gallery-nav.next');
+  if (prev) prev.disabled=galleryIndex===0;
+  if (next) next.disabled=galleryIndex===n-1;
+}
+
+function updateDreamFundVisibility() {
+  const wrap=document.getElementById('dreamFundWrap');
+  if (!wrap || wrap.style.display==='none') return;
+  wrap.classList.toggle('df-collapsed', activeFilter!=='all');
+}
+
+function moveGallery(dir) {
+  const n=Object.keys(dreamItems).length;
+  galleryIndex=Math.max(0,Math.min(galleryIndex+dir,n-1));
+  updateGalleryDisplay();
+}
+function moveGalleryTo(idx) { galleryIndex=idx; updateGalleryDisplay(); }
+
+function deleteDreamItem(id) {
+  if (confirm('Удалить этот элемент из фонда?')) { db.ref('dreamFund/items/'+id).remove(); showToast('Удалено'); }
+}
+
+/* DREAM FUND CONTRIBUTION MODAL */
+function showDreamContributeModal() {
+  if (!currentUser||isAdmin) return;
+  document.getElementById('dreamContributeForm').style.display='block';
+  document.getElementById('dreamSuccessState').style.display='none';
+  document.getElementById('dreamAmountInput').value='';
+  document.getElementById('dreamSubmitBtn').disabled=true;
+  document.getElementById('dreamContributeModal').classList.add('visible');
+  setTimeout(()=>document.getElementById('dreamAmountInput').focus(),120);
+}
+document.getElementById('dreamCancelBtn').addEventListener('click',()=>document.getElementById('dreamContributeModal').classList.remove('visible'));
+document.getElementById('dreamCloseSuccessBtn').addEventListener('click',()=>{
+  document.getElementById('dreamContributeModal').classList.remove('visible');
+  showConfetti();
+});
+document.getElementById('dreamAmountInput').addEventListener('input',()=>{
+  const v=parseInt(document.getElementById('dreamAmountInput').value);
+  document.getElementById('dreamSubmitBtn').disabled=!(v>0);
+});
+document.getElementById('dreamAmountInput').addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&!document.getElementById('dreamSubmitBtn').disabled) document.getElementById('dreamSubmitBtn').click();
+});
+document.getElementById('dreamSubmitBtn').addEventListener('click',()=>{
+  const amount=parseInt(document.getElementById('dreamAmountInput').value);
+  if (!amount||amount<=0) return;
+  db.ref('dreamFund/contributions').push().set({
+    userId:currentUser.id, userName:currentUser.name,
+    avatar:currentUser.avatar, telegram:currentUser.telegram||'',
+    amount, timestamp:Date.now()
+  });
+  document.getElementById('dreamContributeForm').style.display='none';
+  document.getElementById('dreamSuccessState').style.display='block';
+});
+
+/* MODAL BACKDROP */
+document.querySelectorAll('.modal-overlay').forEach(o=>{
+  o.addEventListener('click',(e)=>{ if(e.target===o&&o.id!=='regModal') o.classList.remove('visible'); });
+});
+
+initRegistration();
+</script>
+</body>
+</html>
