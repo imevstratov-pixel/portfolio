@@ -1,0 +1,472 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Даниил Евстратов — резюме</title>
+<meta name="author" content="Даниил Евстратов">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!--
+  Source of assets/daniil-evstratov-resume-ru.pdf (3 pages, A4).
+  Build:  NODE_PATH=/opt/node22/lib/node_modules node resume/build-ru.cjs
+  The layout mirrors the original macOS/Safari export 1:1, so every page is an
+  explicit .page block and paragraph lines are hard-broken with <br> exactly
+  where the original wrapped. When editing text, keep each page's content
+  within its block (and re-check the breaks) instead of relying on reflow.
+  Typeface: Inter (SIL OFL 1.1, vendored in resume/fonts/) — the closest
+  Google Font to SF Pro, which the original was set in. The tracked caps
+  (kicker, section labels, footer) use "Inter Tracked" copies made by
+  resume/fonts/make-tracked-inter.py, so ATS text extraction reads whole words.
+  The 2025–2026 employer is anonymised on purpose (founder's request): do not restore its name.
+-->
+<style>
+  @font-face { font-family: 'Inter'; font-style: normal; font-weight: 400; src: url(fonts/inter-latin-400-normal.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+  @font-face { font-family: 'Inter'; font-style: normal; font-weight: 400; src: url(fonts/inter-latin-ext-400-normal.woff2) format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+  @font-face { font-family: 'Inter'; font-style: normal; font-weight: 400; src: url(fonts/inter-cyrillic-400-normal.woff2) format('woff2'); unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
+  @font-face { font-family: 'Inter'; font-style: normal; font-weight: 600; src: url(fonts/inter-latin-600-normal.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+  @font-face { font-family: 'Inter'; font-style: normal; font-weight: 600; src: url(fonts/inter-latin-ext-600-normal.woff2) format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+  @font-face { font-family: 'Inter'; font-style: normal; font-weight: 600; src: url(fonts/inter-cyrillic-600-normal.woff2) format('woff2'); unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
+  @font-face { font-family: 'Inter'; font-style: normal; font-weight: 700; src: url(fonts/inter-latin-700-normal.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+  @font-face { font-family: 'Inter'; font-style: normal; font-weight: 700; src: url(fonts/inter-cyrillic-700-normal.woff2) format('woff2'); unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
+  /* Same Inter with the label tracking baked into the advance widths (see fonts/make-tracked-inter.py):
+     looks like letter-spacing, but keeps whole words in the PDF text layer. */
+  @font-face { font-family: 'Inter Tracked20'; font-weight: 600; src: url(fonts/inter-tracked20-latin-600.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+  @font-face { font-family: 'Inter Tracked20'; font-weight: 600; src: url(fonts/inter-tracked20-cyrillic-600.woff2) format('woff2'); unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
+  @font-face { font-family: 'Inter Tracked15'; font-weight: 400; src: url(fonts/inter-tracked15-latin-400.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+  @font-face { font-family: 'Inter Tracked15'; font-weight: 400; src: url(fonts/inter-tracked15-cyrillic-400.woff2) format('woff2'); unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
+
+  :root {
+    --ink: #201e1d;          /* body text, headings, section labels */
+    --meta: #9b9797;         /* dates, descriptors, stacks, footer */
+    --meta-dark: #7d7979;    /* education details */
+    --accent: #ec3013;       /* kicker, skill chips */
+    --link: #ae1800;         /* contact links */
+    --rule: #a5a5a4;         /* 2px rules under section labels */
+    --rule-thin: #d7d3d3;    /* 1px rules between jobs */
+    --page-w: 210mm;
+    --page-h: 297mm;
+    --col: 660px;            /* content width; side margins = (A4 - 660px) / 2 ≈ 50pt */
+    --body: 12.88px;
+    --body-lh: 20px;
+  }
+
+  @page { size: A4; margin: 0; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: #fff; }
+  body {
+    font-family: 'Inter', -apple-system, 'Helvetica Neue', Arial, sans-serif;
+    color: var(--ink);
+    font-size: var(--body);
+    line-height: var(--body-lh);
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    text-rendering: geometricPrecision;
+  }
+  /* tracked caps: tracking comes from the "Inter Tracked" faces (≈ letter-spacing .2em / .154em) */
+  .kicker, .label { font-family: 'Inter Tracked20', 'Inter', sans-serif; font-kerning: none; }
+  .footer { font-family: 'Inter Tracked15', 'Inter', sans-serif; font-kerning: none; }
+  a { color: inherit; text-decoration: none; }
+  p, h1, h2, h3, ul { margin: 0; padding: 0; font-weight: inherit; font-size: inherit; }
+  ul { list-style: none; }
+
+  .page {
+    position: relative;
+    width: var(--page-w);
+    height: var(--page-h);
+    overflow: hidden;
+    break-after: page;
+    page-break-after: always;
+  }
+  .page:last-of-type { break-after: auto; page-break-after: auto; }
+  .content {
+    position: absolute;
+    top: 0;
+    left: calc((var(--page-w) - var(--col)) / 2);
+    width: var(--col);
+  }
+  .nowrap p, .nowrap li, .nowrap .row { white-space: nowrap; }
+
+  /* ---------- running footer (sits at the very page edges, as in the original) ---------- */
+  .footer {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 1105px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 8.36px;
+    line-height: 12px;
+    color: var(--meta);
+    white-space: nowrap;
+  }
+
+  /* ---------- header ---------- */
+  .hero { padding-top: 69px; }   /* not positioned: keeps the header first in the PDF text order */
+  .kicker {
+    font-size: 12px;
+    line-height: 14px;
+    font-weight: 600;
+    color: var(--accent);
+  }
+  h1.name {
+    margin-top: 13px;
+    font-size: 43.5px;
+    line-height: 45px;
+    font-weight: 700;
+    letter-spacing: -2px;
+  }
+  .photo {
+    position: absolute;
+    top: 66.9px;
+    right: -0.3px;
+    width: 111.8px;
+    height: 131.8px;
+    display: block;
+  }
+  .contacts {
+    margin-top: 18px;
+    display: flex;
+    gap: 0 20.4px;
+    font-size: 12.3px;
+    line-height: 16px;
+    color: var(--link);
+    white-space: nowrap;
+  }
+  .contacts .cy { letter-spacing: 0.15px; }
+
+  .rule { height: 2px; background: var(--rule); }
+  .rule-thin { height: 1px; background: var(--rule-thin); }
+  .hero + .rule { margin-top: 25px; }
+
+  .summary {
+    margin-top: 25px;
+    font-size: 13.3px;
+    line-height: 21.5px;
+    white-space: nowrap;
+  }
+
+  /* ---------- section labels ---------- */
+  .label {
+    font-size: 12.76px;
+    line-height: 16px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .label + .rule { margin-top: 7px; }
+  .summary + .label { margin-top: 31px; }
+
+  /* ---------- jobs ---------- */
+  .job { padding-top: 21px; padding-bottom: 15px; }
+  .label + .rule + .job { padding-top: 25px; }
+  .job.page-top { padding-top: 88px; }
+  .job.cont { padding-top: 61px; }
+  .job-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    white-space: nowrap;
+  }
+  .job-title {
+    font-size: 16.7px;
+    line-height: 20px;
+    font-weight: 600;
+    letter-spacing: -0.4px;
+  }
+  .dates, .meta, .stack {
+    font-size: 11.5px;
+    line-height: 16px;
+    letter-spacing: 0.25px;
+    color: var(--meta);
+    white-space: nowrap;
+  }
+  .job-head.stacked { display: block; }
+  .job-head.stacked .dates { display: block; margin-top: 19px; }
+  .meta { margin-top: 6px; }
+  .job-head.stacked + .meta { margin-top: 5px; }
+  .desc { margin-top: 12px; white-space: nowrap; }
+  .bullets { margin-top: 8px; }
+  .bullets li { padding-left: 18.9px; line-height: 20.5px; white-space: nowrap; }
+  .bullets li + li { margin-top: 3.5px; }
+  .bullets li::before {
+    content: "•";
+    display: inline-block;
+    box-sizing: border-box;
+    width: 18.9px;
+    margin-left: -18.9px;
+    padding-left: 1.6px;
+  }
+  .stack { margin-top: 7px; margin-bottom: 4px; }
+
+  /* ---------- skills ---------- */
+  .job.last { padding-bottom: 0; }
+  .job.last + .label { margin-top: 44px; }
+  .chips {
+    margin-top: 14px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .chip {
+    display: inline-block;
+    height: 25px;
+    padding: 1px 10px 0;
+    border: 1px solid var(--accent);
+    font-size: 10.56px;
+    line-height: 23px;
+    letter-spacing: 0.43px;
+    color: var(--accent);
+    white-space: nowrap;
+  }
+  .chip.cy { letter-spacing: 0.58px; } /* Inter's Cyrillic runs ~2% narrower than SF Pro's */
+
+  /* ---------- education / languages / references ---------- */
+  .cols {
+    margin-top: 28px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 28px;
+  }
+  .col .rule { margin-top: 7px; }
+  .col .list { margin-top: 14px; }
+  .col .list + .label { margin-top: 17px; }
+  .edu-main { margin-top: -1px; }
+  .edu-main b, .edu b { font-weight: 600; }
+  .edu-main b { font-size: 13.3px; }
+  .edu b { letter-spacing: -0.08px; }
+  .edu-sub { color: var(--meta-dark); }
+  .edu-main + .edu { margin-top: 11px; }
+  .edu + .edu { margin-top: 4px; }
+  .refs p + p { margin-top: 1px; }
+</style>
+</head>
+<body>
+
+<!-- ======================================================= PAGE 1 -->
+<section class="page">
+  <div class="content nowrap">
+    <header class="hero">
+      <p class="kicker">SENIOR LEARNING EXPERIENCE DESIGNER</p>
+      <h1 class="name">ЕВСТРАТОВ<br>ДАНИИЛ</h1>
+      <p class="contacts row">
+        <a href="mailto:imevstratov@gmail.com">imevstratov@gmail.com</a>
+        <a href="https://t.me/evstratovdanil">t.me/evstratovdanil</a>
+        <a class="cy" href="https://imevstratov-pixel.github.io/portfolio/">Портфолио: кейсы, цифры и видео</a>
+      </p>
+      <img class="photo" src="resume-ru-photo.png" alt="Даниил Евстратов">
+    </header>
+    <div class="rule"></div>
+
+    <p class="summary">Senior-методист и тимлид (middle) в EdTech (B2C и B2B), в прошлом — преподаватель вуза.<br>
+Самостоятельно создал 6 образовательных продуктов и 15 — с командой: короткие, средние и<br>
+длинные программы во всех форматах — видеолекции, лонгриды, аудио и интерактивные курсы.<br>
+Провожу аудит и рефакторинг существующих продуктов и возвращаю их на рынок с ROMI 1000%+.<br>
+Суммарная выручка курсов, над которыми я работал, — более 1 млрд ₽. Опираюсь на<br>
+методологию, потребности аудитории и цели бизнеса, руковожу командами методистов и работаю<br>
+с топовыми экспертами рынка.</p>
+
+    <h2 class="label">ОПЫТ РАБОТЫ · 7 ЛЕТ 8 МЕСЯЦЕВ</h2>
+    <div class="rule"></div>
+
+    <article class="job">
+      <div class="job-head">
+        <h3 class="job-title">Senior LXD · Международный AI-EdTech стартап</h3>
+        <span class="dates">Апрель 2025 — Июль 2026 · 1 год 4 мес</span>
+      </div>
+      <p class="meta">Обучение нейросетям в стиле Duolingo, англоязычный контент для рынков США / ЕС и всего мира · 500K+ MAU</p>
+      <p class="desc">Единственный методист в команде — отвечал за весь обучающий контент продукта. Вместе с CPO<br>
+и двумя продакт-менеджерами построили продукт с нуля и за год выросли до 500K пользователей<br>
+в месяц.</p>
+      <ul class="bullets">
+        <li>Вместе с продакт-менеджером поднял CSI курсов до 80%+.</li>
+        <li>Утроил удержание пользователей на 7-й день.</li>
+        <li>Создал 1 100+ уроков и 85+ курсов.</li>
+        <li>Автоматизировал производство контента и локализацию с английского на 4 языка с помощью ИИ<br>
+— ускорил разработку курсов в 26 раз.</li>
+      </ul>
+    </article>
+    <div class="rule-thin"></div>
+
+    <article class="job">
+      <div class="job-head">
+        <h3 class="job-title">Тимлид методистов · Eduson Academy</h3>
+        <span class="dates">Ноябрь 2024 — Апрель 2025 · 6 мес</span>
+      </div>
+      <p class="meta">Тимлид + проджект-менеджер (middle) · Москва, <a href="https://eduson.academy">eduson.academy</a></p>
+      <p class="desc">Руководил командой методистов и курсами, которые мы производили: бюджет, сроки, ресурсы.<br>
+Ревьюил работу команды на каждом этапе — от языка лонгридов до методической точности<br>
+программ. Вместе с продакт-менеджером формировал видение продукта и в равной мере отвечал<br>
+за результат.</p>
+      <ul class="bullets">
+        <li>Запустил 4 новых продукта за 3 месяца с суммарной чистой выручкой более 30 млн ₽.</li>
+        <li>Вместе с командой довёл чистую выручку кластера до 20+ млн ₽ в месяц.</li>
+        <li>Провёл рефакторинг 3 существующих продуктов.</li>
+        <li>Держал высокое качество: средний CSAT выше 91%, средний CSI выше 94%.</li>
+        <li>Вёл две команды параллельно; запустил стажировку и нанял в команду 4 стажёров.</li>
+      </ul>
+    </article>
+  </div>
+  <footer class="footer"><span>ЕВСТРАТОВ ДАНИИЛ</span><span>SENIOR LEARNING EXPERIENCE DESIGNER</span></footer>
+</section>
+
+<!-- ======================================================= PAGE 2 -->
+<section class="page">
+  <div class="content nowrap">
+    <div class="job cont">
+      <ul class="bullets">
+        <li>Команда перевыполняла план производства на 30–40% в течение полугода.</li>
+        <li>Вырастил 2 джунов до junior+, одного middle до middle+ и одного middle+ до тимлида.</li>
+      </ul>
+    </div>
+    <div class="rule-thin"></div>
+
+    <article class="job">
+      <div class="job-head">
+        <h3 class="job-title">Senior-методист · Eduson Academy</h3>
+        <span class="dates">Март 2023 — Ноябрь 2024 · 1 год 9 мес</span>
+      </div>
+      <p class="meta">Москва, <a href="https://eduson.tv">eduson.tv</a></p>
+      <p class="desc">Создавал обучающий контент — лекции, лонгриды, интерактивные тренажёры и тесты. Проектировал<br>
+методологию курсов, проводил продуктовые исследования, вёл полный цикл разработки курса и<br>
+коммуникацию с экспертами.</p>
+      <ul class="bullets">
+        <li>Разработал 4 курса; техлид курса с ROI 2 982% в первый месяц продаж.</li>
+        <li>Собрал новый курс из существующего контента за 2 недели — более 100 млн ₽ выручки за год.</li>
+        <li>Делал слайды лекций и допматериалы в Figma; исследовал англоязычную<br>
+академическую литературу.</li>
+        <li>Проводил установочные встречи и съёмки с экспертами; онбордил новичков и ревьюил их работу.</li>
+      </ul>
+      <p class="stack">Стек: Figma, Adobe Illustrator, Adobe Photoshop, Articulate Storyline</p>
+    </article>
+    <div class="rule-thin"></div>
+
+    <article class="job">
+      <div class="job-head stacked">
+        <h3 class="job-title">Методист · Школа маркетплейсов Лео Шевченко</h3>
+        <span class="dates">Декабрь 2022 — Апрель 2024 · 1 год 5 мес</span>
+      </div>
+      <p class="meta">Москва, <a href="https://merkatys.ru">merkatys.ru</a></p>
+      <p class="desc">Методист и лид сразу 2 продуктов. Работал с экспертами, создавал лекции, лонгриды и тесты, скорил<br>
+продуктовые гипотезы и улучшал показатели продукта на рынке.</p>
+      <ul class="bullets">
+        <li>Построил синхронный курс с NPS 89% и CSI 94%.</li>
+        <li>Спроектировал образовательную программу продукта и отвечал за план его развития.</li>
+        <li>Проводил кастдев-интервью и аудит учебных и продуктовых метрик.</li>
+        <li>Создавал маркетинговые продукты: трипваеры, контент вебинаров и офлайн-мероприятий.</li>
+        <li>Планировал загрузку команды и роадмап продукта; онбордил новичков.</li>
+      </ul>
+      <p class="stack">Стек: Figma, GetCourse</p>
+    </article>
+    <div class="rule-thin"></div>
+
+    <article class="job">
+      <div class="job-head">
+        <h3 class="job-title">Методист · ThePrism</h3>
+        <span class="dates">Август 2022 — Январь 2023 · 6 мес</span>
+      </div>
+      <p class="meta">B2B корпоративное обучение · Москва, <a href="https://theprism.ru">theprism.ru</a></p>
+      <p class="desc">Создавал онлайн-курсы для корпоративных клиентов: работал с экспертами, писал лонгриды и тесты,<br>
+проектировал методологию курсов.</p>
+      <ul class="bullets">
+        <li>Вёл полный цикл разработки курсов для крупных компаний: Сбер, Ростех, Ростелеком,<br>
+Северсталь, X5.</li>
+        <li>Вёл коммуникацию с подрядчиками: рерайтерами, транскрибаторами,<br>
+разработчиками, экспертами.</li>
+        <li>Адаптировал материалы экспертов под задачи клиента; собирал черновики и финальные курсы в<br>
+Articulate Rise; помогал с дизайном курсов.</li>
+      </ul>
+      <p class="stack">Стек: Figma, Articulate Rise</p>
+    </article>
+    <div class="rule-thin"></div>
+  </div>
+  <footer class="footer"><span>ЕВСТРАТОВ ДАНИИЛ</span><span>SENIOR LEARNING EXPERIENCE DESIGNER</span></footer>
+</section>
+
+<!-- ======================================================= PAGE 3 -->
+<section class="page">
+  <div class="content nowrap">
+    <article class="job page-top">
+      <div class="job-head">
+        <h3 class="job-title">Методист · Академия Бизнес Кар (Toyota)</h3>
+        <span class="dates">Ноябрь 2021 — Август 2022 · 10 мес</span>
+      </div>
+      <p class="meta">Корпоративное обучение · Москва, <a href="https://toyotabc.ru">toyotabc.ru</a></p>
+      <p class="desc">Создавал обучение для сотрудников — синхронное, асинхронное и смешанное. Собирал<br>
+онлайн-курсы в iSpring, проектировал программы обучения и проводил занятия для<br>
+международных клиентов.</p>
+      <ul class="bullets">
+        <li>За полгода вырос с нуля до уровня middle в разработке курсов — в незнакомой отрасли.</li>
+        <li>Создал 12 курсов; сделал большой курс из 10 модулей за 2 недели без потери качества.</li>
+        <li>Изменил подход компании к айдентике и методическому дизайну обучающего контента.</li>
+      </ul>
+      <p class="stack">Стек: PowerPoint, iSpring</p>
+    </article>
+    <div class="rule-thin"></div>
+
+    <article class="job last">
+      <div class="job-head stacked">
+        <h3 class="job-title">Преподаватель психологии · Мининский университет</h3>
+        <span class="dates">Январь 2018 — Ноябрь 2020 · 2 года 11 мес</span>
+      </div>
+      <p class="meta">Нижегородский государственный педагогический университет</p>
+      <p class="desc">Преподавал педагогику и психологию студентам 1–2 курсов: проектировал методику обучения, вёл<br>
+занятия, создавал и проверял задания, принимал экзамены. На третий год стал наставником для<br>
+других преподавателей — онбордил и обучал коллег.</p>
+      <ul class="bullets">
+        <li>Признан лучшим преподавателем школы.</li>
+        <li>90% моих студентов работодатели оценили как хорошо подготовленных.</li>
+        <li>Как наставник преподавателей помог команде получить лучшую оценку с 2016 года.</li>
+      </ul>
+    </article>
+
+    <h2 class="label">КЛЮЧЕВЫЕ НАВЫКИ</h2>
+    <div class="rule"></div>
+    <ul class="chips">
+      <li class="chip">Learning Experience Design</li>
+      <li class="chip cy">Методология обучения</li>
+      <li class="chip cy">Управление командой</li>
+      <li class="chip cy">Продакт-менеджмент</li>
+      <li class="chip cy">Проджект-менеджмент</li>
+      <li class="chip cy">ИИ-инструменты и автоматизация</li>
+      <li class="chip cy">Юнит-экономика</li>
+      <li class="chip">CustDev и JTBD</li>
+      <li class="chip cy">Продуктовая аналитика</li>
+      <li class="chip">Figma</li>
+      <li class="chip">Articulate Storyline / Rise</li>
+      <li class="chip cy">Копирайтинг</li>
+    </ul>
+
+    <div class="cols">
+      <div class="col">
+        <h2 class="label">ОБРАЗОВАНИЕ</h2>
+        <div class="rule"></div>
+        <div class="list">
+          <p class="edu-main"><b>ННГУ им. Н. И. Лобачевского</b><br>
+<span class="edu-sub">Управление персоналом, Институт экономики и<br>
+предпринимательства · 2022</span></p>
+          <p class="edu"><b>Графический дизайн</b> · Perasperadastra, 2024</p>
+          <p class="edu"><b>Методист образовательных программ</b> · Skillbox,<br>
+2022</p>
+          <p class="edu"><b>Основы дизайна в Figma</b> · Яндекс Практикум,<br>
+2022</p>
+        </div>
+      </div>
+      <div class="col">
+        <h2 class="label">ЯЗЫКИ</h2>
+        <div class="rule"></div>
+        <div class="list">
+          <p>Русский — родной</p>
+          <p>Английский — B2, upper-intermediate</p>
+        </div>
+        <h2 class="label">РЕКОМЕНДАЦИИ</h2>
+        <div class="rule"></div>
+        <div class="list refs">
+          <p>Анастасия Свирюкова, Head of Content — Eduson</p>
+          <p>Евгения Мартынович, CPO — Merkatus</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <footer class="footer"><span>ЕВСТРАТОВ ДАНИИЛ</span><span>SENIOR LEARNING EXPERIENCE DESIGNER</span></footer>
+</section>
+
+</body>
+</html>
