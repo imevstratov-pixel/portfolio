@@ -1132,6 +1132,32 @@ class TestRedactionRegressions(unittest.TestCase):
         self.assertEqual(tc.redact("Паспорт_4510_123456.pdf", filename=True), "Паспорт [паспорт].pdf")
         self.assertEqual(tc.redact("Бриф_курс_A2.docx", filename=True), "Бриф_курс_A2.docx")    # nothing to hide
 
+    def test_unlabelled_credentials(self):
+        # misses found on a real export: the password alone on the line after the email,
+        # «пасс» slang, a comma after «пароль», a personal ИНН sent in reply, a home address
+        cases = {
+            "[email]\nqwerty123": "[email]\n[пароль]",
+            "вот доступ к аккаунту:\nuser@example.com\n:7Q?ZxY2Kp~@mNB": "вот доступ к аккаунту:\n[email]\n[пароль]",
+            "Новый пасс от прод админки\nab12\nzKLqMNp4+abc#d%": "Новый пасс от прод админки\n[пароль]\n[пароль]",
+            "Перерегал пароль, вот новый abcdef-ghijk2-lmnoPq": "Перерегал пароль, вот новый [пароль]",
+            "test@example.com\n1234567890x\nкурсив": "[email]\n[пароль]\nкурсив",
+            "Exmpl2024!": "[пароль]",
+            "Держи: 500100732259": "Держи: [реквизиты]",
+            "9-я Тестовая 12к3, кв 45, 12в3456": "[адрес]",
+        }
+        for src, want in cases.items():
+            self.assertEqual(tc.redact(src), want, src)
+
+    def test_lone_tokens_that_are_not_passwords(self):
+        keep = [
+            "Привет!\nGPT-4o-mini\nok", "встреча в 14:30\n25.04.2026\n45000", "school.example.ru",
+            "Supalab.ai", "Спасибо❤️❤️", "Модуль 3\nCOVID-19", "3D-визуализатор", "[email]\n1-текст",
+            "vc.ru/social/2044765", "Group-25_v07_2025-12-13", "MADS_ITMO_Board_25_v07_2025-12-13",
+            "audio_1@02-03-2026_12-07-00.ogg", "заказ 202403151234", "100000000000 ₽",
+        ]
+        for text in keep:
+            self.assertEqual(tc.redact(text), text)
+
     def test_no_over_masking(self):
         keep = [
             "Пароль: пришлю отдельно", "пароль: в письме", "Логин: тот же", "Логин: как обычно, через Google",

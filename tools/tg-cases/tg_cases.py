@@ -689,7 +689,7 @@ _PLACE_RE = re.compile("\ue000(\\d+)\ue001")
 # letters and digits around them, not at \w (which includes "_").
 _NB = r"(?<![^\W_])"            # not right after a letter or digit
 
-_PW_LABEL = r"логин\s*/\s*пароль|login\s*/\s*password|пароль|парол[яюе]|password|логин|login|доступ(?:ы|а)?"
+_PW_LABEL = r"логин\s*/\s*пароль|login\s*/\s*password|пароль|парол[яюе]|пасс|password|логин|login|доступ(?:ы|а)?"
 _PW_VALUE = r"[^\s\[\ue000]\S{0,80}?(?<!:)(?=[,;.)]*(?:\s|$))"
 _PW_SEP = re.compile(
     # label, then up to 40 characters of qualifier on the same line ("от админки GetCourse"),
@@ -701,7 +701,7 @@ _PW_SEP = re.compile(
 _PW_BARE = re.compile(
     # "пароль от тильды Kx9#mPq2", "пароль поменял на Qwerty2024": up to 3 words, then a value with
     # a digit or a symbol (not a short number, a time or a date, not a "label: value" pair masked above)
-    r"(?P<label>\b(?:пароль|password|pass)\b(?:\s+[^\s:=\[]{1,30}){0,3}?\s+)"
+    r"(?P<label>\b(?:пароль|пасс|password|pass)\b[,;]?(?:\s+[^\s:=\[]{1,30}){0,3}?\s+)"
     r"(?P<val>(?=\S*[\d!@#$%^&*_+=?~])(?!(?:\d{1,5}|[\d:./\-]*[:./\-][\d:./\-]*)[,;.)]*(?:\s|$))"
     r"[^\s\[\ue000]\S{3,80}?)"
     r"(?<!:)(?=[,;.)]*(?:\s|$))(?!\s*[:=])", re.I)
@@ -746,6 +746,56 @@ _PHONE_MOBILE = re.compile(_NB + r"9\d{2}([ \-.]?)\d{3}\1\d{2}\1\d{2}(?!\d)")   
 _PHONE_INTL = re.compile(r"(?<![^\W_]|\+)\+\d{1,3}[ \-.]?\(?\d{1,4}\)?(?:[ \-.]?\d{2,4}){2,5}(?!\d)")
 _CURRENCY_AFTER = re.compile(r"\s*(?:₽|руб|р\.|р\b|rub|\$|usd|долл|€|eur|евро|тыс|млн)", re.I)
 _LONG_TOKEN = re.compile(r"(?<![A-Za-z0-9_\-+/=])[A-Za-z0-9_\-+/=]{32,}(?![A-Za-z0-9_\-+/=])")
+# Credentials are often sent without a label: the email on one line, the password alone on the
+# next. A lone token line counts as a password when it has a digit and either the message talks
+# about access or the token itself looks generated (upper, lower and digit, or a digit and a symbol).
+_CRED_CONTEXT = re.compile(r"\[email\]|\[логин\]|доступ|логин|login|парол|пасс\b|\bpass|аккаунт|\bакк\b|"
+                           r"учётк|учетк|\bвход\b|войти|admin|админк", re.I)
+_LONE_TOKEN = re.compile(r"[ \t]*(?P<tok>[^\s\[@#][^\s]{3,63})[ \t]*")
+_NOT_SECRET = re.compile(
+    r"\d{1,2}[:.]\d{2}(?:[:.]\d{2,4})?"                 # times and dates
+    r"|[\d\s.,]+(?:%|₽|\$|€|к|k|р\.?)?"                  # numbers and money
+    r"|(?:[\w\-]+\.)+[A-Za-zА-Яа-я]{2,}/?"              # domains: school.example.ru
+    r"|\S+\.(?:ogg|oga|opus|mp3|m4a|wav|mp4|mov|webm|jpe?g|png|gif|webp|heic|pdf|docx?|xlsx?|pptx?"
+    r"|csv|txt|md|zip|rar|json|html?|fig|key|tgs)"       # file names: audio_1@02-03-2026_12-07-00.ogg
+    r"|(?i:(?:gpt|chatgpt|claude|gemini|llama|qwen|sonnet|opus|haiku|mistral|deepseek|yandexgpt|gigachat"
+    r"|o\d)[\w.\-]*)", re.I)
+_NOT_SECRET_PART = re.compile(
+    r"[А-Яа-яЁё]{4}"                                    # a Russian word inside: 3D-визуализатор, 1-текст
+    r"|^(?:[\w\-]+\.)+[A-Za-z]{2,}/"                     # a link without https://: vc.ru/social/123
+    r"|\d{4}-\d{2}-\d{2}|\d{2}[.\-]\d{2}[.\-]\d{4}"      # a date in a file name: Board_v07_2025-12-13
+    r"|[_\-]v\d+\b|_.*_", re.I)                         # versions and snake_case names
+_ADDRESS_LINE = re.compile(r"(?i)\b(?:кв\.?|квартир\w*|подъезд\w*|домофон\w*)\s*№?\s*\d")
+# a personal ИНН sent on its own after «пришли ИНН» (12 digits, the label is in another message);
+# order numbers and ids keep their label nearby and stay
+_BARE_INN = re.compile(r"(?<![\w.\-/])(?<!№)(?<!# )(?<!#)\d{12}(?![\w.\-/])")
+_ID_BEFORE = re.compile(r"(?i)(?:заказ\w*|order|номер|id|№|#)\W{0,3}$")
+
+
+def _lone_secret(tok: str, context: bool) -> bool:
+    tok = tok.rstrip(".,;)")
+    if _NOT_SECRET.fullmatch(tok) or not re.search(r"\d", tok) or _NOT_SECRET_PART.search(tok):
+        return False
+    lower, upper = re.search(r"[a-zа-яё]", tok), re.search(r"[A-ZА-ЯЁ]", tok)
+    symbol = re.search(r"[!@#$%^&*+=?~\"'<>;:|\\]", tok)
+    if len(tok) >= 8 and (lower and upper or symbol):
+        return True                                    # Qwerty2024!, aB3dE6-gH9jK2: generated or typed
+    return context and bool(lower or upper)            # qwerty123 right after the email
+
+
+def _redact_lines(t: str) -> str:
+    context = bool(_CRED_CONTEXT.search(t))
+    out = []
+    for line in t.split("\n"):
+        m = _LONE_TOKEN.fullmatch(line)
+        if m and _lone_secret(m.group("tok"), context):
+            line = line.replace(m.group("tok"), "[пароль]")
+        elif _ADDRESS_LINE.search(line):
+            line = "[адрес]"
+        out.append(line)
+    return "\n".join(out)
+
+
 _URL_SECRET_PARAM = re.compile(
     r"([?&#](?:access_?)?(?:token|key|api_?key|secret|password|pass|pwd|sig|signature|auth)=)[^&\s]+", re.I)
 _URL_RULES = [
@@ -943,7 +993,10 @@ def redact(text: str, filename: bool = False) -> str:
         return "[телефон]"
 
     t = _PHONE_INTL.sub(phone_intl, t)
+    t = _BARE_INN.sub(lambda m: m.group(0) if _CURRENCY_AFTER.match(t, m.end())
+                      or _ID_BEFORE.search(t[max(0, m.start() - 20):m.start()]) else "[реквизиты]", t)
     t = _LONG_TOKEN.sub(lambda m: "[ключ]" if _looks_random(m.group(0)) else m.group(0), t)
+    t = _redact_lines(t)
     if urls:
         t = _PLACE_RE.sub(lambda m: _redact_url(urls[int(m.group(1))]), t)
     return t
@@ -2476,7 +2529,7 @@ def render_header(chat: Chat, st: dict, nn: int, me_name: str, voice_stats: dict
     L = []
     L.append(f"# {nn:02d}. {st['title']}")
     L.append("")
-    note = (" Телефоны, почты, номера карт и счетов, паспорта, пароли и ключи заменены метками вроде [телефон]."
+    note = (" Телефоны, почты, адреса, номера карт и счетов, реквизиты, паспорта, пароли и ключи заменены метками вроде [телефон]."
             if redacted else " Личные данные НЕ скрыты (--no-redact).")
     L.append(f"Досье для кейса портфолио. Собрано tg_cases.py {dt.date.today().strftime('%d.%m.%Y')} "
              f"из выгрузки Telegram.{note} «Я» в переписке: {me_name}.")
@@ -2735,7 +2788,7 @@ CLAUDE_MD = """# Черновики кейсов из переписки в Tele
 - Язык русский. Инфостиль: короткие конкретные предложения, глаголы вместо отглагольных существительных, без воды, без оценочных слов («уникальный», «инновационный», «потрясающий»).
 - Не используй стрелки «→» и средние точки «·».
 - Пробелы в данных отмечай в «Чего не хватает»: «(не разобрать)», «(голосовое не выгружено)», «(не расшифровано)». Пометка «(возможно, это шум, а не речь)» значит, что голосовое могло быть пустым.
-- Метки [телефон], [email], [карта], [счёт], [паспорт], [пароль], [ключ] скрывают личные данные. Не пытайся их восстановить и не переноси в кейс.
+- Метки [телефон], [email], [адрес], [карта], [счёт], [реквизиты], [паспорт], [пароль], [ключ] скрывают личные данные. Не пытайся их восстановить и не переноси в кейс.
 """
 
 
