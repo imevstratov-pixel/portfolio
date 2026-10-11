@@ -8,3 +8,11 @@ shots.html
 linkedin-shots/
 assets/reels/raw/
 docs/
+# tg-cases output: client chats, never commit (tools/tg-cases/README.md)
+/tg-cases/
+DataExport_*/
+ChatExport_*/
+candidates.html
+candidates.json
+transcripts.json
+dossiers/
