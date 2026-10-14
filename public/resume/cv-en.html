@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Daniil Evstratov — CV</title>
+<meta name="author" content="Daniil Evstratov">
+<meta name="description" content="Daniil Evstratov — Senior Learning Experience Designer. CV.">
+<!--
+  Source of assets/daniil-evstratov-cv.pdf (English CV, 3 pages A4).
+  Build:  NODE_PATH=/opt/node22/lib/node_modules node resume/build-en.cjs
+  Typeface: Archivo 400/600/800 (static instances from Google Fonts, SIL OFL 1.1, vendored
+  in resume/fonts/archivo-*.woff, licence in resume/fonts/OFL-Archivo.txt; static files so
+  Chromium embeds real TrueType fonts instead of Type 3 outlines). The original was set in
+  Archivo: its distinctive ampersand and the kerning of "LXD" match, and glyph positions
+  measured from the original PDF fit Archivo metrics to within 0.01 pt.
+  Layout: three fixed A4 pages so page breaks fall exactly where the original's did.
+  All sizes are CSS px (1px = 0.75pt).
+  The current employer (since September 2026) is shown only as "University": never name it.
+  The total in "EXPERIENCE" counts months inclusively, as hh.ru does, up to the build month
+  (October 2026); update it when rebuilding later.
+-->
+<style>
+  @font-face { font-family: 'Archivo'; font-style: normal; font-weight: 400; src: url(fonts/archivo-400.woff) format('woff'); }
+  @font-face { font-family: 'Archivo'; font-style: normal; font-weight: 600; src: url(fonts/archivo-600.woff) format('woff'); }
+  @font-face { font-family: 'Archivo'; font-style: normal; font-weight: 800; src: url(fonts/archivo-800.woff) format('woff'); }
+
+  :root {
+    --ink:   #201e1d;   /* body text, heavy rules        */
+    --grey:  #7d7979;   /* dates, meta lines, stack      */
+    --faint: #9b9797;   /* running footer                */
+    --hair:  #d7d3d3;   /* thin rules between jobs       */
+    --red:   #ec3013;   /* kicker, link underlines, tags */
+  }
+
+  @page { size: A4; margin: 0; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: #fff; }
+  body {
+    font-family: 'Archivo', sans-serif;
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--ink);
+    text-rendering: geometricPrecision;   /* unhinted, sub-pixel glyph positions (Linux Chromium) */
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  a { color: inherit; text-decoration: none; }
+  /* In the original the ₽ sign is not kerned against its neighbours (it came from the
+     separate latin-ext font subset); keep it unkerned to reproduce the measured spacing. */
+  .rub { font-kerning: none; }
+  p, ul, h1, h2, h3 { margin: 0; padding: 0; }
+  ul { list-style: none; }
+
+  /* ---------- page frame ---------- */
+  .page {
+    position: relative;
+    width: 210mm;
+    height: 297mm;
+    padding: 67px 66.9px 0 67.2px;   /* content box: 659.6px wide */
+    overflow: hidden;
+    break-after: page;
+  }
+  .page:last-child { break-after: auto; }
+
+  .foot {
+    position: absolute;
+    left: 67.2px;
+    right: 67.8px;
+    bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 9px;
+    line-height: 9px;
+    letter-spacing: 0.08em;
+    color: var(--faint);
+  }
+
+  /* ---------- header ---------- */
+  .head { display: flex; justify-content: space-between; align-items: flex-start; }
+  .kicker {
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 18px;
+    letter-spacing: 0.18em;
+    color: var(--red);
+  }
+  h1 {
+    margin-top: 13.1px;
+    font-size: 46px;
+    font-weight: 800;
+    line-height: 47px;
+    letter-spacing: -0.02em;
+  }
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 18px;
+    margin-top: 16.9px;
+    font-size: 12.5px;
+    line-height: 20px;
+  }
+  .links a { border-bottom: 1px solid var(--red); white-space: nowrap; }
+  .photo { display: block; width: 118px; height: 118px; object-fit: cover; }
+
+  .summary {
+    margin-top: 26px;
+    padding: 15.85px 0 16.55px;
+    border-top: 2px solid var(--ink);
+    border-bottom: 2px solid var(--ink);
+    font-size: 13.5px;
+    line-height: 21.6px;
+  }
+
+  /* ---------- sections ---------- */
+  .label {
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 20.15px;
+    letter-spacing: 0.18em;
+  }
+  .experience > .label { margin-top: 30.58px; }
+  /* Unkerned so the A–T gap equals the other letter gaps: with the kerned pair, text
+     extractors (pdftotext, ATS) split the heading into "E D U C AT I O N". Shift: 0.8pt. */
+  .nokern { font-kerning: none; }
+
+  .job { padding: 20.71px 0 17.61px; border-top: 1px solid var(--hair); }
+  .job.first { padding-top: 21.98px; border-top: 0; }
+  .job.cont { padding-top: 0; border-top: 0; }
+  .job.top { padding-top: 0; border-top: 0; }   /* a whole job that starts a page */
+  .job.last { padding-bottom: 0; }
+  .job-head { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; }
+  .job-head h3 { font-size: 16px; font-weight: 800; line-height: 20px; }
+  .dates { font-size: 12px; line-height: 18px; color: var(--grey); white-space: nowrap; }
+  .meta { margin-top: 4.43px; font-size: 12px; line-height: 18px; color: var(--grey); }
+  .job p { margin-top: 8.6px; }
+  .job ul { margin-top: 7.85px; }
+  .job.cont ul { margin-top: 0; }
+  /* The bullet dot stays in normal flow (inline-block), not position:absolute:
+     positioned boxes are painted in a later layer, which pushes every bullet's
+     text to the end of the page in the PDF reading order (bad for ATS / hh.ru). */
+  .job li { padding-left: 18px; }
+  .job li + li { margin-top: 4px; }
+  .job li::before {
+    content: "";
+    display: inline-block;
+    vertical-align: top;
+    width: 4px;
+    height: 4px;
+    margin: 9.25px 10.2px 0 -14.2px;   /* dot at x=3.8px, y=9.25px; text still starts at 18px */
+    border-radius: 50%;
+    background: var(--ink);
+  }
+  .stack { margin-top: 8.15px; margin-bottom: 1.15px; font-size: 12px; line-height: 18px; color: var(--grey); }
+
+  .block { padding-top: 11.58px; border-top: 2px solid var(--ink); }
+  .skills { margin-top: 47.15px; }
+  .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 11.27px; }
+  .tags span {
+    padding: 5px 10px 3px;
+    border: 1px solid var(--red);
+    font-size: 11px;
+    line-height: 15px;
+    letter-spacing: 0.02em;
+    color: var(--red);
+  }
+
+  .cols { display: grid; grid-template-columns: 1fr 1fr; column-gap: 28px; margin-top: 30.04px; align-items: start; }
+  .edu-main { margin-top: 9.17px; font-weight: 800; }
+  .edu-sub { color: var(--grey); }
+  .courses { margin-top: 12px; font-size: 12.5px; line-height: 20px; }
+  .courses li + li { margin-top: 4px; }
+  .courses b { font-weight: 800; }
+  .plain { margin-top: 9.5px; }
+  .refs { margin-top: 18.27px; }
+</style>
+</head>
+<body>
+
+<!-- ======================= PAGE 1 ======================= -->
+<section class="page">
+  <header class="head">
+    <div>
+      <div class="kicker">SENIOR LEARNING EXPERIENCE DESIGNER</div>
+      <h1>DANIIL<br>EVSTRATOV</h1>
+      <div class="links">
+        <a href="mailto:imevstratov@gmail.com">imevstratov@gmail.com</a>
+        <a href="https://t.me/evstratovdanil">t.me/evstratovdanil</a>
+        <a href="https://imevstratov-pixel.github.io/portfolio/en/">Portfolio: cases, numbers &amp; videos</a>
+        <a href="https://imevstratov-pixel.github.io/portfolio/hire/">For employers (in Russian)</a>
+      </div>
+    </div>
+    <img class="photo" src="cv-en-photo.jpg" alt="Daniil Evstratov">
+  </header>
+
+  <p class="summary">Senior learning methodologist and team lead (middle) in EdTech (B2C and B2B), with a background as a university teacher. I have built 6 educational products on my own and 15 with a team — short, mid and long programmes in every format: video lectures, longreads, audio and interactive courses. I audit and refactor existing products and bring them back to market with ROMI of 1000%+. Total revenue of the courses I worked on is over 2 billion&nbsp;<span class="rub">₽</span>, according to Eduson Academy and the AI EdTech startup. I focus on methodology, audience needs and business goals, lead teams of instructional designers and work with top experts on the&nbsp;market.</p>
+
+  <div class="experience">
+    <h2 class="label">EXPERIENCE · 7 YEARS 10 MONTHS</h2>
+
+    <article class="job first">
+      <div class="job-head"><h3>AI Adoption in Learning · University</h3><span class="dates">Sep 2026 — present</span></div>
+      <p>I bring AI into learning for the university's internal and external clients: an AI competency model for staff and an AI agent for the methodologist of an online course.</p>
+    </article>
+
+    <article class="job">
+      <div class="job-head"><h3>Senior LXD · International AI EdTech startup</h3><span class="dates">Apr 2025 — Jul 2026 · 1 yr 4 mo</span></div>
+      <div class="meta">Duolingo-style AI learning app, English content for US / EU and global markets · 500K+ MAU</div>
+      <p>The only methodologist on the team — I owned all learning content in the product. Together with the CPO and two product managers, we built the product from zero and grew it to 500K monthly users in a year.</p>
+      <ul>
+        <li>Raised course CSI to 80%+ together with the product manager.</li>
+        <li>Tripled day-7 user retention.</li>
+        <li>Created 1,100+ lessons and 85+ courses.</li>
+        <li>Automated content production and localisation from English into 4 languages with AI — made course development 26× faster.</li>
+      </ul>
+    </article>
+
+    <article class="job">
+      <div class="job-head"><h3>Team Lead of Instructional Designers · Eduson Academy</h3><span class="dates">Nov 2024 — Apr 2025 · 6 mo</span></div>
+      <div class="meta">Team lead + project manager (middle) · Moscow, <a href="https://eduson.academy">eduson.academy</a></div>
+      <p>Managed a team of instructional designers and the courses we produced: budget, deadlines and resources. Reviewed the team's work at every stage — from the language of longreads to the methodological accuracy of course programmes. Shaped the product vision together with the product manager and shared equal responsibility for results.</p>
+      <ul>
+        <li>Launched 4 new products in 3 months with total net revenue over 30M&nbsp;<span class="rub">₽</span>.</li>
+      </ul>
+    </article>
+  </div>
+
+  <footer class="foot"><span>DANIIL EVSTRATOV</span><span>SENIOR LEARNING EXPERIENCE DESIGNER</span></footer>
+</section>
+
+<!-- ======================= PAGE 2 ======================= -->
+<section class="page">
+  <article class="job cont">
+    <ul>
+      <li>Brought the cluster's net revenue to 20M+&nbsp;<span class="rub">₽</span> per month together with the team.</li>
+      <li>Refactored 3 existing products.</li>
+      <li>Kept quality high: average CSAT above 91%, average CSI above 94%.</li>
+      <li>Led two teams in parallel; ran an internship programme and hired 4 interns into the team.</li>
+      <li>The team over-delivered on its production plan by 30–40% for half a year.</li>
+      <li>Grew 2 juniors to junior+, one middle to middle+, and one middle+ to team lead.</li>
+    </ul>
+  </article>
+
+  <article class="job">
+    <div class="job-head"><h3>Senior Methodologist · Eduson Academy</h3><span class="dates">Mar 2023 — Nov 2024 · 1 yr 9 mo</span></div>
+    <div class="meta">Moscow, <a href="https://eduson.tv">eduson.tv</a></div>
+    <p>Created learning content — lectures, longreads, interactive simulators and tests. Designed course methodology, ran product research, led full-cycle course development and communication with subject-matter experts.</p>
+    <ul>
+      <li>Developed 4 courses; tech lead of a course with 2,982% ROI in its first month.</li>
+      <li>Assembled a new course from existing content in 2 weeks — over 100M&nbsp;<span class="rub">₽</span> revenue in a year.</li>
+      <li>Designed lecture slides and extra materials in Figma; researched English-language academic literature.</li>
+      <li>Ran kick-off meetings and filming sessions with experts; onboarded newcomers and reviewed their work.</li>
+    </ul>
+    <div class="stack">Stack: Figma, Adobe Illustrator, Adobe Photoshop, Articulate Storyline</div>
+  </article>
+
+  <article class="job">
+    <div class="job-head"><h3>Methodologist · Marketplace School with Leo Shevchenko</h3><span class="dates">Dec 2022 — Apr 2024 · 1 yr 5 mo</span></div>
+    <div class="meta">Moscow, <a href="https://merkatys.ru">merkatys.ru</a></div>
+    <p>Methodologist and lead of 2 products at the same time. Worked with experts, created lectures, longreads and tests, scored product hypotheses and improved product performance on the market.</p>
+    <ul>
+      <li>Built a synchronous course with NPS 89% and CSI 94%.</li>
+      <li>Designed the product's learning programme and owned the development plan.</li>
+      <li>Ran customer development interviews and audits of learning and product metrics.</li>
+      <li>Created marketing products: tripwires, webinar and offline-event content.</li>
+      <li>Planned team workload and built the product roadmap; onboarded newcomers.</li>
+    </ul>
+    <div class="stack">Stack: Figma, GetCourse</div>
+  </article>
+
+  <article class="job">
+    <div class="job-head"><h3>Methodologist · ThePrism</h3><span class="dates">Aug 2022 — Jan 2023 · 6 mo</span></div>
+    <div class="meta">B2B corporate learning · Moscow, <a href="https://theprism.ru">theprism.ru</a></div>
+    <p>Created online courses for corporate clients: worked with experts, wrote longreads and tests, designed course&nbsp;methodology.</p>
+    <ul>
+      <li>Led full-cycle course development for major companies: Sber, Rostec, Rostelecom, Severstal, X5.</li>
+      <li>Led communication with contractors: rewriters, transcribers, developers, experts.</li>
+      <li>Adapted expert materials to client needs; assembled drafts and final courses in Articulate Rise; helped with course design.</li>
+    </ul>
+    <div class="stack">Stack: Figma, Articulate Rise</div>
+  </article>
+
+  <footer class="foot"><span>DANIIL EVSTRATOV</span><span>SENIOR LEARNING EXPERIENCE DESIGNER</span></footer>
+</section>
+
+<!-- ======================= PAGE 3 ======================= -->
+<section class="page">
+  <article class="job top">
+    <div class="job-head"><h3>Methodologist · Business Car Academy (Toyota)</h3><span class="dates">Nov 2021 — Aug 2022 · 10 mo</span></div>
+    <div class="meta">Corporate training · Moscow, <a href="https://toyotabc.ru">toyotabc.ru</a></div>
+    <p>Created employee training — synchronous, asynchronous and blended. Built online courses in iSpring, designed training programmes and ran sessions for international clients.</p>
+    <ul>
+      <li>Grew from zero to middle level in course development in half a year, in an unfamiliar industry.</li>
+      <li>Created 12 courses; delivered a large 10-module course in 2 weeks without losing quality.</li>
+      <li>Changed the company's approach to the identity and instructional design of its learning content.</li>
+    </ul>
+    <div class="stack">Stack: PowerPoint, iSpring</div>
+  </article>
+
+  <article class="job last">
+    <div class="job-head"><h3>Psychology Lecturer · Minin University</h3><span class="dates">Jan 2018 — Nov 2020 · 2 yrs 11 mo</span></div>
+    <div class="meta">Nizhny Novgorod State Pedagogical University</div>
+    <p>Taught pedagogy and psychology to first- and second-year students: designed the teaching methodology, gave classes, created and checked assignments, held exams. In my third year I became a coach for other teachers — onboarded and trained colleagues.</p>
+    <ul>
+      <li>Named the best teacher of the school.</li>
+      <li>90% of my students were rated as well-prepared by employers.</li>
+      <li>As teachers' coach, helped the team earn its best evaluation since 2016.</li>
+    </ul>
+  </article>
+
+  <div class="block skills">
+    <h2 class="label">KEY SKILLS</h2>
+    <div class="tags">
+      <span>Learning Experience Design</span>
+      <span>Instructional Methodology</span>
+      <span>Team Leadership</span>
+      <span>Product Management</span>
+      <span>Project Management</span>
+      <span>AI Tools &amp; Automation</span>
+      <span>Unit Economics</span>
+      <span>CustDev &amp; JTBD</span>
+      <span>Product Analytics</span>
+      <span>Figma</span>
+      <span>Articulate Storyline / Rise</span>
+      <span>Copywriting</span>
+    </div>
+  </div>
+
+  <div class="cols">
+    <div class="block">
+      <h2 class="label nokern">EDUCATION</h2>
+      <div class="edu-main">Lobachevsky State University of Nizhny Novgorod</div>
+      <div class="edu-sub">Human Resource Management, Institute of Economics and Entrepreneurship · 2022</div>
+      <ul class="courses">
+        <li><b>Graphic Design</b> · Perasperadastra, 2024</li>
+        <li><b>Instructional Designer of Educational Programmes</b> · Skillbox, 2022</li>
+        <li><b>Design Basics in Figma</b> · Yandex Practicum, 2022</li>
+      </ul>
+    </div>
+    <div>
+      <div class="block">
+        <h2 class="label">LANGUAGES</h2>
+        <div class="plain">Russian — native<br>English — B2, upper-intermediate</div>
+      </div>
+      <div class="block refs">
+        <h2 class="label">REFERENCES</h2>
+        <div class="plain">Anastasia Sviryukova, Head of Content — Eduson<br>Evgenia Martynovich, CPO — Merkatus</div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="foot"><span>DANIIL EVSTRATOV</span><span>SENIOR LEARNING EXPERIENCE DESIGNER</span></footer>
+</section>
+
+</body>
+</html>

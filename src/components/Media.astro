@@ -1,0 +1,105 @@
+---
+// An image or a video in a fixed-ratio box (no layout shift). Renders nothing
+// when src is empty (media still pending in the content).
+// Images are lazy by default; pass loading="eager" above the fold.
+// Videos use the native player: controls, preload="none", the poster until a
+// click, no autoplay and no loop.
+import { url } from '../lib/url';
+import { imageSize } from '../lib/media';
+
+interface Props {
+  /** Content path of the image or video ("assets/portrait.jpg", "/products/dobei.jpg"). */
+  src?: string;
+  type?: 'image' | 'video';
+  /** Required for images that carry meaning; "" marks a decorative image. */
+  alt?: string;
+  /** Poster image for a video. */
+  poster?: string;
+  /** Accessible name of a video (e.g. "Женя, CPO"). */
+  label?: string;
+  /** CSS aspect ratio, e.g. "16/10", "9/16", "1/1". Default: the file's own ratio. */
+  ratio?: string;
+  /** How the media fills the box (default cover). */
+  fit?: 'cover' | 'contain';
+  loading?: 'lazy' | 'eager';
+  /** Max width of the box, e.g. "22rem". */
+  maxWidth?: string;
+  class?: string;
+}
+
+const {
+  src,
+  type = /\.(mp4|webm|mov)$/i.test(src ?? '') ? 'video' : 'image',
+  alt = '',
+  poster,
+  label,
+  ratio,
+  fit = 'cover',
+  loading = 'lazy',
+  maxWidth,
+  class: className,
+} = Astro.props;
+
+const size = type === 'video' ? (poster ? imageSize(poster) : null) : src ? imageSize(src) : null;
+const aspect = ratio ?? (size ? `${size.width} / ${size.height}` : undefined);
+const style = [aspect && `--ratio: ${aspect}`, maxWidth && `max-width: ${maxWidth}`].filter(Boolean).join('; ') || undefined;
+const videoType = src?.endsWith('.webm') ? 'video/webm' : 'video/mp4';
+---
+
+{
+  src && (
+    <div class:list={['media', `media--${fit}`, aspect && 'media--ratio', className]} style={style}>
+      {type === 'video' ? (
+        <video
+          controls
+          preload="none"
+          playsinline
+          poster={poster ? url(poster) : undefined}
+          width={size?.width}
+          height={size?.height}
+          aria-label={label}
+        >
+          <source src={url(src)} type={videoType} />
+        </video>
+      ) : (
+        <img
+          src={url(src)}
+          alt={alt}
+          width={size?.width}
+          height={size?.height}
+          loading={loading}
+          decoding="async"
+        />
+      )}
+    </div>
+  )
+}
+
+<style>
+  .media {
+    position: relative;
+    width: 100%;
+  }
+
+  .media--ratio {
+    aspect-ratio: var(--ratio);
+  }
+
+  .media :is(img, video) {
+    width: 100%;
+    height: auto;
+  }
+
+  .media--ratio :is(img, video) {
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .media--contain.media--ratio :is(img, video) {
+    object-fit: contain;
+  }
+
+  .media video {
+    background: var(--ink);
+  }
+</style>

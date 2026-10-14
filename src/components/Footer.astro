@@ -1,0 +1,102 @@
+---
+// Site footer: Telegram and email as text, links to every page (incl.
+// «Работодателям» and «English»), «Сделано вместе с Claude», year.
+// The Telegram link here only opens the chat (no message template).
+import { site, mailtoHref } from '../lib/content';
+import { url } from '../lib/url';
+
+interface Props {
+  current?: string;
+}
+
+const { current } = Astro.props;
+const f = site.footer;
+const year = new Date().getFullYear();
+const goalFor = (href: string) => (href === '/hire/' ? 'hire' : undefined);
+---
+
+<footer class="site-footer">
+  <div class="wrap">
+  <div class="site-footer__inner grid">
+    <div class="site-footer__contacts col-5 lg-col-4">
+      <p>
+        <span class="label">{f.contacts.telegramLabel}</span>{' '}
+        <a href={site.contacts.telegram.url} target="_blank" rel="noopener" data-goal="telegram">{f.contacts.telegramText}</a>
+      </p>
+      <p>
+        <span class="label">{f.contacts.emailLabel}</span>{' '}
+        <a href={mailtoHref()} data-goal="email">{f.contacts.emailText}</a>
+      </p>
+    </div>
+    <nav class="site-footer__nav col-7 lg-col-5" aria-label="Все страницы">
+      <ul class="site-footer__links" role="list">
+        {
+          f.links.map((l) => (
+            <li>
+              <a href={url(l.href)} aria-current={current === l.href ? 'page' : undefined} data-goal={goalFor(l.href)}>
+                {l.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+    <div class="site-footer__meta t-small col-12 lg-col-3">
+      <p>{f.madeWith}</p>
+      <p>{f.copyright.replace('{year}', String(year))}</p>
+    </div>
+  </div>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    margin-top: var(--s5);
+    padding-bottom: var(--s4);
+  }
+
+  .site-footer__inner {
+    border-top: var(--line);
+    padding-top: var(--s3);
+  }
+
+  .site-footer__contacts {
+    display: grid;
+    gap: var(--s2);
+  }
+
+  .site-footer__contacts p {
+    display: grid;
+    gap: 0.15rem;
+  }
+
+  .site-footer__links {
+    list-style: none;
+    padding-left: 0;
+    columns: 2;
+    column-gap: var(--gap);
+  }
+
+  .site-footer__links li {
+    break-inside: avoid;
+    padding-bottom: 0.1rem;
+  }
+
+  .site-footer__links a {
+    display: inline-block;
+    padding-block: 0.25rem;
+  }
+
+  .site-footer__meta {
+    display: grid;
+    align-content: start;
+    gap: 0.15rem;
+  }
+
+  @media (min-width: 1080px) {
+    .site-footer__meta {
+      justify-items: end;
+      text-align: right;
+    }
+  }
+</style>

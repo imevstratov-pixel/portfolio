@@ -1,0 +1,63 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+env:
+  # One code base, two repositories. The "Deploy target" step derives the
+  # rest from the repository this runs in:
+  #   BASE    = /<repository name>/ (the project path on github.io)
+  #   PREVIEW = 0 only in imevstratov-pixel/portfolio (the live site: Yandex
+  #             Metrika, indexing, sitemap.xml); 1 everywhere else, e.g.
+  #             imevstratov-pixel/portfolio-v2 (noindex, no analytics).
+  SITE: https://imevstratov-pixel.github.io
+  ASTRO_TELEMETRY_DISABLED: '1'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Deploy target
+        run: |
+          echo "BASE=/${GITHUB_REPOSITORY#*/}/" >> "$GITHUB_ENV"
+          if [ "$GITHUB_REPOSITORY" = "imevstratov-pixel/portfolio" ]; then
+            echo "PREVIEW=0" >> "$GITHUB_ENV"
+          else
+            echo "PREVIEW=1" >> "$GITHUB_ENV"
+          fi
+      - run: echo "Building $SITE$BASE with PREVIEW=$PREVIEW"
+      - run: npm ci
+      - run: npm run build
+      - run: npm run check-links
+      # internal notes, then the deploy mode (tools/prodcheck.mjs): Metrika,
+      # robots, sitemap, old URLs and old home anchors
+      - run: npm run leakcheck
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

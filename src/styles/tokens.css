@@ -1,0 +1,70 @@
+/* Design tokens. Black ink on white paper; greys only for secondary text and
+   hairlines. Colour appears only inside media (video, screenshots, photos).
+   Light theme only in v1. */
+
+:root {
+  color-scheme: light;
+
+  /* Colour */
+  --ink: #000;
+  --paper: #fff;
+  --muted: #5e5e5e; /* secondary text: 6.4:1 on paper */
+  --rule: #c4c4c4; /* hairlines between items */
+
+  /* Type: two families, two weights */
+  --font-sans: 'Inter Tight', 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  --regular: 400;
+  --bold: 700;
+
+  /* Five sizes, fluid between 360px and 1440px */
+  --fs-huge: clamp(2.625rem, 1.5rem + 5vw, 6.25rem); /* 42–100: first screen, product names */
+  --fs-large: clamp(1.75rem, 1.29rem + 2.05vw, 3.125rem); /* 28–50: section headings, numbers, quotes */
+  --fs-medium: clamp(1.25rem, 1.12rem + 0.56vw, 1.625rem); /* 20–26: case and service headings */
+  --fs-base: clamp(1rem, 0.96rem + 0.19vw, 1.125rem); /* 16–18: text */
+  --fs-small: 0.8125rem; /* 13: mono labels, captions, sources */
+
+  --lh-huge: 0.96;
+  --lh-large: 1.06;
+  --lh-medium: 1.2;
+  --lh-base: 1.55;
+  --lh-small: 1.45;
+
+  --track-huge: -0.032em;
+  --track-large: -0.022em;
+  --track-medium: -0.01em;
+
+  --measure: 66ch; /* long-form text: about 60–75 characters */
+
+  /* Space: five steps */
+  --s1: 0.5rem; /* 8 */
+  --s2: 1rem; /* 16 */
+  --s3: clamp(1.5rem, 1.33rem + 0.74vw, 2rem); /* 24–32 */
+  --s4: clamp(2.5rem, 1.94rem + 2.22vw, 4rem); /* 40–64 */
+  --s5: clamp(4rem, 2.89rem + 4.44vw, 7rem); /* 64–112 */
+
+  /* Layout: 4 columns on phones, 12 from 720px */
+  --max: 1240px;
+  --gutter: 16px;
+  --gap: 16px;
+  --cols: 4;
+  --header-h: 3.5rem;
+
+  /* Lines: thin between items, ink between sections (both 1px) */
+  --hair: 1px solid var(--rule);
+  --line: 1px solid var(--ink);
+}
+
+@media (min-width: 720px) {
+  :root {
+    --gutter: 32px;
+    --gap: 24px;
+    --cols: 12;
+  }
+}
+
+@media (min-width: 1080px) {
+  :root {
+    --gutter: 48px;
+  }
+}

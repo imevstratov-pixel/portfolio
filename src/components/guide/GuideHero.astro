@@ -1,0 +1,88 @@
+---
+// First screen of /guide/ (block "hero"): the h1, the lead, the Telegram
+// button with its hint and the email line, and the price line. The button
+// names the visitor's action (decision 8 of 14.10): the `button` label of the
+// service whose codeword it carries («Заказать тренажёр» for «Гайд»), no
+// caption, the same as the service card on /services/; it still copies the
+// «Гайд» template, and the hint still names the word «Гайд».
+// The price line («12 000 ₽ за весь тренажёр, без доплат. …») is a
+// PriceBlock: the figure large on its own line, the rest of the sentence
+// under it (decision 16 of 14.10). The only large price on the site: this is
+// a one-product page; everywhere else the figure has the service title's size.
+// The screenshot of the trainer (media) is still pending: while its src is
+// empty the text uses the width; once it exists it stands to the right of the
+// text from 1080px (a plain rectangle, no phone frame) and under it on phones.
+import Section from '../Section.astro';
+import Media from '../Media.astro';
+import TelegramAction from '../TelegramAction.astro';
+import PriceBlock from '../PriceBlock.astro';
+import { serviceByCodeword, type Block } from '../../lib/content';
+
+interface Props {
+  block: Block;
+}
+
+const { block } = Astro.props;
+const media = block.media?.src ? block.media : undefined;
+const verb: string | undefined = block.button?.codeword ? serviceByCodeword(block.button.codeword)?.data.button : undefined;
+---
+
+<Section rule="none" pad="s4" class="hero">
+  <div class:list={['grid', 'hero__grid', media && 'hero__grid--media']}>
+    <div class="hero__text">
+      <h1 class="hero__title">{block.heading}</h1>
+      {block.lead && <p class="lead">{block.lead}</p>}
+      {
+        block.button?.codeword && (
+          <TelegramAction
+            codeword={block.button.codeword}
+            label={verb}
+            caption={verb ? false : undefined}
+            hint={!!block.button.hint}
+            email={block.email ?? false}
+          />
+        )
+      }
+      {block.price && <PriceBlock text={block.price} size="large" class="hero__price" />}
+    </div>
+    {
+      media && (
+        <div class="hero__media">
+          <Media src={media.src} alt={media.alt} loading="eager" maxWidth="24rem" />
+        </div>
+      )
+    }
+  </div>
+</Section>
+
+<style>
+  .hero__text {
+    display: grid;
+    align-content: start;
+    justify-items: start;
+    gap: var(--s3);
+  }
+
+  .hero__title {
+    max-width: 13em;
+    margin-bottom: var(--s1);
+  }
+
+  /* the price under the button and the email line, after a hairline */
+  .hero__text :global(.hero__price) {
+    width: 100%;
+    max-width: 34rem;
+    padding-top: var(--s2);
+    border-top: var(--hair);
+  }
+
+  @media (min-width: 1080px) {
+    .hero__grid--media .hero__text {
+      grid-column: 1 / span 7;
+    }
+
+    .hero__grid--media .hero__media {
+      grid-column: 9 / span 4;
+    }
+  }
+</style>

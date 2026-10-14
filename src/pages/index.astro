@@ -1,0 +1,45 @@
+---
+// Home page (/): the blocks of pages/home.md, in their content order, each
+// drawn by its own component in src/components/home (the contact block uses
+// the shared ContactBlock). The order and the visibility rules follow
+// render_home() in the texts renderer (build_texts.py).
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ContactBlock from '../components/ContactBlock.astro';
+import Hero from '../components/home/Hero.astro';
+import Clients from '../components/home/Clients.astro';
+import Services from '../components/home/Services.astro';
+import Reels from '../components/home/Reels.astro';
+import FeaturedCases from '../components/home/FeaturedCases.astro';
+import HowWeStart from '../components/home/HowWeStart.astro';
+import Testimonials from '../components/home/Testimonials.astro';
+import About from '../components/home/About.astro';
+import LeadMagnet from '../components/LeadMagnet.astro';
+import { getPage, pageBlocks } from '../lib/content';
+
+const page = getPage('home');
+
+// block type in the content -> component
+const views = {
+  hero: Hero,
+  names: Clients,
+  services: Services,
+  reels: Reels,
+  cases: FeaturedCases,
+  steps: HowWeStart,
+  testimonials: Testimonials,
+  about: About,
+  'lead-magnet': LeadMagnet,
+  contact: ContactBlock,
+} as const;
+
+const blocks = pageBlocks(page).map((block) => {
+  const View = views[block.type as keyof typeof views];
+  // a new block type in the content must not disappear silently
+  if (!View) throw new Error(`home: no component for block "${block.id}" of type "${block.type}"`);
+  return { block, View };
+});
+---
+
+<BaseLayout page={page} current="/">
+  {blocks.map(({ block, View }) => <View block={block} />)}
+</BaseLayout>

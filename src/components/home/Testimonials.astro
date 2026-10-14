@@ -1,0 +1,69 @@
+---
+// «Что говорят заказчики и коллеги» (block "testimonials"). Client quotes come
+// first in the large size, one per row; the export keeps only testimonials
+// with consent, so every listed one may show. With no client quotes the
+// heading is headingColleaguesOnly («Что говорят коллеги»), as in the texts
+// renderer. Then the colleagues group: its caption and hint, and the video
+// testimonials as a Carousel row of cards (decision 11 of 14.10: a row
+// instead of one big block per person): the poster and the quote beside it.
+import Section from '../Section.astro';
+import Quote from '../Quote.astro';
+import Carousel from '../Carousel.astro';
+import VideoTestimonial from '../VideoTestimonial.astro';
+import { getTestimonial, testimonialSignature, visible, type Block } from '../../lib/content';
+
+interface Props {
+  block: Block;
+}
+
+const { block: b } = Astro.props;
+const clients = visible<string>(b.clients?.items).map((slug) => getTestimonial(slug));
+const colleagues = visible<string>(b.colleagues?.items).map((slug) => getTestimonial(slug));
+const heading: string = clients.length ? b.heading : (b.headingColleaguesOnly ?? b.heading);
+---
+
+{
+  (clients.length > 0 || colleagues.length > 0) && (
+    <Section id={b.anchor} heading={heading}>
+      {clients.length > 0 && (
+        <ul class="testimonials__quotes" role="list">
+          {clients.map((t) => (
+            <li>
+              <Quote text={t.data.quote} cite={testimonialSignature(t)} />
+            </li>
+          ))}
+        </ul>
+      )}
+      {colleagues.length > 0 && (
+        <div class:list={['testimonials__group', clients.length > 0 && 'testimonials__group--after']}>
+          {(b.colleagues.caption || b.colleagues.hint) && (
+            <div class="testimonials__head">
+              {b.colleagues.caption && <h3 class="testimonials__caption t-base">{b.colleagues.caption}</h3>}
+              {b.colleagues.hint && <p class="label">{b.colleagues.hint}</p>}
+            </div>
+          )}
+          <Carousel items={colleagues} label={heading} id="home-colleagues" bleed>
+            {(t: (typeof colleagues)[number]) => <VideoTestimonial testimonial={t} layout="card" size="medium" />}
+          </Carousel>
+        </div>
+      )}
+    </Section>
+  )
+}
+
+<style>
+  .testimonials__quotes {
+    display: grid;
+    gap: var(--s4);
+  }
+
+  .testimonials__group--after {
+    margin-top: var(--s5);
+  }
+
+  .testimonials__head {
+    display: grid;
+    gap: 0.15rem;
+    margin-bottom: var(--s3);
+  }
+</style>

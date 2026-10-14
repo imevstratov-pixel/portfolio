@@ -1,0 +1,124 @@
+---
+// One case on /cases/ as a card (decision 17 of 14.10): the labels with the
+// status, the title (a link to the case page: people tap titles first, and on
+// a phone it is the biggest target), the infographic facts, one line of what
+// the case is about (caseSummary: the case's `summary`, else the home line,
+// else the first sentence of «Контекст»), «Читать кейс» to the case page
+// /cases/<slug>/ as well. The full text,
+// the steps, «было — стало», the reel, the scheme and the testimonials live
+// on the case page.
+//
+// The card keeps the case anchor as its id, so the old links /cases/#case-…
+// still land on it (and «Все кейсы» on a case page returns here).
+//
+// Layout: an ink line on top. From 1080px the labels, title, line and link
+// in columns 1-5 and the facts in 6-12 beside them; below that one column,
+// the facts under the title.
+import CaseLabels from '../CaseLabels.astro';
+import Button from '../Button.astro';
+import CaseInfographic from './CaseInfographic.astro';
+import { caseHref, caseSummary, type CaseEntry } from '../../lib/content';
+
+interface Props {
+  case: CaseEntry;
+  /** Label fields (block.labels). */
+  labels: string[];
+  /** Show the status after the labels (block.statusField is set). */
+  status?: boolean;
+  /** Link text («Читать кейс»). */
+  linkLabel: string;
+}
+
+const { case: c, labels, status = true, linkLabel } = Astro.props;
+const d = c.data;
+const id = d.anchor;
+const titleId = `${id}-title`;
+const summary = caseSummary(c);
+---
+
+<article id={id} class="cl" aria-labelledby={titleId}>
+  <div class="cl__labels">
+    <CaseLabels case={c} fields={labels} status={status} />
+  </div>
+  <h2 id={titleId} class="cl__title t-medium"><a href={caseHref(c)}>{d.title}</a></h2>
+  {
+    d.infographic && (
+      <div class="cl__ig">
+        <CaseInfographic infographic={d.infographic} parts={['facts']} />
+      </div>
+    )
+  }
+  {summary && <p class="cl__summary">{summary}</p>}
+  <p class="cl__link">
+    <Button href={caseHref(c)} size="small" aria-describedby={titleId}>{linkLabel}</Button>
+  </p>
+</article>
+
+<style>
+  .cl {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    column-gap: var(--gap);
+    row-gap: var(--s2);
+    align-items: start;
+    padding-top: var(--s2);
+    border-top: var(--line);
+  }
+
+  .cl__title {
+    max-width: 30em;
+  }
+
+  .cl__ig {
+    min-width: 0;
+    margin-block: var(--s1);
+  }
+
+  .cl__summary {
+    max-width: var(--measure);
+  }
+
+  .cl__link {
+    margin-top: var(--s1);
+  }
+
+  @media (min-width: 1080px) {
+    .cl {
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      grid-template-rows: auto auto auto 1fr;
+      row-gap: var(--s2);
+    }
+
+    .cl__labels,
+    .cl__title,
+    .cl__summary,
+    .cl__link {
+      grid-column: 1 / span 5;
+      padding-right: var(--s2);
+    }
+
+    .cl__labels {
+      grid-row: 1;
+    }
+
+    .cl__title {
+      grid-row: 2;
+    }
+
+    .cl__summary {
+      grid-row: 3;
+    }
+
+    .cl__link {
+      grid-row: 4;
+      margin-top: 0;
+    }
+
+    .cl__ig {
+      grid-column: 6 / span 7;
+      grid-row: 1 / span 4;
+      margin-block: 0;
+      padding-top: calc(var(--s1) / 2);
+    }
+  }
+</style>

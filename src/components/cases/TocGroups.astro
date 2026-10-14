@@ -1,0 +1,82 @@
+---
+// The groups of the /cases/ table of contents (used twice by CasesToc: the
+// open table from 720px and the folded one on phones). A group: the
+// service's short name, then its rows: the published cases' titles (fields
+// from block.row.fields, today only shortTitle) linking to their pages,
+// then the group's products with their labels in small mono.
+export type TocRow = { key: string; title: string; href: string; meta: string[] };
+export type TocGroup = { id: string; name: string; rows: TocRow[] };
+
+interface Props {
+  groups: TocGroup[];
+  /** Id of the heading that names the nav. */
+  labelledby: string;
+  class?: string;
+}
+
+const { groups, labelledby, class: className } = Astro.props;
+---
+
+<nav class:list={['toc', className]} aria-labelledby={labelledby}>
+  {
+    groups.map((g) => (
+      <div class="toc__group">
+        <h3 class="toc__service">{g.name}</h3>
+        <ul class="toc__rows" role="list">
+          {g.rows.map((r) => (
+            <li class="toc__row">
+              <a class="toc__title link-quiet" href={r.href}>
+                {r.title}
+              </a>
+              {r.meta.length > 0 && (
+                <span class="toc__meta">
+                  <span class="sr-only">, </span>
+                  {r.meta.join(', ')}
+                </span>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
+    ))
+  }
+</nav>
+
+<style>
+  .toc__group {
+    break-inside: avoid;
+    padding-top: var(--s1);
+    padding-bottom: var(--s3);
+    border-top: var(--hair);
+  }
+
+  .toc__service {
+    font-family: var(--font-mono);
+    font-size: var(--fs-small);
+    line-height: var(--lh-small);
+    font-weight: var(--regular);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: var(--s1);
+  }
+
+  .toc__rows {
+    display: grid;
+    gap: 0.4rem;
+  }
+
+  .toc__title {
+    line-height: 1.35;
+  }
+
+  /* on the title's line (it wraps under it when there is no room) */
+  .toc__meta {
+    margin-left: 0.5em;
+    white-space: nowrap;
+    font-family: var(--font-mono);
+    font-size: var(--fs-small);
+    line-height: var(--lh-small);
+    color: var(--muted);
+  }
+</style>

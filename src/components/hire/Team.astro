@@ -1,0 +1,92 @@
+---
+// «Как я работаю в команде» (block "columns", anchor #team): four columns
+// (title, text, optional link) with an ink rule on top, 2 by 2 on tablets,
+// one column on phones. Under them «Процесс на данных»: the heading on the
+// left 3 columns (the page rail), the points as a list between thin rules on
+// the right.
+import Section from '../Section.astro';
+import { visible, type Block } from '../../lib/content';
+import { isExternal, url } from '../../lib/url';
+
+interface Props {
+  block: Block;
+}
+
+type Column = { title: string; text?: string; link?: { label: string; url: string } };
+
+const { block: b } = Astro.props;
+const columns = visible<Column>(b.columns).filter((c) => c?.title && (c.text || c.link?.url));
+const process = b.process;
+const points = visible<string>(process?.items).filter(Boolean);
+---
+
+{
+  (columns.length > 0 || points.length > 0) && (
+    <Section id={b.anchor} heading={b.heading}>
+      {columns.length > 0 && (
+        <ul class="team cols cols-4" role="list">
+          {columns.map((c) => (
+            <li class="team__col">
+              <h3 class="team__title">{c.title}</h3>
+              {c.text && <p>{c.text}</p>}
+              {c.link?.url && (
+                <p>
+                  <a
+                    href={url(c.link.url)}
+                    target={isExternal(c.link.url) ? '_blank' : undefined}
+                    rel={isExternal(c.link.url) ? 'noopener' : undefined}
+                  >
+                    {c.link.label}
+                  </a>
+                </p>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+      {points.length > 0 && (
+        <div class="process grid">
+          {process.heading && <h3 class="process__heading col-3">{process.heading}</h3>}
+          <ul class:list={['process__list list-rules', process.heading ? 'col-9 lg-col-7' : 'col-9 start-4 lg-col-7']} role="list">
+            {points.map((p) => (
+              <li>{p}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </Section>
+  )
+}
+
+<style>
+  .team {
+    row-gap: var(--s4);
+  }
+
+  .team__col {
+    display: grid;
+    align-content: start;
+    gap: var(--s2);
+    padding-top: var(--s2);
+    border-top: var(--line);
+  }
+
+  .team__col > p {
+    max-width: var(--measure);
+  }
+
+  .process {
+    margin-top: var(--s5);
+    row-gap: var(--s3);
+    align-items: start;
+  }
+
+  .process__list {
+    max-width: var(--measure);
+  }
+
+  .process__list > li:first-child {
+    padding-top: 0;
+    border-top: 0;
+  }
+</style>

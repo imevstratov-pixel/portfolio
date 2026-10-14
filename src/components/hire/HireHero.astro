@@ -1,0 +1,106 @@
+---
+// /hire/ first screen (block "hire-hero"): the name as the h1 in the huge
+// size and the role under it on the left (8 of 12 columns), the portrait on
+// the right (3 of 12 from 1080px, 4 of 12 on tablets, half the width above the
+// name on phones). Under the text the two lead paragraphs, then «Обсудить
+// роль» in Telegram and the email as a framed button, then the PDF résumés
+// (the same pair and links as in the contact block at the end).
+import Media from '../Media.astro';
+import TelegramEmailButtons from '../TelegramEmailButtons.astro';
+import Resumes from '../Resumes.astro';
+import { visible, type Block } from '../../lib/content';
+
+interface Props {
+  block: Block;
+}
+
+const { block: b } = Astro.props;
+const lead = visible<string>(b.lead).filter(Boolean);
+---
+
+<section class="hh" aria-labelledby="hire-name">
+  <div class="wrap grid hh__grid">
+    <div class="hh__text col-8">
+      <h1 id="hire-name" class="hh__name">{b.name}</h1>
+      {b.role && <p class="hh__role">{b.role}</p>}
+      {
+        lead.length > 0 && (
+          <div class="hh__lead">
+            {lead.map((p) => (
+              <p>{p}</p>
+            ))}
+          </div>
+        )
+      }
+      {
+        b.button?.codeword && (
+          <div class="hh__actions">
+            <TelegramEmailButtons button={b.button} email={b.email} />
+          </div>
+        )
+      }
+      {
+        b.resumes?.length > 0 && (
+          <div class="hh__resumes">
+            <Resumes items={b.resumes} />
+          </div>
+        )
+      }
+    </div>
+    {
+      b.portrait && (
+        <div class="hh__portrait col-4 lg-col-3 lg-start-10 m-col-2">
+          <Media src={b.portrait} alt={b.portraitAlt} ratio="1 / 1" loading="eager" />
+        </div>
+      )
+    }
+  </div>
+</section>
+
+<style>
+  .hh {
+    padding-top: var(--s4);
+  }
+
+  .hh__grid {
+    align-items: start;
+    row-gap: var(--s3);
+  }
+
+  /* phones: the portrait sits above the name, half the width */
+  @media (max-width: 719.98px) {
+    .hh__portrait {
+      order: -1;
+    }
+  }
+
+  .hh__name {
+    max-width: 9em;
+  }
+
+  .hh__role {
+    margin-top: var(--s2);
+    font-size: var(--fs-large);
+    line-height: var(--lh-large);
+    letter-spacing: var(--track-large);
+    max-width: 18em;
+  }
+
+  .hh__lead {
+    margin-top: var(--s4);
+    display: grid;
+    gap: 0.8em;
+    max-width: 34em;
+    font-size: var(--fs-medium);
+    line-height: 1.35;
+    letter-spacing: var(--track-medium);
+  }
+
+  .hh__actions {
+    margin-top: var(--s4);
+  }
+
+  .hh__resumes {
+    margin-top: var(--s3);
+  }
+</style>

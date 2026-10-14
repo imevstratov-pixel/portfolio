@@ -1,0 +1,241 @@
+---
+// A horizontal row of slides (decision 11 of 14.10): «Что говорят коллеги»
+// on the home page, /hire/ and /cases/, and the product galleries.
+//
+// The row scrolls sideways with scroll snap (swipe on phones, trackpad or
+// the keyboard elsewhere) and always shows part of the next slide. Under it
+// a bar: «1 из 5» in mono and the buttons «Назад» and «Дальше», which move
+// by one slide at once (no animated scrolling, no autoplay). The bar shows
+// only once the script has run (data-ready): without JS the row still
+// scrolls by swipe or trackpad, and no counter can name the wrong slides.
+// When every slide fits, the script removes the bar (data-static). One
+// slide: no bar at all.
+//
+// Accessibility: the row is a focusable region named by `label`
+// (aria-roledescription «карусель»), the arrow keys move by one slide; each
+// slide is a group «2 из 5»; the buttons are real buttons with text and
+// aria-controls. The counter is a polite live region (aria-atomic), so «2 из 5»
+// is announced after «Дальше» or «Назад». Every slide stays in the DOM, so
+// screen readers read them all.
+//
+// Usage: pass the items and a function child that renders one slide.
+//   <Carousel items={list} label="Что говорят коллеги" id="home-voices">
+//     {(t) => <VideoTestimonial testimonial={t} layout="card" size="medium" />}
+//   </Carousel>
+//   <Carousel items={shots} kind="media" ratios={shots.map(…)} label={…} id={…}>
+//     {(g) => <figure>…</figure>}
+//   </Carousel>
+// kind "cards" (default): slide width 85% of the row on phones, 60% on
+// tablets, 5 of 12 columns from 1080px. kind "media": every slide has the
+// row height and the width of its own ratio (`ratios`, width / height),
+// at most 85% of the row; pass `height` to change the row height.
+// bleed: the row runs into the side gutters (to the screen edges on phones).
+
+interface Props {
+  items: unknown[];
+  /** Accessible name of the row (usually the section heading). */
+  label: string;
+  /** Unique id prefix on the page. */
+  id: string;
+  kind?: 'cards' | 'media';
+  /** kind "media": width / height of each slide, in item order. */
+  ratios?: number[];
+  /** kind "media": row height from 1080px (default 30rem; phones 25rem, tablets 26rem). */
+  height?: string;
+  bleed?: boolean;
+  class?: string;
+}
+
+const {
+  items,
+  label,
+  id,
+  kind = 'cards',
+  ratios,
+  height,
+  bleed = false,
+  class: className,
+} = Astro.props;
+
+const n = items.length;
+const slides: string[] = [];
+for (let i = 0; i < n; i++) slides.push(await Astro.slots.render('default', [items[i], i]));
+const trackId = `${id}-track`;
+const slideStyle = (i: number) => {
+  const r = ratios?.[i];
+  return kind === 'media' && r ? `--r: ${r.toFixed(4)}` : undefined;
+};
+const rootStyle = height ? `--h-lg: ${height}` : undefined;
+---
+
+{
+  n > 0 && (
+    <div
+      class:list={['carousel', `carousel--${kind}`, bleed && 'carousel--bleed', className]}
+      style={rootStyle}
+      data-carousel
+    >
+      <div
+        class="carousel__track"
+        id={trackId}
+        role="region"
+        aria-roledescription="карусель"
+        aria-label={label}
+        tabindex="0"
+        data-carousel-track
+      >
+        {slides.map((html, i) => (
+          <div
+            class="carousel__item"
+            role="group"
+            aria-roledescription="слайд"
+            aria-label={`${i + 1} из ${n}`}
+            style={slideStyle(i)}
+            set:html={html}
+          />
+        ))}
+      </div>
+      {n > 1 && (
+        <div class="carousel__bar">
+          <p class="carousel__count" aria-atomic="true" data-carousel-count>
+            <span data-carousel-pos>1</span> из {n}
+          </p>
+          <div class="carousel__nav">
+            <button type="button" class="carousel__btn" aria-controls={trackId} data-carousel-prev disabled>
+              Назад
+            </button>
+            <button type="button" class="carousel__btn" aria-controls={trackId} data-carousel-next disabled>
+              Дальше
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+<script>
+  import '../scripts/carousel.ts';
+</script>
+
+<style>
+  .carousel {
+    --h: 25rem;
+    display: grid;
+    gap: var(--s2);
+    min-width: 0;
+  }
+
+  .carousel__track {
+    position: relative; /* slides measure their offsetLeft from here */
+    display: flex;
+    align-items: flex-start;
+    gap: var(--gap);
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--rule) transparent;
+    padding-bottom: var(--s1);
+  }
+
+  .carousel--bleed .carousel__track {
+    margin-inline: calc(-1 * var(--gutter));
+    padding-inline: var(--gutter);
+    scroll-padding-inline: var(--gutter);
+  }
+
+  .carousel__item {
+    flex: 0 0 auto;
+    min-width: 0;
+    scroll-snap-align: start;
+  }
+
+  /* cards: the next card always shows at the edge */
+  .carousel--cards .carousel__item {
+    width: 85%;
+  }
+
+  /* media: one row height, each slide as wide as its ratio allows */
+  .carousel--media .carousel__item {
+    width: min(85%, calc(var(--h) * var(--r, 1)));
+  }
+
+  @media (min-width: 720px) {
+    .carousel {
+      --h: 26rem;
+    }
+
+    .carousel--cards .carousel__item {
+      width: 60%;
+    }
+  }
+
+  @media (min-width: 1080px) {
+    .carousel {
+      --h: var(--h-lg, 30rem);
+    }
+
+    /* 5 of the 12 page columns */
+    .carousel--cards .carousel__item {
+      width: calc((100% - 11 * var(--gap)) / 12 * 5 + 4 * var(--gap));
+    }
+
+    .carousel--media .carousel__item {
+      width: min(75%, calc(var(--h) * var(--r, 1)));
+    }
+  }
+
+  .carousel__bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s1) var(--s2);
+  }
+
+  /* no script yet (or none): no bar; every slide fits: nothing to scroll */
+  .carousel:not([data-ready]) .carousel__bar,
+  .carousel[data-static] .carousel__bar {
+    display: none;
+  }
+
+  .carousel__count {
+    font-family: var(--font-mono);
+    font-size: var(--fs-small);
+    line-height: var(--lh-small);
+    color: var(--muted);
+  }
+
+  .carousel__nav {
+    display: flex;
+    gap: var(--s1);
+  }
+
+  /* small framed buttons; hover inverts, as every button on the site */
+  .carousel__btn {
+    min-height: 2.75rem;
+    min-width: 6.5rem;
+    padding: 0.35rem 0.9rem;
+    border: 1px solid var(--ink);
+    border-radius: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-size: 0.9375rem;
+    font-weight: var(--bold);
+    line-height: 1.2;
+  }
+
+  .carousel__btn:hover:not(:disabled, [aria-disabled='true']) {
+    background: var(--ink);
+    color: var(--paper);
+  }
+
+  .carousel__btn:disabled,
+  .carousel__btn[aria-disabled='true'] {
+    border-color: var(--rule);
+    color: var(--muted);
+    cursor: default;
+  }
+</style>

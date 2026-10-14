@@ -1,0 +1,82 @@
+---
+// «Коротко» (block "facts"): one row per fact between thin rules. The name in
+// small mono on the left (3 of 12 columns, the same rail as the dates in
+// «Опыт»), the value on the right (from column 4, at a readable measure).
+// Phones: name above value. Extra lines (education) follow the value on
+// their own lines; links (profiles) form a comma list. Empty rows are skipped.
+import Section from '../Section.astro';
+import { contentHref, visible, type Block } from '../../lib/content';
+import { isExternal } from '../../lib/url';
+
+interface Props {
+  block: Block;
+}
+
+type Row = { label: string; value?: string; extra?: string[]; links?: Array<{ label: string; url: string }> };
+
+const { block: b } = Astro.props;
+const rows = visible<Row>(b.rows)
+  .map((r) => ({
+    ...r,
+    extra: visible<string>(r.extra).filter(Boolean),
+    links: visible(r.links).filter((l) => l?.url && l?.label),
+  }))
+  .filter((r) => r.value || r.extra.length || r.links.length);
+---
+
+{
+  rows.length > 0 && (
+    <Section id={b.anchor} heading={b.heading}>
+      <dl class="facts">
+        {rows.map((r) => (
+          <div class="facts__row grid">
+            <dt class="facts__name label col-3">{r.label}</dt>
+            <dd class="facts__value col-9 lg-col-7">
+              {r.value && <p>{r.value}</p>}
+              {r.extra.map((e) => (
+                <p>{e}</p>
+              ))}
+              {r.links.length > 0 && (
+                <ul class="list-comma" role="list">
+                  {r.links.map((l) => (
+                    <li>
+                      <a
+                        href={contentHref(l.url)}
+                        target={isExternal(l.url) ? '_blank' : undefined}
+                        rel={isExternal(l.url) ? 'noopener' : undefined}
+                      >
+                        {l.label}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </Section>
+  )
+}
+
+<style>
+  .facts {
+    border-bottom: var(--hair);
+  }
+
+  .facts__row {
+    row-gap: 0.15rem;
+    align-items: baseline;
+    padding-block: var(--s2);
+    border-top: var(--hair);
+  }
+
+  .facts__value {
+    max-width: var(--measure);
+  }
+
+  /* extra lines (education) stay distinct when they wrap on phones */
+  .facts__value > * + * {
+    margin-top: 0.3rem;
+  }
+</style>

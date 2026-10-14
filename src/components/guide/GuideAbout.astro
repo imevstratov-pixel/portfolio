@@ -1,0 +1,47 @@
+---
+// «Кто я» on /guide/ (block type "about"): portrait on the left, the text
+// lines and the «Чем ещё занимаюсь» link on the right. Phones: a small
+// square portrait (2 of 4 columns) above the text.
+import Section from '../Section.astro';
+import Media from '../Media.astro';
+import type { Block } from '../../lib/content';
+import { url } from '../../lib/url';
+
+interface Props {
+  block: Block;
+}
+
+const { block } = Astro.props;
+const text: string[] = block.text ?? [];
+---
+
+<Section id={block.anchor ?? block.id} heading={block.heading}>
+  <div class="grid about">
+    {
+      block.portrait && (
+        <div class="about__portrait m-col-2 col-4 lg-col-3">
+          <Media src={block.portrait} alt={block.portraitAlt} ratio="1 / 1" />
+        </div>
+      )
+    }
+    <div class="about__text col-8 lg-col-6 lg-start-5">
+      {text.map((p) => <p>{p}</p>)}
+      {
+        block.link?.href && (
+          <p>
+            <a href={url(block.link.href)}>{block.link.label}</a>
+          </p>
+        )
+      }
+    </div>
+  </div>
+</Section>
+
+<style>
+  .about__text {
+    display: grid;
+    align-content: start;
+    gap: var(--s2);
+    max-width: var(--measure);
+  }
+</style>

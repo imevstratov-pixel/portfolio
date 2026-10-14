@@ -1,0 +1,202 @@
+---
+// One free material on /free/ (an item of the "free-items" block of
+// pages/free.md, decision 18): the cover, the kind as a mono label, the title,
+// who it is for, «Что внутри» as a dash list, the format line, «Скачать PDF»
+// (a direct download of the file, its size as the button's second line) and
+// the line about the consultation and the audit with links to their cards.
+//
+// The file must exist in public/. Its size is read at build time; for a PDF
+// the number of pages in `format` («PDF, 15 страниц») is checked against the
+// file and the build fails when they differ (the PDF was rebuilt: fix the
+// number in the content). Both download links carry the goal "download".
+// The cover link is for the mouse only (tabindex="-1" aria-hidden="true"):
+// keyboard and screen-reader users get one download link, the button.
+//
+// Layout: an ink line on top. Phones: the cover at half the width, then the
+// text. From 720px 12 columns: the cover in 1-4, the text in 6-12; from
+// 1080px the cover in 1-3, the text in 5-11.
+import Media from '../Media.astro';
+import LinkedText from '../LinkedText.astro';
+import { url } from '../../lib/url';
+import { fileSize, formatSize, pdfPageCount, publicFileExists } from '../../lib/media';
+import { visible, type TextLink } from '../../lib/content';
+
+export type FreeItemData = {
+  id: string;
+  anchor?: string;
+  kind?: string;
+  title: string;
+  text?: string;
+  insideLabel?: string;
+  inside?: string[];
+  format?: string;
+  file: string;
+  cover?: { src: string; alt: string };
+  downloadLabel: string;
+  discuss?: { text: string; links?: TextLink[] };
+};
+
+interface Props {
+  item: FreeItemData;
+  /** The first item on the page: its cover loads eagerly. */
+  first?: boolean;
+}
+
+const { item, first = false } = Astro.props;
+const where = `pages/free item "${item.id}"`;
+for (const f of ['id', 'title', 'file', 'downloadLabel'] as const) {
+  if (!item[f]) throw new Error(`${where}: "${f}" is missing`);
+}
+if (!publicFileExists(item.file)) throw new Error(`${where}: ${item.file} is not in public/`);
+
+const id = item.anchor ?? item.id;
+const fileName = item.file.split('/').pop();
+const size = formatSize(fileSize(item.file));
+if (/\.pdf$/i.test(item.file) && item.format) {
+  const stated = Number(item.format.match(/(\d+)\s+страниц/)?.[1] ?? 0);
+  const pages = pdfPageCount(item.file);
+  if (stated && pages && stated !== pages) {
+    throw new Error(`${where}: the content says «${item.format}», ${item.file} has ${pages} pages`);
+  }
+}
+const inside = visible(item.inside ?? []);
+const cover = item.cover?.src ? item.cover : undefined;
+---
+
+<article id={id} class:list={['free', cover && 'free--cover']} aria-labelledby={`${id}-title`}>
+  {
+    cover && (
+      <a class="free__cover" href={url(item.file)} download={fileName} tabindex="-1" aria-hidden="true" data-goal="download">
+        <Media type="image" src={cover.src} alt={cover.alt} loading={first ? 'eager' : 'lazy'} />
+      </a>
+    )
+  }
+  <div class="free__body">
+    <header class="free__head">
+      {item.kind && <p class="label">{item.kind}</p>}
+      <h2 id={`${id}-title`} class="free__title t-large">{item.title}</h2>
+    </header>
+    {item.text && <p class="free__text">{item.text}</p>}
+    {
+      inside.length > 0 && (
+        <div class="free__inside">
+          {item.insideLabel && <h3 class="label free__label">{item.insideLabel}</h3>}
+          <ul class="list-dash" role="list">
+            {inside.map((x) => (
+              <li>{x}</li>
+            ))}
+          </ul>
+        </div>
+      )
+    }
+    <div class="free__get">
+      {item.format && <p class="label free__format">{item.format}</p>}
+      <a class="btn btn--primary" href={url(item.file)} download={fileName} type="application/pdf" data-goal="download">
+        {item.downloadLabel}
+        <span class="btn__caption">{size}</span>
+      </a>
+    </div>
+    {
+      item.discuss?.text && (
+        <p class="free__discuss">
+          <LinkedText text={item.discuss.text} links={item.discuss.links} where={where} />
+        </p>
+      )
+    }
+  </div>
+</article>
+
+<style>
+  .free {
+    border-top: var(--line);
+    padding-top: var(--s3);
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    column-gap: var(--gap);
+    row-gap: var(--s3);
+    align-items: start;
+  }
+
+  .free__cover {
+    grid-column: 1 / span 2;
+    display: block;
+  }
+
+  /* the cover is a white page on a white page: a hairline frame, as the
+     screenshots on /products/ */
+  .free__cover :global(.media) {
+    outline: var(--hair);
+    outline-offset: -1px;
+  }
+
+  .free__body {
+    grid-column: 1 / -1;
+    display: grid;
+    gap: var(--s3);
+    justify-items: start;
+    min-width: 0;
+  }
+
+  .free__head {
+    display: grid;
+    gap: var(--s1);
+  }
+
+  .free__title {
+    max-width: 16em;
+  }
+
+  .free__text {
+    max-width: var(--measure);
+    font-size: var(--fs-medium);
+    line-height: 1.4;
+    letter-spacing: var(--track-medium);
+  }
+
+  .free__inside {
+    display: grid;
+    gap: var(--s1);
+  }
+
+  .free__label {
+    font-weight: var(--regular);
+  }
+
+  .free__get {
+    display: grid;
+    gap: var(--s1);
+    justify-items: start;
+  }
+
+  .free__discuss {
+    max-width: var(--measure);
+  }
+
+  @media (min-width: 720px) {
+    .free {
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+    }
+
+    .free__cover {
+      grid-column: 1 / span 4;
+    }
+
+    .free__body {
+      grid-column: 6 / span 7;
+    }
+
+    .free:not(.free--cover) .free__body {
+      grid-column: 1 / span 9;
+    }
+  }
+
+  @media (min-width: 1080px) {
+    .free__cover {
+      grid-column: 1 / span 3;
+    }
+
+    .free__body {
+      grid-column: 5 / span 7;
+    }
+  }
+</style>

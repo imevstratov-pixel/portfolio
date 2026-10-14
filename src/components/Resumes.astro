@@ -1,0 +1,36 @@
+---
+// The PDF résumés as text links with their update month: «Резюме, PDF»
+// обновлено в октябре 2026. A sans link with the meta in small grey mono.
+// One source for the /hire/ first screen and ContactBlock (block.resumes).
+import { url } from '../lib/url';
+
+interface Props {
+  items: Array<{ label: string; meta?: string; href: string }>;
+  class?: string;
+}
+
+const { items, class: className } = Astro.props;
+const list = (items ?? []).filter((r) => r?.href && r?.label);
+---
+
+{
+  list.length > 0 && (
+    <ul class:list={['resumes', className]} role="list">
+      {list.map((r) => (
+        <li>
+          <a href={url(r.href)}>{r.label}</a>
+          {r.meta && <span class="label"> {r.meta}</span>}
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+<style>
+  .resumes {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: var(--s1);
+  }
+</style>

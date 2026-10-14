@@ -1,0 +1,85 @@
+---
+// A numbered block on /guide/ (type "numbered": «Что входит», «Что будет с
+// данными вашего близкого»): heading, optional lead, the items in large type
+// with numbers on the left, then the visible notes in small type. A note
+// that starts with a price («12 000 ₽ за весь тренажёр…», «Что входит») is a
+// PriceBlock: the figure in the medium size, the rest of the sentence under it.
+import Section from '../Section.astro';
+import NumberedItems from './NumberedItems.astro';
+import PriceBlock from '../PriceBlock.astro';
+import { splitLeadingPrice, visible, type Block } from '../../lib/content';
+
+interface Props {
+  block: Block;
+}
+
+const { block } = Astro.props;
+const items = visible(block.items as Array<{ title: string; text: string }>);
+const notes: string[] = visible(block.notes as Array<{ text: string }>)
+  .map((n) => n?.text)
+  .filter((t): t is string => typeof t === 'string' && t.length > 0);
+const prices = notes.filter((n) => splitLeadingPrice(n));
+const lines = notes.filter((n) => !splitLeadingPrice(n));
+---
+
+<Section id={block.anchor ?? block.id} heading={block.heading}>
+  {
+    block.lead && (
+      <p slot="head" class="lead numbered__lead">
+        {block.lead}
+      </p>
+    )
+  }
+  <NumberedItems items={items} />
+  {
+    prices.length > 0 && (
+      <div class="numbered__prices">
+        {prices.map((n) => (
+          <PriceBlock text={n} />
+        ))}
+      </div>
+    )
+  }
+  {
+    lines.length > 0 && (
+      <div class="numbered__lines">
+        {lines.map((n) => (
+          <p>{n}</p>
+        ))}
+      </div>
+    )
+  }
+</Section>
+
+<style>
+  .numbered__lead {
+    margin-top: var(--s3);
+  }
+
+  /* the price under the list, on the text column of the items from 720px */
+  .numbered__prices {
+    margin-top: var(--s3);
+    display: grid;
+    gap: var(--s2);
+  }
+
+  @media (min-width: 720px) {
+    .numbered__prices {
+      display: grid;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      column-gap: var(--gap);
+    }
+
+    .numbered__prices > :global(*) {
+      grid-column: 2 / span 9;
+    }
+  }
+
+  .numbered__lines {
+    margin-top: var(--s3);
+    display: grid;
+    gap: var(--s1);
+    max-width: var(--measure);
+    color: var(--muted);
+  }
+</style>

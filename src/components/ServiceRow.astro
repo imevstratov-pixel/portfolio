@@ -1,0 +1,143 @@
+---
+// One service in a list (home «Чем могу помочь»), the compact logic of the
+// service cards (decisions 8 and 10 of 14.10): title in bold, the result
+// line, then «Срок» and «Цена» on the rail of the /services/ cards
+// (ServiceTerms: the duration as written, then the price; without a price
+// the global line), then the verb link
+// (`action`: the service's `button`, e.g. «Записаться на консультацию», a
+// Telegram link that copies the start of the message) and «Подробнее» to
+// /services/#anchor.
+// size="large" for the main line, "small" for «Ещё делаю на заказ».
+// The price never outranks the title: main rows (title medium bold) show the
+// figure in the medium size, regular, and the note under it, so «15 000 ₽»
+// reads as the price of a session, not of a framework the line also names;
+// small rows (title base bold) show the figure only, in the base size. The
+// sub-prices stay on /services/ (the texts renderer: price_line).
+// Put rows in <ul class="list-rules" role="list"> for the thin rules between.
+import TelegramButton from './TelegramButton.astro';
+import ServiceTerms from './ServiceTerms.astro';
+import { getService, serviceHref, type ServiceEntry } from '../lib/content';
+import { url } from '../lib/url';
+
+interface Props {
+  service: string | ServiceEntry;
+  line?: string;
+  linkLabel?: string;
+  /** Link target override (content `href`, e.g. "/guide/"); default /services/#anchor. */
+  href?: string;
+  /** Show «Срок: …» from the service duration. */
+  duration?: boolean;
+  /** Show the price line (the service's price or the global line). */
+  price?: boolean;
+  /** Show the verb link (the service's `button`) that opens Telegram. */
+  action?: boolean;
+  size?: 'large' | 'small';
+  /** Title text: "title" (default) or "short". */
+  title?: 'title' | 'short';
+  level?: 3 | 4;
+}
+
+const {
+  service,
+  line,
+  linkLabel,
+  href,
+  duration = false,
+  price = false,
+  action = false,
+  size = 'large',
+  title = 'title',
+  level = 3,
+} = Astro.props;
+const s = typeof service === 'string' ? getService(service) : service;
+const verb = action && s.data.button ? s.data.button : undefined;
+const Tag = `h${level}` as 'h3' | 'h4';
+const link = href ? url(href) : serviceHref(s);
+const titleId = `${s.data.anchor}-row`;
+---
+
+<li class:list={['service-row', `service-row--${size}`]}>
+  <Tag id={titleId} class:list={['service-row__title', size === 'large' ? 't-medium' : 't-base']}>
+    {s.data[title]}
+  </Tag>
+  <div class="service-row__body">
+    {line && <p class="service-row__line">{line}</p>}
+    {
+      (duration || price) && (
+        <div class="service-row__terms">
+          <ServiceTerms
+            service={s}
+            duration={duration}
+            price={price}
+            show={size === 'large' ? 'note' : 'main'}
+            size={size === 'large' ? 'medium' : 'base'}
+          />
+        </div>
+      )
+    }
+    {
+      (verb || linkLabel) && (
+        <p class="service-row__links">
+          {verb && <TelegramButton codeword={s.data.codeword} label={verb} variant="link" class="service-row__verb" />}
+          {linkLabel && (
+            <a href={link} aria-describedby={titleId}>
+              {linkLabel}
+            </a>
+          )}
+        </p>
+      )
+    }
+  </div>
+</li>
+
+<style>
+  .service-row {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--s1) var(--gap);
+  }
+
+  .service-row__title,
+  .service-row__body {
+    grid-column: 1 / -1;
+  }
+
+  .service-row__body {
+    display: grid;
+    gap: var(--s1);
+  }
+
+  .service-row__line {
+    max-width: var(--measure);
+  }
+
+  .service-row__terms {
+    max-width: var(--measure);
+    margin-block: 0.15rem 0.25rem;
+  }
+
+  .service-row__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s1) var(--s3);
+    margin-top: 0.15rem;
+  }
+
+  .service-row__links :global(.service-row__verb) {
+    font-weight: var(--bold);
+  }
+
+  @media (min-width: 720px) {
+    .service-row {
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+    }
+
+    .service-row__title {
+      grid-column: 1 / span 5;
+    }
+
+    .service-row__body {
+      grid-column: 6 / span 7;
+    }
+  }
+</style>

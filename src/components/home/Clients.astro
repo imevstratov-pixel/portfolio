@@ -1,0 +1,74 @@
+---
+// «Где работал» (block "names"): no heading on the site. Each line is a row
+// between thin rules: the mono label on the left (3 of 12 columns), the names
+// as plain text joined by commas (no logos) in the medium size on the right,
+// the note after them in grey and in brackets, as the texts renderer writes it. Under
+// the rows, a link to the case it points to (shown only while it is published).
+import { caseHref, isPublished, visible, type Block } from '../../lib/content';
+
+interface Props {
+  block: Block;
+}
+
+const { block: b } = Astro.props;
+const lines = visible(b.lines).filter((ln: any) => ln.names?.length);
+const link = b.link?.case && isPublished(b.link.case) ? { label: b.link.label, href: caseHref(b.link.case) } : null;
+---
+
+{
+  lines.length > 0 && (
+    <section class="clients">
+      <div class="wrap">
+        <dl class="clients__list">
+          {lines.map((ln: any) => (
+            <div class="clients__row grid">
+              <dt class="clients__label label col-3">{ln.label}</dt>
+              <dd class="clients__names col-9">
+                {ln.names.join(', ')}
+                {ln.note && <span class="clients__extra"> ({ln.note})</span>}
+              </dd>
+            </div>
+          ))}
+        </dl>
+        {link && (
+          <div class="grid clients__more">
+            <p class="col-9 start-4">
+              <a href={link.href}>{link.label}</a>
+            </p>
+          </div>
+        )}
+      </div>
+    </section>
+  )
+}
+
+<style>
+  .clients {
+    padding-top: var(--s4);
+  }
+
+  .clients__list {
+    border-bottom: var(--hair);
+  }
+
+  .clients__row {
+    align-items: baseline;
+    row-gap: var(--s1);
+    padding-block: var(--s2);
+    border-top: var(--hair);
+  }
+
+  .clients__names {
+    font-size: var(--fs-medium);
+    line-height: var(--lh-medium);
+    letter-spacing: var(--track-medium);
+  }
+
+  .clients__extra {
+    color: var(--muted);
+  }
+
+  .clients__more {
+    margin-top: var(--s2);
+  }
+</style>

@@ -1,0 +1,441 @@
+---
+// The body of a case page /cases/<slug>/ (decision 17 of 14.10), in this
+// order: «Все кейсы» (back to the case's card on /cases/), the labels with
+// the status, the title (h1), the whole infographic (facts, steps, «было —
+// стало»), the case text (Контекст, Что сделал, Результат) with the reel
+// beside it, the AgentsScheme (staff-c2), the links, the testimonials as a
+// Carousel of cards, then «Что из этого сделаю для вас» with the service
+// linked, its «Срок» and «Цена» (ServiceTerms: the figure and what it covers,
+// the size of the home rows) and its verb Telegram button, then the bottom
+// navigation «Другие кейсы» (caseWords().nav): the previous and next case and
+// «Все кейсы» back to this case's card on /cases/.
+//
+// Layout (12 columns from 720px): the title on up to 24em; the infographic
+// at the full width; the text rows: from 1080px the name in columns 1-3 and
+// the text in 4-10, or 4-9 when a vertical reel stands in 10-12 beside the
+// rows; below 1080px the name above its text (the reel in 10-12 from 720px,
+// at half the width after the text on phones). The scheme takes the full
+// container width. The offer: its name in 1-3, the text in the medium size
+// in 4-10 with the terms and the button under it. Previous and next: two
+// halves from 720px (next at the right edge), one under the other on phones;
+// «Все кейсы» on its own row under them.
+import CaseLabels from '../CaseLabels.astro';
+import Prose from '../Prose.astro';
+import Button from '../Button.astro';
+import Media from '../Media.astro';
+import Carousel from '../Carousel.astro';
+import TelegramAction from '../TelegramAction.astro';
+import LinkedText from '../LinkedText.astro';
+import ServiceTerms from '../ServiceTerms.astro';
+import AgentsScheme from '../scheme/AgentsScheme.astro';
+import VideoTestimonial from '../VideoTestimonial.astro';
+import CaseInfographic from './CaseInfographic.astro';
+import {
+  bodySections,
+  caseCardHref,
+  caseHref,
+  caseNeighbours,
+  caseService,
+  caseWords,
+  contentHref,
+  findBlock,
+  getPage,
+  getTestimonial,
+  serviceHref,
+  type CaseEntry,
+} from '../../lib/content';
+import { publicFileExists } from '../../lib/media';
+
+interface Props {
+  case: CaseEntry;
+  /** Body sections to show, in order (cases-list block `sections`). */
+  sections: string[];
+  /** Label fields (cases-list block `labels`). */
+  labels: string[];
+  /** Name of the section that links to the service (`serviceLinkLabel`). */
+  serviceLinkLabel: string;
+  /** Show the status after the labels (`statusField` is set). */
+  status?: boolean;
+}
+
+const { case: c, sections, labels, serviceLinkLabel, status = true } = Astro.props;
+const d = c.data;
+const id = d.anchor;
+const words = caseWords();
+
+const service = caseService(c);
+const serviceUrl = serviceHref(service);
+const all = bodySections(c, sections);
+const story = all.filter((s) => s.title !== serviceLinkLabel);
+const offer = all.find((s) => s.title === serviceLinkLabel);
+
+// The service name in the closing line («Разбор курса и пути ученика») becomes the link.
+const escapeHtml = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const serviceTitle = escapeHtml(service.data.title);
+const marker = `«${serviceTitle}»`;
+const offerLinked = !!offer && offer.html.includes(marker);
+const offerHtml = offer ? offer.html.replace(marker, `«<a href="${serviceUrl}">${serviceTitle}</a>»`) : '';
+
+// Reel: the native player with its poster. Accessible name: the reel's hook
+// from the home page if it is listed there, otherwise the case title.
+const reel = d.reel && publicFileExists(d.reel.video) ? d.reel : null;
+const homeReels = findBlock(getPage('home'), 'reels');
+const hook: string | undefined = homeReels?.items?.find((it: { case: string }) => it.case === c.id)?.hook;
+
+const links = d.links ?? [];
+// the line about the free guide under the text (healthtech-course-consulting,
+// decision 18): its link words lead to /free/
+const freeLine = d.leadMagnet?.text ? d.leadMagnet : null;
+const voices = (d.testimonials ?? []).map((slug) => getTestimonial(slug));
+const { prev, next } = caseNeighbours(c);
+---
+
+<article class:list={['cp', reel && 'cp--reel']} aria-labelledby="case-title">
+  <div class="wrap">
+    <p class="cp__back">
+      <a href={caseCardHref(c)}>{words.allLink}</a>
+    </p>
+
+    <header class="cp__head">
+      <CaseLabels case={c} fields={labels} status={status} />
+      <h1 id="case-title" class="cp__title t-large">{d.title}</h1>
+    </header>
+
+    {
+      d.infographic && (
+        <div class="cp__ig">
+          <CaseInfographic infographic={d.infographic} />
+        </div>
+      )
+    }
+
+    {
+      (story.length > 0 || reel) && (
+        <div class="cp__body">
+          <div class="cp__rows">
+            {story.map((s) => (
+              <section class="cp__row" aria-label={s.title || undefined}>
+                {s.title && <h2 class="cp__label label">{s.title}</h2>}
+                <div class="cp__text">
+                  <Prose html={s.html} />
+                </div>
+              </section>
+            ))}
+            {freeLine && (
+              <div class="cp__row cp__row--free">
+                <p class="cp__text">
+                  <LinkedText text={freeLine.text} links={freeLine.link ? [freeLine.link] : []} where={`cases/${c.id} leadMagnet`} />
+                </p>
+              </div>
+            )}
+          </div>
+          {reel && (
+            <div class="cp__reel">
+              <Media type="video" src={reel.video} poster={reel.poster} ratio="9 / 16" label={hook ?? d.title} />
+            </div>
+          )}
+        </div>
+      )
+    }
+
+    {
+      d.scheme === 'ai-agents' && (
+        <div class="cp__block">
+          <AgentsScheme idPrefix={`${id}-scheme`} level={2} facts={false} />
+        </div>
+      )
+    }
+
+    {
+      links.length > 0 && (
+        <ul class="cp__links" role="list">
+          {links.map((l) => (
+            <li>
+              <Button href={contentHref(l.url)} size="small">
+                {l.label}
+              </Button>
+              {l.note && <span class="label">{l.note}</span>}
+            </li>
+          ))}
+        </ul>
+      )
+    }
+  </div>
+
+  {
+    voices.length > 0 && (
+      <div class="wrap cp__voices">
+        <Carousel items={voices} label={words.voices} id={`${id}-voices`} bleed>
+          {(t: (typeof voices)[number]) => <VideoTestimonial testimonial={t} layout="card" size="medium" />}
+        </Carousel>
+      </div>
+    )
+  }
+
+  <div class="wrap">
+    <section class="cp__offer" aria-labelledby="case-offer">
+      <h2 id="case-offer" class="cp__offer-title">
+        {offerLinked ? serviceLinkLabel : <a href={serviceUrl}>{serviceLinkLabel}</a>}
+      </h2>
+      <div class="cp__offer-body">
+        {offer && <Prose class="cp__offer-text" html={offerHtml} />}
+        <ServiceTerms service={service} show="note" class="cp__terms" />
+        <TelegramAction codeword={service.data.codeword} label={service.data.button} caption={false} email={false} />
+      </div>
+    </section>
+
+    <nav class="cp__nav" aria-label={words.nav}>
+      {
+        (prev || next) && (
+          <div class="cp__steps">
+            {prev && (
+              <a class="cp__step cp__step--prev" href={caseHref(prev)} rel="prev">
+                <span class="cp__step-label label">{words.prev}</span>
+                <span class="cp__step-title">{prev.data.shortTitle}</span>
+              </a>
+            )}
+            {next && (
+              <a class="cp__step cp__step--next" href={caseHref(next)} rel="next">
+                <span class="cp__step-label label">{words.next}</span>
+                <span class="cp__step-title">{next.data.shortTitle}</span>
+              </a>
+            )}
+          </div>
+        )
+      }
+      <p class="cp__all">
+        <a href={caseCardHref(c)}>{words.allLink}</a>
+      </p>
+    </nav>
+  </div>
+</article>
+
+<style>
+  .cp {
+    padding-top: var(--s3);
+  }
+
+  .cp__back {
+    font-size: 0.9375rem;
+  }
+
+  .cp__head {
+    margin-top: var(--s3);
+    padding-top: var(--s2);
+    border-top: var(--line);
+  }
+
+  .cp__title {
+    margin-top: var(--s2);
+    max-width: 24em;
+  }
+
+  .cp__ig {
+    margin-top: var(--s4);
+  }
+
+  /* the text rows and the reel beside them */
+  .cp__body {
+    margin-top: var(--s4);
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    column-gap: var(--gap);
+    row-gap: var(--s4);
+    align-items: start;
+  }
+
+  .cp__rows {
+    grid-column: 1 / -1;
+    display: grid;
+    row-gap: var(--s3);
+    min-width: 0;
+  }
+
+  .cp__row {
+    display: grid;
+    row-gap: var(--s1);
+    padding-top: var(--s2);
+    border-top: var(--hair);
+  }
+
+  .cp__label {
+    font-size: var(--fs-small);
+    line-height: var(--lh-small);
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+
+  .cp__text {
+    min-width: 0;
+  }
+
+  .cp__reel {
+    grid-column: 1 / span 2;
+  }
+
+  .cp__block {
+    margin-top: var(--s4);
+  }
+
+  .cp__links {
+    list-style: none;
+    padding: 0;
+    margin-top: var(--s4);
+    display: grid;
+    gap: var(--s1);
+    justify-items: start;
+  }
+
+  .cp__links li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--s1) var(--s2);
+  }
+
+  .cp__voices {
+    margin-top: var(--s4);
+  }
+
+  /* «Что из этого сделаю для вас»: an ink line, the name, the text, the button */
+  .cp__offer {
+    margin-top: var(--s5);
+    padding-top: var(--s2);
+    border-top: var(--line);
+    display: grid;
+    row-gap: var(--s2);
+  }
+
+  .cp__offer-title {
+    font-size: var(--fs-base);
+    line-height: var(--lh-base);
+    letter-spacing: 0;
+  }
+
+  .cp__offer-body {
+    display: grid;
+    gap: var(--s3);
+    justify-items: start;
+  }
+
+  .cp__offer :global(.cp__offer-text) {
+    max-width: 34em;
+    font-size: var(--fs-medium);
+    line-height: 1.4;
+    letter-spacing: var(--track-medium);
+  }
+
+  .cp__offer :global(.cp__terms) {
+    width: 100%;
+    max-width: 34rem;
+  }
+
+  /* previous and next case, then «Все кейсы» */
+  .cp__nav {
+    margin-top: var(--s5);
+    border-top: var(--hair);
+  }
+
+  .cp__steps {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .cp__all {
+    padding-block: var(--s2);
+    border-top: var(--hair);
+    font-weight: var(--bold);
+  }
+
+  .cp__step {
+    display: grid;
+    gap: 0.25rem;
+    padding-block: var(--s2);
+    text-decoration: none;
+  }
+
+  .cp__step + .cp__step {
+    border-top: var(--hair);
+  }
+
+  .cp__step-title {
+    font-size: var(--fs-medium);
+    line-height: var(--lh-medium);
+    letter-spacing: var(--track-medium);
+    font-weight: var(--bold);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.15em;
+  }
+
+  .cp__step:hover .cp__step-title {
+    text-decoration-thickness: 2px;
+  }
+
+  @media (min-width: 720px) {
+    .cp__body {
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+    }
+
+    .cp--reel .cp__rows {
+      grid-column: 1 / span 9;
+    }
+
+    .cp__reel {
+      grid-column: 10 / span 3;
+      grid-row: 1;
+    }
+
+    .cp__offer {
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      column-gap: var(--gap);
+    }
+
+    .cp__offer-title {
+      grid-column: 1 / span 3;
+    }
+
+    .cp__offer-body {
+      grid-column: 4 / span 7;
+    }
+
+    .cp__steps {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: var(--gap);
+    }
+
+    .cp__step + .cp__step {
+      border-top: 0;
+    }
+
+    .cp__step--next {
+      grid-column: 2;
+      justify-items: end;
+      text-align: right;
+    }
+  }
+
+  @media (min-width: 1080px) {
+    /* the rows on the page grid: the name in 1-3, the text in 4-10 (4-9 beside a reel) */
+    .cp__row {
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      column-gap: var(--gap);
+    }
+
+    .cp--reel .cp__row {
+      grid-template-columns: repeat(9, minmax(0, 1fr));
+    }
+
+    .cp__label {
+      grid-column: 1 / span 3;
+    }
+
+    .cp__text {
+      grid-column: 4 / span 7;
+    }
+
+    .cp--reel .cp__text {
+      grid-column: 4 / span 6;
+    }
+  }
+</style>

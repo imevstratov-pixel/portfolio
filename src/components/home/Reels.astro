@@ -1,0 +1,90 @@
+---
+// «Результаты в штате за 15 секунд» (block "reels"): vertical 9:16 videos in
+// the native player (poster until a click, preload none, no autoplay or loop).
+// Six in a row from 1080px; below that the row scrolls sideways and runs to
+// the screen edges. Under each video its hook and «Читать кейс» to the case
+// (the link only while the case is published).
+import Section from '../Section.astro';
+import Media from '../Media.astro';
+import { caseHref, getCase, isPublished, visible, type Block } from '../../lib/content';
+
+interface Props {
+  block: Block;
+}
+
+const { block: b } = Astro.props;
+const items = visible(b.items)
+  .filter((it: any) => it.video)
+  .map((it: any) => {
+    const published = it.case && isPublished(it.case);
+    const anchor = published ? getCase(it.case).data.anchor : undefined;
+    return {
+      ...it,
+      href: published ? caseHref(it.case) : undefined,
+      hookId: anchor ? `${anchor}-reel` : undefined,
+    };
+  });
+---
+
+{
+  items.length > 0 && (
+    <Section id={b.anchor} heading={b.heading}>
+      {b.hint && <p slot="head" class="label reels__hint">{b.hint}</p>}
+      <ul class="scroll-row reels__row" role="list" style={`--row-items: ${Math.min(items.length, 6)}`}>
+        {items.map((it: any) => (
+          <li class="reel">
+            <Media type="video" src={it.video} poster={it.poster} ratio="9 / 16" label={it.hook} />
+            {it.hook && (
+              <p class="reel__hook" id={it.hookId}>
+                {it.hook}
+              </p>
+            )}
+            {it.href && b.linkLabel && (
+              <p class="reel__link">
+                <a href={it.href} aria-describedby={it.hook ? it.hookId : undefined}>
+                  {b.linkLabel}
+                </a>
+              </p>
+            )}
+          </li>
+        ))}
+      </ul>
+    </Section>
+  )
+}
+
+<style>
+  .reels__hint {
+    margin-top: var(--s2);
+  }
+
+  /* below 1080px the row scrolls sideways from edge to edge of the screen */
+  .reels__row {
+    margin-inline: calc(-1 * var(--gutter));
+    padding-inline: var(--gutter);
+    scroll-padding-inline: var(--gutter);
+  }
+
+  @media (min-width: 1080px) {
+    .reels__row {
+      margin-inline: 0;
+      padding-inline: 0;
+    }
+  }
+
+  .reel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s1);
+  }
+
+  .reel__hook {
+    margin-top: var(--s1);
+    font-weight: var(--bold);
+    line-height: 1.3;
+  }
+
+  .reel__link {
+    margin-top: auto;
+  }
+</style>

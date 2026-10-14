@@ -1,0 +1,46 @@
+---
+// /products/: intro, the visible products in the block's order (each an
+// article with its anchor), the custom-order block («Хотите такую вещь под
+// свою задачу?», anchor contact). Blocks are rendered in content order.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Section from '../../components/Section.astro';
+import ContactBlock from '../../components/ContactBlock.astro';
+import ProductItem from '../../components/products/ProductItem.astro';
+import { getPage, pageBlocks, visibleProducts } from '../../lib/content';
+
+const page = getPage('products');
+const blocks = pageBlocks(page);
+---
+
+<BaseLayout page={page} current="/products/">
+  {
+    blocks.map((b) => {
+      if (b.type === 'intro') {
+        const lead: string[] = Array.isArray(b.lead) ? b.lead : [b.lead].filter(Boolean);
+        return (
+          <Section rule="none" pad="s4">
+            <h1>{b.heading}</h1>
+            {lead.length > 0 && (
+              <div class="products-intro stack flow-2 mt-3">
+                {lead.map((p) => (
+                  <p class="lead">{p}</p>
+                ))}
+              </div>
+            )}
+          </Section>
+        );
+      }
+      if (b.type === 'products') {
+        return (
+          <div class="products-list">
+            {visibleProducts(b.items).map((p, i) => (
+              <ProductItem product={p} labels={b.labels} first={i === 0} />
+            ))}
+          </div>
+        );
+      }
+      if (b.type === 'cta-line' || b.type === 'contact') return <ContactBlock block={b} />;
+      return null;
+    })
+  }
+</BaseLayout>

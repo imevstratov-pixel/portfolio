@@ -1,0 +1,137 @@
+---
+// Page shell: <head> (title, description, canonical, Open Graph, robots,
+// fonts, Metrika in production), header, <main>, footer. On the home page the
+// head starts with the old-anchor script (LegacyAnchors: #hire, #c1…#c7 …).
+import '@fontsource/inter-tight/latin-400.css';
+import '@fontsource/inter-tight/latin-ext-400.css';
+import '@fontsource/inter-tight/cyrillic-400.css';
+import '@fontsource/inter-tight/cyrillic-ext-400.css';
+import '@fontsource/inter-tight/latin-700.css';
+import '@fontsource/inter-tight/latin-ext-700.css';
+import '@fontsource/inter-tight/cyrillic-700.css';
+import '@fontsource/inter-tight/cyrillic-ext-700.css';
+// regular italic: the short description of each service (texts: «курсивом»);
+// the browser loads these files only on pages that use italics
+import '@fontsource/inter-tight/latin-400-italic.css';
+import '@fontsource/inter-tight/latin-ext-400-italic.css';
+import '@fontsource/inter-tight/cyrillic-400-italic.css';
+import '@fontsource/inter-tight/cyrillic-ext-400-italic.css';
+import '@fontsource/ibm-plex-mono/latin-400.css';
+import '@fontsource/ibm-plex-mono/latin-ext-400.css';
+import '@fontsource/ibm-plex-mono/cyrillic-400.css';
+import '@fontsource/ibm-plex-mono/cyrillic-ext-400.css';
+import interCyr400 from '@fontsource/inter-tight/files/inter-tight-cyrillic-400-normal.woff2?url';
+import interCyr700 from '@fontsource/inter-tight/files/inter-tight-cyrillic-700-normal.woff2?url';
+import '../styles/global.css';
+
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import LegacyAnchors from './LegacyAnchors.astro';
+import { site, type PageData } from '../lib/content';
+import type { HeaderData } from '../lib/types';
+import { absoluteUrl, url } from '../lib/url';
+import { PREVIEW, METRIKA_ID } from '../lib/env';
+import { imageSize, publicFileExists } from '../lib/media';
+
+interface Props {
+  /** Page content entry data (getPage('home') etc.): seo and an optional header override. */
+  page?: PageData;
+  title?: string;
+  description?: string;
+  /** Site path of the preview image, e.g. "assets/og.jpg". Falls back to the site image. */
+  ogImage?: string;
+  noindex?: boolean;
+  /** Header override (otherwise page.header merged over site/global.md header). */
+  header?: HeaderData;
+  /** Site path of this page for aria-current in the header, e.g. "/services/". */
+  current?: string;
+  /** Where «Написать» points. Default: page.header.ctaTarget or "#contact". */
+  ctaHref?: string;
+}
+
+const { page, current } = Astro.props;
+const seo: Record<string, any> = page?.seo ?? {};
+const title: string = Astro.props.title ?? seo.title ?? site.site.name;
+const description: string | undefined = Astro.props.description ?? seo.description;
+const noindex = PREVIEW || Astro.props.noindex || seo.noindex === true;
+
+const ogPath = [Astro.props.ogImage, seo.ogImage, site.site.ogImage].find(
+  (p): p is string => typeof p === 'string' && publicFileExists(p),
+);
+const ogSize = ogPath ? imageSize(ogPath) : null;
+const ogImage = ogPath ? absoluteUrl(ogPath, Astro.site) : undefined;
+// no canonical for pages that must never be indexed (404)
+const canonical = seo.noindex === true ? undefined : new URL(Astro.url.pathname, Astro.site).href;
+const isHome = Astro.url.pathname === url('/');
+
+const pageHeader: Record<string, any> = page?.header ?? {};
+const header: HeaderData = Astro.props.header ?? {
+  name: pageHeader.name ?? site.header.name,
+  links: pageHeader.links ?? site.header.links,
+  cta: {
+    ...(pageHeader.cta ?? site.header.cta),
+    href: Astro.props.ctaHref ?? pageHeader.ctaTarget ?? pageHeader.cta?.href ?? site.header.cta.href,
+  },
+};
+---
+
+<!doctype html>
+<html lang={site.site.lang} data-metrika={PREVIEW ? undefined : METRIKA_ID}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    {isHome && <LegacyAnchors />}
+    <title>{title}</title>
+    {description && <meta name="description" content={description} />}
+    {noindex && <meta name="robots" content="noindex,nofollow" />}
+    {canonical && <link rel="canonical" href={canonical} />}
+    <meta name="generator" content={Astro.generator} />
+    <meta name="format-detection" content="telephone=no" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='38' fill='%23000'/%3E%3C/svg%3E"
+    />
+    <link rel="preload" href={interCyr400} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={interCyr700} as="font" type="font/woff2" crossorigin />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="ru_RU" />
+    <meta property="og:site_name" content={site.site.name} />
+    <meta property="og:title" content={title} />
+    {description && <meta property="og:description" content={description} />}
+    {canonical && <meta property="og:url" content={canonical} />}
+    {ogImage && <meta property="og:image" content={ogImage} />}
+    {ogSize && <meta property="og:image:width" content={String(ogSize.width)} />}
+    {ogSize && <meta property="og:image:height" content={String(ogSize.height)} />}
+    <meta name="twitter:card" content="summary_large_image" />
+
+    {
+      !PREVIEW && (
+        <>
+          <script is:inline set:html={`(function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();
+    for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+    k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+    ym(${METRIKA_ID}, "init", { clickmap:true, trackLinks:true, accurateTrackBounce:true, webvisor:true });`} />
+          <noscript>
+            <div>
+              <img src={`https://mc.yandex.ru/watch/${METRIKA_ID}`} style="position:absolute; left:-9999px;" alt="" />
+            </div>
+          </noscript>
+        </>
+      )
+    }
+    <slot name="head" />
+  </head>
+  <body>
+    <Header header={header} current={current} />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer current={current} />
+    <script>
+      import '../scripts/telegram.ts';
+    </script>
+  </body>
+</html>

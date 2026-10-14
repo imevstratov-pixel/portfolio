@@ -1,0 +1,55 @@
+---
+// /hire/ for employers. Linked only from the footer (and «Весь опыт по годам»
+// to #experience on the home page); it has its own header from
+// pages/hire.md (Цифры, Опыт, Отзывы, Контакты, «Написать» to #contact).
+// Blocks render in content order, by type, as render_hire() in the texts
+// renderer: first screen, «Коротко», «Цифры», «Опыт» with the staff cases,
+// «Что говорят коллеги», «Как я работаю в команде», «Обсудить роль».
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Section from '../../components/Section.astro';
+import Numbers from '../../components/Numbers.astro';
+import ContactBlock from '../../components/ContactBlock.astro';
+import HireHero from '../../components/hire/HireHero.astro';
+import Facts from '../../components/hire/Facts.astro';
+import Experience from '../../components/hire/Experience.astro';
+import HireTestimonials from '../../components/hire/HireTestimonials.astro';
+import Team from '../../components/hire/Team.astro';
+import { getPage, pageBlocks, visible } from '../../lib/content';
+import type { NumberItem } from '../../lib/types';
+
+const page = getPage('hire');
+const blocks = pageBlocks(page);
+---
+
+<BaseLayout page={page} current="/hire/">
+  {
+    blocks.map((b) => {
+      switch (b.type) {
+        case 'hire-hero':
+          return <HireHero block={b} />;
+        case 'facts':
+          return <Facts block={b} />;
+        case 'numbers': {
+          const items = visible<NumberItem>(b.items);
+          return (
+            items.length > 0 && (
+              <Section id={b.anchor} heading={b.heading}>
+                <Numbers items={items} note={b.note} columns={3} />
+              </Section>
+            )
+          );
+        }
+        case 'experience':
+          return <Experience block={b} />;
+        case 'testimonials':
+          return <HireTestimonials block={b} />;
+        case 'columns':
+          return <Team block={b} />;
+        case 'contact':
+          return <ContactBlock block={b} />;
+        default:
+          throw new Error(`/hire/: unknown block type "${b.type}" (block "${b.id}")`);
+      }
+    })
+  }
+</BaseLayout>

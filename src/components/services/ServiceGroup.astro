@@ -1,0 +1,62 @@
+---
+// A service group on /services/ (block type "service-group"): the group name
+// large across the full width, the optional lead and note line (its link
+// labels become links inside the sentence), then each service as a compact
+// card (ServiceCard). variant "short" renders the short template (the guide:
+// the card, «Для кого», «Что получите на руки» and the link to /guide/).
+import Section from '../Section.astro';
+import LinkedText from '../LinkedText.astro';
+import ServiceCard from './ServiceCard.astro';
+import { type Block, type TextLink } from '../../lib/content';
+
+interface Props {
+  block: Block;
+  /** pages/services.md serviceTemplate.labels. */
+  labels: Record<string, string>;
+  /** Service slug -> position on the page (1–7). */
+  numbers: Map<string, number>;
+}
+
+const { block, labels, numbers } = Astro.props;
+const short = block.variant === 'short';
+
+// The note's link labels become links inside the sentence (LinkedText). A
+// case link only works while the case is published; otherwise the words stay
+// plain text.
+const note: { text: string; links?: TextLink[] } | null = block.note?.text ? block.note : null;
+---
+
+<Section id={block.id} heading={block.heading} class="group">
+  {
+    (block.lead || note) && (
+      <div slot="head" class="group__head">
+        {block.lead && <p class="lead">{block.lead}</p>}
+        {note && (
+          <p class="group__line measure">
+            <LinkedText text={note.text} links={note.links} servicesPage where={`pages/services#${block.id}`} />
+          </p>
+        )}
+      </div>
+    )
+  }
+  <div class="group__list">
+    {
+      (block.services as string[]).map((slug) => (
+        <ServiceCard service={slug} labels={labels} number={numbers.get(slug) ?? 0} short={short} />
+      ))
+    }
+  </div>
+</Section>
+
+<style>
+  .group__head {
+    display: grid;
+    gap: var(--s2);
+    margin-top: var(--s3);
+  }
+
+  .group__list {
+    display: grid;
+    gap: var(--s4);
+  }
+</style>

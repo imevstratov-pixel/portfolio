@@ -1,0 +1,119 @@
+---
+// «Что будет после вашего сообщения»: the four steps from
+// site/global.md work.howWeStart, shared by the home page (block "steps")
+// and the start of #formats on /services/. Four columns with large numbers
+// on wide screens, a column on phones; the optional lines follow (consultation
+// note, what to prepare, workload), as render_steps() in the texts renderer.
+import { site, workloadLine } from '../lib/content';
+
+interface Props {
+  /** Show the heading (default true). On /services/ it sits under «Как устроена работа». */
+  heading?: boolean;
+  /** Heading level (default 2; 3 inside another section). */
+  level?: 2 | 3;
+  showConsultationNote?: boolean;
+  showPrepare?: boolean;
+  showWorkload?: boolean;
+  /** Id of the heading, so a section around it can be named by it (aria-labelledby). */
+  headingId?: string;
+  class?: string;
+}
+
+const {
+  heading = true,
+  level = 2,
+  showConsultationNote = true,
+  showPrepare = true,
+  showWorkload = false,
+  headingId,
+  class: className,
+} = Astro.props;
+const hws = site.work.howWeStart;
+const Tag = `h${level}` as 'h2' | 'h3';
+const workload = showWorkload ? workloadLine(hws.workload) : null;
+const notes = [showConsultationNote && hws.consultationNote, showPrepare && hws.prepare, workload].filter(
+  (x): x is string => typeof x === 'string' && x.length > 0,
+);
+---
+
+<div class:list={['steps', className]}>
+  {
+    heading && (
+      <Tag id={headingId} class:list={['steps__heading', level === 3 && 't-medium']}>
+        {hws.heading}
+      </Tag>
+    )
+  }
+  <ol class="steps__list" role="list">
+    {
+      hws.steps.map((s) => (
+        <li class="steps__item">
+          <p>
+            <strong>{s.title}.</strong> {s.text}
+          </p>
+        </li>
+      ))
+    }
+  </ol>
+  {
+    notes.length > 0 && (
+      <div class="steps__lines">
+        {notes.map((n) => (
+          <p>{n}</p>
+        ))}
+      </div>
+    )
+  }
+</div>
+
+<style>
+  .steps__heading {
+    margin-bottom: var(--s4);
+    max-width: 22em;
+  }
+
+  .steps__list {
+    list-style: none;
+    padding-left: 0;
+    display: grid;
+    gap: var(--s3) var(--gap);
+    counter-reset: step;
+  }
+
+  @media (min-width: 720px) {
+    .steps__list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 1080px) {
+    .steps__list {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  .steps__item {
+    display: grid;
+    align-content: start;
+    gap: var(--s2);
+    padding-top: var(--s1);
+    border-top: var(--line);
+  }
+
+  /* the large step number (a CSS counter: the text stays as approved) */
+  .steps__item::before {
+    counter-increment: step;
+    content: counter(step);
+    font-family: var(--font-mono);
+    font-size: var(--fs-large);
+    line-height: 1;
+  }
+
+  .steps__lines {
+    margin-top: var(--s4);
+    display: grid;
+    gap: var(--s1);
+    max-width: var(--measure);
+    color: var(--muted);
+  }
+</style>

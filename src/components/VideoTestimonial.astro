@@ -1,0 +1,101 @@
+---
+// A video testimonial: the poster in the native player (plays on click, with
+// sound and controls) and the quote beside it, so it can be read without
+// starting the video. Phones: a narrow video column (7.5rem) on the left, the
+// quote at the base size on the right. From 720px use it at the full
+// container width: its columns match the page grid (video 3 of 12, quote 6).
+// size: "medium" for colleagues' quotes (home, /hire/, /cases/), "large" is
+// kept for client quotes.
+// layout "card": a slide of the Carousel (home, /hire/, /cases/): the video
+// on 2 parts and the quote on 3 parts of the card at every width, the quote
+// at the base size on phones and the medium size from 720px.
+import Media from './Media.astro';
+import { getTestimonial, testimonialSignature, type TestimonialEntry } from '../lib/content';
+
+interface Props {
+  /** Testimonial slug ("evgenia") or entry. */
+  testimonial: string | TestimonialEntry;
+  /** Extra signature parts appended when new, e.g. ["Школа маркетплейсов Лео Шевченко", "мой руководитель"]. */
+  extra?: Array<string | null | undefined>;
+  /** Show the quote next to the video (default true). */
+  quote?: boolean;
+  /** Quote size from 720px (default "large"; "medium" for colleagues). */
+  size?: 'large' | 'medium';
+  /** "row" (default): video 3 of 12 columns and the quote beside it; "card": a carousel slide. */
+  layout?: 'row' | 'card';
+  class?: string;
+}
+
+const { testimonial, extra = [], quote = true, size = 'large', layout = 'row', class: className } = Astro.props;
+const t = typeof testimonial === 'string' ? getTestimonial(testimonial) : testimonial;
+const sign = testimonialSignature(t, extra);
+---
+
+<figure class:list={['vt', `vt--${layout}`, `vt--${size}`, className]}>
+  <div class="vt__media">
+    <Media type="video" src={t.data.video} poster={t.data.poster} ratio="9 / 16" label={sign} />
+  </div>
+  <figcaption class="vt__text">
+    {quote && <blockquote class="vt__quote"><p>{t.data.quote}</p></blockquote>}
+    <p class="vt__sign label">{sign}</p>
+  </figcaption>
+</figure>
+
+<style>
+  .vt {
+    display: grid;
+    grid-template-columns: 7.5rem minmax(0, 1fr);
+    gap: var(--gap);
+    align-items: start;
+  }
+
+  .vt__text {
+    display: grid;
+    gap: var(--s2);
+  }
+
+  .vt__quote {
+    font-size: var(--fs-base);
+    line-height: 1.4;
+  }
+
+  .vt__quote p::before {
+    content: '«';
+  }
+
+  .vt__quote p::after {
+    content: '»';
+  }
+
+  .vt--card {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+    padding-top: var(--s2);
+    border-top: var(--hair);
+  }
+
+  @media (min-width: 720px) {
+    .vt--row {
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+    }
+
+    .vt--row .vt__media {
+      grid-column: span 3;
+    }
+
+    .vt--row .vt__text {
+      grid-column: span 6;
+    }
+
+    .vt--large .vt__quote {
+      font-size: var(--fs-large);
+      line-height: 1.12;
+      letter-spacing: var(--track-large);
+    }
+
+    .vt--medium .vt__quote {
+      font-size: var(--fs-medium);
+      line-height: 1.3;
+      letter-spacing: var(--track-medium);
+    }
+  }
+</style>

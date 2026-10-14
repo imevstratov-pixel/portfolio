@@ -1,0 +1,150 @@
+---
+// A price (decision 16 of 14.10): the figure or range in the sans face, in
+// regular weight (not mono: it reads as words, «от 250 000 ₽»), what it covers
+// in the body size under it, then sub-prices or variants as a small dash list.
+//
+// One style everywhere, sized to its context, never louder than the title it
+// belongs to (the weight tells them apart):
+// - 'medium' (default): the size of a service title, /services/ cards, home
+//   rows «Чем могу помочь», the case page offer, /guide/ «Что входит»;
+// - 'base': the body size, home rows «Ещё делаю на заказ» (title in base bold);
+// - 'large': the section-heading size, only the /guide/ hero (a one-product page).
+//
+//   <PriceBlock service={s} />                       full price of a service card
+//   <PriceBlock service={s} show="note" />           the figure and what it covers (home rows)
+//   <PriceBlock service={s} show="main" size="base" />   the figure only (small rows)
+//   <PriceBlock text={hero.price} size="large" />    a text line that starts with a figure (/guide/)
+//
+// `service`: its `price` ({ main, note?, more? }); without one the global line
+// (site work.price, «Точную цену называю письменно до старта. …») is shown
+// instead, in bold, unless `fallback={false}`.
+// `text`: «12 000 ₽ за весь тренажёр, без доплат. …» stays one paragraph; only
+// the leading figure is set large on its own line. A text without a leading
+// figure is shown as a plain line.
+// The figure never breaks inside a number (the content uses non-breaking
+// spaces); a range may break after its dash on narrow columns.
+import { globalPriceLine, servicePrice, splitLeadingPrice, type Price, type ServiceEntry } from '../lib/content';
+
+interface Props {
+  service?: string | ServiceEntry;
+  price?: Price | null;
+  text?: string;
+  /** 'full' (figure, note, list; default), 'note' (figure and note) or 'main' (the figure only). */
+  show?: 'full' | 'note' | 'main';
+  /** Size of the figure: 'medium' (default), 'base' or 'large'. */
+  size?: 'medium' | 'base' | 'large';
+  /** Show the global line when there is no price (default true). */
+  fallback?: boolean;
+  class?: string;
+}
+
+const { service, text, show = 'full', size = 'medium', fallback = true, class: className } = Astro.props;
+const price: Price | null = Astro.props.price ?? (service ? servicePrice(service) : null);
+const split = !price && text ? splitLeadingPrice(text) : null;
+const line = !price && !split ? (text ?? (fallback ? globalPriceLine() : '')) : '';
+const full = show === 'full';
+const withNote = show !== 'main';
+// Typography only, the words stay as approved: a dash stays on the line of
+// the word before it («Три сессии — 40 000 ₽»), and «от», «до», «около» stay
+// with the figure after them («от 140 000 ₽»).
+const bind = (t: string) => t.replace(/ ([—–]) /g, '\u00a0$1 ').replace(/(^|\s)(от|до|около) (?=\d)/giu, '$1$2\u00a0');
+---
+
+{
+  price ? (
+    <div class:list={['price', `price--${size}`, className]}>
+      <p class="price__main">{bind(price.main)}</p>
+      {withNote && price.note && <p class="price__covers">{bind(price.note)}</p>}
+      {full && price.more.length > 0 && (
+        <ul class="price__more" role="list">
+          {price.more.map((x) => (
+            <li>{bind(x)}</li>
+          ))}
+        </ul>
+      )}
+    </div>
+  ) : split ? (
+    <div class:list={['price', `price--${size}`, className]}>
+      <p class="price__text">
+        <span class="price__main">{split.main}</span> {split.rest && <span class="price__covers">{bind(split.rest)}</span>}
+      </p>
+    </div>
+  ) : (
+    line && (
+      <div class:list={['price', 'price--line', className]}>
+        <p class="price__line">{line}</p>
+      </div>
+    )
+  )
+}
+
+<style>
+  .price {
+    display: grid;
+    justify-items: start;
+    gap: 0.4rem;
+    min-width: 0;
+  }
+
+  .price__main {
+    display: block;
+    font-family: var(--font-sans);
+    font-weight: var(--regular);
+    font-size: var(--fs-medium);
+    line-height: var(--lh-medium);
+    letter-spacing: var(--track-medium);
+    font-variant-numeric: lining-nums;
+    text-wrap: balance;
+  }
+
+  .price--large .price__main {
+    font-size: var(--fs-large);
+    line-height: var(--lh-large);
+    letter-spacing: var(--track-large);
+  }
+
+  .price--base .price__main {
+    font-size: var(--fs-base);
+    line-height: var(--lh-base);
+    letter-spacing: 0;
+  }
+
+  .price__text {
+    display: grid;
+    gap: 0.4rem;
+    justify-items: start;
+  }
+
+  .price__covers {
+    display: block;
+    max-width: 52ch;
+    text-wrap: pretty;
+  }
+
+  /* sub-prices and variants: a small dash list */
+  .price__more {
+    display: grid;
+    gap: 0.3rem;
+    margin-top: 0.2rem;
+    max-width: 68ch;
+    font-size: 0.9375rem;
+    line-height: 1.4;
+  }
+
+  .price__more > li {
+    position: relative;
+    padding-left: 1.1em;
+  }
+
+  .price__more > li::before {
+    content: '–';
+    position: absolute;
+    left: 0;
+    color: var(--muted);
+  }
+
+  .price__line {
+    font-weight: var(--bold);
+    max-width: 44ch;
+  }
+</style>

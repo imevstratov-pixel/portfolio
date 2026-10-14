@@ -1,0 +1,79 @@
+---
+// «Чем могу помочь» (block "services"): the lead under the heading, the main
+// line as large rows between thin rules (title on 5 columns; line, «Срок» and
+// the price line, the verb link to Telegram and «Подробнее» on 7), then,
+// after an ink rule, «Ещё делаю на заказ» as a smaller list of the same rows.
+// «Подробнее» goes to /services/#anchor, or to the item's own href (the
+// guide goes to /guide/).
+import Section from '../Section.astro';
+import ServiceRow from '../ServiceRow.astro';
+import { visible, type Block } from '../../lib/content';
+
+interface Props {
+  block: Block;
+}
+
+const { block: b } = Astro.props;
+const main = visible(b.main);
+const more = visible(b.more);
+---
+
+<Section id={b.anchor} heading={b.heading}>
+  {b.lead && <p slot="head" class="lead services__lead">{b.lead}</p>}
+  {
+    main.length > 0 && (
+      <ul class="list-rules" role="list">
+        {main.map((it: any) => (
+          <ServiceRow
+            service={it.service}
+            line={it.line}
+            linkLabel={b.linkLabel}
+            href={it.href}
+            duration={b.showDuration}
+            price
+            action
+          />
+        ))}
+      </ul>
+    )
+  }
+  {
+    more.length > 0 && (
+      <div class="services__more">
+        {b.moreHeading && <h3 class="services__more-title">{b.moreHeading}</h3>}
+        <ul class="list-rules" role="list">
+          {more.map((it: any) => (
+            <ServiceRow
+              service={it.service}
+              line={it.line}
+              linkLabel={b.linkLabel}
+              href={it.href}
+              duration={b.showDuration}
+              price
+              action
+              size="small"
+              level={b.moreHeading ? 4 : 3}
+            />
+          ))}
+        </ul>
+      </div>
+    )
+  }
+</Section>
+
+<style>
+  .services__lead {
+    margin-top: var(--s2);
+  }
+
+  /* the thick rule before the smaller list */
+  .services__more {
+    margin-top: var(--s4);
+    padding-top: var(--s2);
+    border-top: var(--line);
+  }
+
+  .services__more-title {
+    margin-bottom: var(--s3);
+  }
+</style>

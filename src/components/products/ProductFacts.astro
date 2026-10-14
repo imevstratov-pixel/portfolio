@@ -1,0 +1,42 @@
+---
+// The three labelled facts of a product («Что внутри», «Статус», «Где
+// работает»): mono label, value in small mono, hairlines between rows.
+interface Props {
+  facts: Array<{ label: string; value: string }>;
+  class?: string;
+}
+
+const { facts, class: className } = Astro.props;
+---
+
+<dl class:list={['facts', className]}>
+  {
+    facts.map((f) => (
+      <div class="facts__row">
+        <dt class="label">{f.label}</dt>
+        <dd>{f.value}</dd>
+      </div>
+    ))
+  }
+</dl>
+
+<style>
+  .facts {
+    border-bottom: var(--hair);
+    max-width: 34rem;
+  }
+
+  .facts__row {
+    border-top: var(--hair);
+    padding-block: 0.6rem;
+    display: grid;
+    gap: 0.15rem;
+  }
+
+  .facts__row dd {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--fs-small);
+    line-height: var(--lh-small);
+  }
+</style>

@@ -1,0 +1,41 @@
+---
+// «Что говорят коллеги» on /hire/ (block "testimonials", anchor
+// #testimonials): the hint under the heading, then the video testimonials as
+// a Carousel row of cards, as on the home page (decision 11 of 14.10). The
+// signature adds the company and the relation from the block when they are
+// new and not empty («Женя, CPO, Школа маркетплейсов Лео Шевченко, мой руководитель»).
+import Section from '../Section.astro';
+import Carousel from '../Carousel.astro';
+import VideoTestimonial from '../VideoTestimonial.astro';
+import { getTestimonial, visible, type Block } from '../../lib/content';
+
+interface Props {
+  block: Block;
+}
+
+type Item = { testimonial: string; company?: string; relation?: string };
+
+const { block: b } = Astro.props;
+const items = visible<Item>(b.items)
+  .filter((it) => it?.testimonial)
+  .map((it) => ({ t: getTestimonial(it.testimonial), extra: [it.company, it.relation] }));
+---
+
+{
+  items.length > 0 && (
+    <Section id={b.anchor} heading={b.heading}>
+      {b.hint && <p slot="head" class="ht__hint label">{b.hint}</p>}
+      <Carousel items={items} label={b.heading} id="hire-colleagues" bleed>
+        {(it: (typeof items)[number]) => (
+          <VideoTestimonial testimonial={it.t} extra={it.extra} layout="card" size="medium" />
+        )}
+      </Carousel>
+    </Section>
+  )
+}
+
+<style>
+  .ht__hint {
+    margin-top: var(--s2);
+  }
+</style>

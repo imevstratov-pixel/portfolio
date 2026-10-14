@@ -1,0 +1,315 @@
+---
+// One product on /products/ (block type "products"), anchored by its anchor.
+// Content follows render_products() in the texts renderer: kind and one-liner,
+// body, «Что внутри», «Статус» (status and its note), «Где работает», the
+// gallery (or the one screenshot in `media` when there is no gallery), the
+// action button (none for the party games), secondary links with their
+// notes, the quiet Telegram link with the product's message template.
+//
+// Layout (12 columns from 720px): an ink line on top, the kind as a mono label,
+// the name in huge type across the row.
+// - Gallery of two or more (decision 14 of 14.10): a Carousel row right under
+//   the name (screenshots and native videos with posters, one row height,
+//   each as wide as its own ratio, the caption under each), then the text in
+//   columns 1-7 and the facts in 9-12.
+// - One picture: the text in columns 1-7 (facts under the body) and the
+//   screenshot with its caption in the side column 9-12.
+// - Nothing: the facts in the side column.
+// Phones: one column; the gallery or the screenshot comes first, under the name.
+// The gallery's first shot is also `media` in the content: it is shown once.
+// Every screenshot of the gallery is a plain link to the full file (new tab,
+// no lightbox), as the work screenshots on /services/: on phones the slides
+// are about 290px wide and their interface text is too small to read.
+// Loading: only the first slide of the first product (`first`) is eager, the
+// rest lazy (the brief: lazy below the fold).
+import Prose from '../Prose.astro';
+import Button from '../Button.astro';
+import Media from '../Media.astro';
+import Carousel from '../Carousel.astro';
+import TelegramButton from '../TelegramButton.astro';
+import ProductFacts from './ProductFacts.astro';
+import { bodyHtml, contentHref, productTemplate, visible, type ProductEntry } from '../../lib/content';
+import { isExternal, url } from '../../lib/url';
+import { imageSize } from '../../lib/media';
+
+interface Props {
+  product: ProductEntry;
+  labels: { inside: string; status: string; platform: string };
+  /** The first product on the page: its first picture loads eagerly. */
+  first?: boolean;
+}
+
+const { product: p, labels, first = false } = Astro.props;
+const d = p.data;
+const id = d.anchor;
+const titleId = `${id}-title`;
+
+// «Статус: Ранняя версия, бесплатно. Играйте на компьютере: …» (renderer: f"{status}. {note}".strip())
+const statusLine = `${d.status}. ${d.statusNote ?? ''}`.trim();
+const facts = [
+  { label: labels.inside, value: d.inside },
+  { label: labels.status, value: statusLine },
+  { label: labels.platform, value: d.platform },
+].filter((f) => f.value);
+
+type Shot = { type: 'image' | 'video'; src: string; poster?: string; alt: string; caption?: string };
+const gallery: Shot[] = visible(d.gallery).filter((g) => g.src);
+const shots: Shot[] = gallery.length
+  ? gallery
+  : d.media?.src
+    ? [{ type: /\.(mp4|webm|mov)$/i.test(d.media.src) ? 'video' : 'image', src: d.media.src, alt: d.media.alt }]
+    : [];
+// width / height of every shot (a video takes its poster's)
+const ratio = (g: Shot) => {
+  const size = imageSize(g.type === 'video' ? (g.poster ?? '') : g.src);
+  return size ? size.width / size.height : g.type === 'video' ? 16 / 9 : 1;
+};
+const row = shots.length > 1 ? shots : [];
+const single = shots.length === 1 ? shots[0] : null;
+// The side column holds the single screenshot (the facts then go under the
+// body), otherwise the facts. Keeps both columns about equal.
+const factsInMain = !!single;
+const secondary = visible(d.secondaryLinks);
+---
+
+<article id={id} class="product" aria-labelledby={titleId}>
+  <div class="wrap">
+    <div class="product__inner">
+      <header class="product__head">
+        <p class="label">{d.kind}</p>
+        <h2 id={titleId} class="product__title t-huge">{d.title}</h2>
+      </header>
+
+      {
+        row.length > 0 && (
+          <div class="product__gallery">
+            <Carousel items={row} kind="media" ratios={row.map(ratio)} label={d.title} id={`${id}-gallery`} bleed>
+              {(g: Shot, i: number) => (
+                <figure class="shot">
+                  <div class:list={['shot__frame', g.type === 'image' && 'shot__frame--image']}>
+                    {g.type === 'image' ? (
+                      <a class="shot__link" href={url(g.src)} target="_blank" rel="noopener">
+                        <Media
+                          type="image"
+                          src={g.src}
+                          alt={g.alt}
+                          ratio={`${ratio(g).toFixed(4)}`}
+                          loading={first && i === 0 ? 'eager' : 'lazy'}
+                        />
+                      </a>
+                    ) : (
+                      <Media
+                        type="video"
+                        src={g.src}
+                        poster={g.poster}
+                        alt={g.alt}
+                        label={g.caption ?? g.alt}
+                        ratio={`${ratio(g).toFixed(4)}`}
+                        loading={first && i === 0 ? 'eager' : 'lazy'}
+                      />
+                    )}
+                  </div>
+                  {g.caption && <figcaption class="shot__caption">{g.caption}</figcaption>}
+                </figure>
+              )}
+            </Carousel>
+          </div>
+        )
+      }
+
+      <div class="product__grid">
+        <div class="product__main">
+          <p class="product__lead lead">{d.oneLiner}</p>
+          <Prose class="product__body" html={bodyHtml(p)} />
+          {factsInMain && <ProductFacts class="product__facts" facts={facts} />}
+          {
+            (d.action || secondary.length > 0) && (
+              <div class="product__actions">
+                {d.action && (
+                  <Button href={d.action.url} variant="primary" goal="product">
+                    {d.action.label}
+                  </Button>
+                )}
+                {secondary.length > 0 && (
+                  <ul class="product__links" role="list">
+                    {secondary.map((l) => (
+                      <li>
+                        <a
+                          href={isExternal(l.url) ? l.url : contentHref(l.url)}
+                          target={/^https?:/i.test(l.url) ? '_blank' : undefined}
+                          rel={/^https?:/i.test(l.url) ? 'noopener' : undefined}
+                          data-goal="product"
+                        >
+                          {l.label}
+                        </a>
+                        {l.note && <span class="label">{l.note}</span>}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )
+          }
+          <p class="product__message">
+            <TelegramButton
+              codeword={d.codeword}
+              template={productTemplate(p)}
+              label={d.messageLink.label}
+              variant="link"
+              goal="product"
+            />
+          </p>
+        </div>
+
+        <div class="product__side">
+          {!factsInMain && <ProductFacts class="product__facts" facts={facts} />}
+          {
+            single && (
+              <figure class="product__media shot">
+                <div class:list={['shot__frame', single.type === 'image' && 'shot__frame--image']}>
+                  {single.type === 'image' ? (
+                    <a class="shot__link" href={url(single.src)} target="_blank" rel="noopener">
+                      <Media type="image" src={single.src} alt={single.alt} loading={first ? 'eager' : 'lazy'} />
+                    </a>
+                  ) : (
+                    <Media type={single.type} src={single.src} poster={single.poster} alt={single.alt} label={single.caption ?? single.alt} />
+                  )}
+                </div>
+                {single.caption && <figcaption class="shot__caption">{single.caption}</figcaption>}
+              </figure>
+            )
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</article>
+
+<style>
+  .product {
+    margin-top: var(--s5);
+  }
+
+  .product__inner {
+    border-top: var(--line);
+    padding-top: var(--s2);
+  }
+
+  .product__title {
+    margin-top: var(--s1);
+  }
+
+  /* phones: one column in reading order, the screenshot first */
+  .product__grid {
+    margin-top: var(--s3);
+    display: flex;
+    flex-direction: column;
+    gap: var(--s3);
+  }
+
+  .product__main,
+  .product__side {
+    display: contents;
+  }
+
+  .product__media {
+    order: -1;
+    width: min(100%, 15rem);
+  }
+
+  .product__lead {
+    order: 0;
+  }
+
+  .product__main > :global(.product__body) {
+    order: 1;
+  }
+
+  .product__grid :global(.product__facts) {
+    order: 2;
+  }
+
+  .product__actions {
+    order: 3;
+  }
+
+  .product__message {
+    order: 4;
+  }
+
+  /* screenshots often have a white edge: a hairline frame keeps them apart
+     from the page (videos have their own black box) */
+  .shot__frame--image :global(.media) {
+    outline: var(--hair);
+    outline-offset: -1px;
+  }
+
+  .shot {
+    display: grid;
+    gap: var(--s1);
+  }
+
+  .shot__link {
+    display: block;
+  }
+
+  .shot__caption {
+    font-family: var(--font-mono);
+    font-size: var(--fs-small);
+    line-height: var(--lh-small);
+    max-width: 44ch;
+  }
+
+  .product__gallery {
+    margin-top: var(--s3);
+  }
+
+  .product__actions {
+    display: grid;
+    justify-items: start;
+    gap: var(--s2);
+  }
+
+  .product__links {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: var(--s1);
+  }
+
+  .product__links li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--s1) var(--s2);
+  }
+
+  @media (min-width: 720px) {
+    .product__grid {
+      display: grid;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      column-gap: var(--gap);
+      align-items: start;
+    }
+
+    .product__main,
+    .product__side {
+      display: grid;
+      align-content: start;
+      gap: var(--s3);
+    }
+
+    .product__main {
+      grid-column: 1 / span 7;
+    }
+
+    .product__side {
+      grid-column: 9 / span 4;
+    }
+
+    .product__media {
+      order: 0;
+      width: min(100%, 18rem);
+    }
+  }
+</style>

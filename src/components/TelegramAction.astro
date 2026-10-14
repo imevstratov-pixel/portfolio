@@ -1,0 +1,60 @@
+---
+// One Telegram button with its hint and the email line under it: the block
+// used by a service, a product or the /guide/ page.
+//   «Нажмите, и начало сообщения скопируется… начните со слова «Курс».»
+//   «Или напишите на почту: imevstratov@gmail.com»
+import TelegramButton from './TelegramButton.astro';
+import EmailLine from './EmailLine.astro';
+import { gref, singleHint, telegramButton } from '../lib/content';
+
+interface Props {
+  codeword: string;
+  /** Override the button's message template. */
+  template?: string;
+  label?: string;
+  caption?: string | false;
+  variant?: 'primary' | 'secondary';
+  /** Show the single-button hint (default true; /hire/ passes false). */
+  hint?: boolean;
+  /** Email line text or global reference; false hides it. Default global.email.line. */
+  email?: string | false;
+  /** Email subject override (default: the codeword). */
+  subject?: string;
+  class?: string;
+}
+
+const {
+  codeword,
+  template,
+  label,
+  caption,
+  variant = 'primary',
+  hint = true,
+  email = 'global.email.line',
+  subject,
+  class: className,
+} = Astro.props;
+const text = template ?? telegramButton(codeword).template;
+---
+
+<div class:list={['tg-action', className]}>
+  <TelegramButton codeword={codeword} template={template} label={label} caption={caption} variant={variant} />
+  {hint && <p class="tg-action__hint label">{singleHint(codeword)}</p>}
+  {email !== false && <EmailLine line={gref(email)} codeword={codeword} template={text} subject={subject} />}
+</div>
+
+<style>
+  .tg-action {
+    display: grid;
+    justify-items: start;
+    gap: var(--s1);
+  }
+
+  /* the same measure as the hint in ContactBlock; a little air before the
+     email line so button, hint and email do not read as one block */
+  .tg-action__hint {
+    max-width: 52ch;
+    margin-top: 2px;
+    margin-bottom: var(--s1);
+  }
+</style>

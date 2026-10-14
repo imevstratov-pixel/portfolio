@@ -1,0 +1,54 @@
+---
+// One part of the full service template on /services/ (inside «Подробнее»):
+// a small mono label («Для кого», «Как идёт работа», …) and its content,
+// with a hairline on top. On the page grid: phones label above the content;
+// from 720px label in columns 1-3 and content in 4-12; from 1080px content
+// in 4-10 (the same rows as the case sections on /cases/).
+// Without a label the content sits in the content column (the body text).
+interface Props {
+  label?: string;
+  class?: string;
+}
+
+const { label, class: className } = Astro.props;
+---
+
+<div class:list={['part', !label && 'part--bare', className]}>
+  {label && <h4 class="part__label label">{label}</h4>}
+  <div class="part__body"><slot /></div>
+</div>
+
+<style>
+  .part {
+    display: grid;
+    gap: var(--s1);
+    padding-top: var(--s2);
+    border-top: var(--hair);
+  }
+
+  .part__body {
+    min-width: 0;
+  }
+
+  @media (min-width: 720px) {
+    .part {
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      column-gap: var(--gap);
+      align-items: baseline;
+    }
+
+    .part__label {
+      grid-column: 1 / span 3;
+    }
+
+    .part__body {
+      grid-column: 4 / -1;
+    }
+  }
+
+  @media (min-width: 1080px) {
+    .part__body {
+      grid-column: 4 / span 7;
+    }
+  }
+</style>

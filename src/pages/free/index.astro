@@ -1,0 +1,59 @@
+---
+// /free/ «Бесплатно» (decision 18): the blocks of pages/free.md in content
+// order: intro (h1 and one line), the free materials as a list (each a
+// FreeItem: cover, title, what is inside, «Скачать PDF», the line about the
+// consultation and the audit), the short contact block (anchor contact, the
+// target of «Написать»). A new material is one more item in the content.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Section from '../../components/Section.astro';
+import ContactShort from '../../components/ContactShort.astro';
+import FreeItem, { type FreeItemData } from '../../components/free/FreeItem.astro';
+import { getPage, pageBlocks, visible } from '../../lib/content';
+
+const page = getPage('free');
+const blocks = pageBlocks(page);
+const known = new Set(['intro', 'free-items', 'contact-short']);
+for (const b of blocks) {
+  if (!known.has(b.type)) throw new Error(`/free/: block "${b.id}" has unknown type "${b.type}"`);
+}
+---
+
+<BaseLayout page={page} current="/free/">
+  {
+    blocks.map((b) =>
+      b.type === 'intro' ? (
+        <Section rule="none" pad="s4">
+          <h1>{b.heading}</h1>
+          {b.lead && <p class="lead free-lead">{b.lead}</p>}
+        </Section>
+      ) : b.type === 'free-items' ? (
+        <div class="wrap free-list-wrap">
+          <ul class="free-list" role="list">
+            {visible<FreeItemData>(b.items).map((it, i) => (
+              <li>
+                <FreeItem item={it} first={i === 0} />
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : (
+        <ContactShort block={b} />
+      ),
+    )
+  }
+</BaseLayout>
+
+<style>
+  .free-lead {
+    margin-top: var(--s3);
+  }
+
+  .free-list-wrap {
+    margin-top: var(--s4);
+  }
+
+  .free-list {
+    display: grid;
+    gap: var(--s5);
+  }
+</style>

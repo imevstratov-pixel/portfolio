@@ -1,0 +1,144 @@
+---
+// The first block of /services/ (block type "intro"): the h1, the lead
+// lines, a table of contents with the services' short names linking to their
+// anchors, and «Не нашли своё? Напишите как есть.» with the «Другое» button,
+// then, once for the whole page, the copy hint of the service buttons
+// (other.hint) and the email line (other.email): the cards below show only
+// their verb buttons.
+// From 1080px the heading and lead sit on the left (7 of 12 columns) and the
+// table of contents on the right (4 columns); below that it follows the lead.
+import Section from '../Section.astro';
+import TelegramButton from '../TelegramButton.astro';
+import EmailLine from '../EmailLine.astro';
+import { getService, gref, telegramButton, type Block } from '../../lib/content';
+
+interface Props {
+  block: Block;
+  /** Service slug -> position on the page (1–7), the same numbers as the services. */
+  numbers: Map<string, number>;
+}
+
+const { block, numbers } = Astro.props;
+const lead: string[] = block.lead ?? [];
+const toc = ((block.toc?.items ?? []) as string[]).map((slug) => {
+  const s = getService(slug);
+  return { slug, short: s.data.short, anchor: s.data.anchor, num: numbers.get(slug) };
+});
+const headingId = 'services-heading';
+const otherHint: string | undefined = block.other?.hint ? gref(block.other.hint) : undefined;
+const otherEmail: string | undefined = block.other?.email ? gref(block.other.email) : undefined;
+---
+
+<Section rule="none" pad="s4" class="intro">
+  <div class="grid intro__grid">
+    <div class="intro__main">
+      <h1 id={headingId}>{block.heading}</h1>
+      {
+        lead.length > 0 && (
+          <div class="intro__lead">
+            {lead.map((p, i) => (
+              <p class:list={[i < 2 ? 'lead' : 'intro__line']}>{p}</p>
+            ))}
+          </div>
+        )
+      }
+    </div>
+
+    {
+      toc.length > 0 && (
+        <nav class="intro__toc" aria-labelledby={headingId}>
+          <ol class="toc list-rules" role="list">
+            {toc.map((it) => (
+              <li>
+                <a class="toc__link link-quiet" href={`#${it.anchor}`}>
+                  {it.num !== undefined && <span class="toc__num label">{String(it.num).padStart(2, '0')}</span>}{' '}
+                  <span class="toc__name">{it.short}</span>
+                </a>
+              </li>
+            ))}
+          </ol>
+        </nav>
+      )
+    }
+
+    {
+      block.other && (
+        <div class="intro__other">
+          <p>{block.other.text}</p>
+          <TelegramButton codeword={block.other.button} />
+          {otherHint && <p class="intro__hint label">{otherHint}</p>}
+          {otherEmail && (
+            <EmailLine
+              line={otherEmail}
+              codeword={block.other.button}
+              template={telegramButton(block.other.button).template}
+            />
+          )}
+        </div>
+      )
+    }
+  </div>
+</Section>
+
+<style>
+  .intro__grid {
+    row-gap: var(--s4);
+  }
+
+  .intro__main {
+    display: grid;
+    align-content: start;
+    gap: var(--s3);
+  }
+
+  .intro__lead {
+    display: grid;
+    gap: var(--s2);
+  }
+
+  .intro__line {
+    max-width: var(--measure);
+  }
+
+  .toc > li {
+    padding-block: 0;
+  }
+
+  .toc__link {
+    display: grid;
+    grid-template-columns: 2.5rem minmax(0, 1fr);
+    align-items: baseline;
+    padding-block: 0.75rem;
+    font-size: var(--fs-medium);
+    line-height: var(--lh-medium);
+    letter-spacing: var(--track-medium);
+  }
+
+  .intro__other {
+    display: grid;
+    justify-items: start;
+    gap: var(--s2);
+  }
+
+  .intro__hint {
+    max-width: 52ch;
+  }
+
+  @media (min-width: 1080px) {
+    .intro__main {
+      grid-column: 1 / span 7;
+      grid-row: 1;
+    }
+
+    .intro__toc {
+      grid-column: 9 / span 4;
+      grid-row: 1 / span 2;
+      align-self: start;
+    }
+
+    .intro__other {
+      grid-column: 1 / span 7;
+      grid-row: 2;
+    }
+  }
+</style>

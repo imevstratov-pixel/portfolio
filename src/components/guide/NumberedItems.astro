@@ -1,0 +1,107 @@
+---
+// A numbered list with large mono numbers (CSS counter, the text stays as
+// approved) and a hairline above each item, as in the texts renderer:
+// «1. **Разговор о близком.** Узнаю…» (title in bold, then the text).
+// layout "rows": number on the left, text on the right (phones: a narrow
+// number column; from 720px: 1 + 9 of 12 columns). layout "row": the same
+// rows on phones and tablets, three items side by side from 1080px with the
+// number on top (the scenes of «Узнаёте себя?»).
+interface Item {
+  title?: string;
+  text: string;
+}
+
+interface Props {
+  items: Array<Item | string>;
+  layout?: 'rows' | 'row';
+  class?: string;
+}
+
+const { items, layout = 'rows', class: className } = Astro.props;
+const list: Item[] = items
+  .map((it) => (typeof it === 'string' ? { text: it } : it))
+  .filter((it) => it && it.text);
+---
+
+<ol class:list={['nums', `nums--${layout}`, className]} role="list">
+  {
+    list.map((it) => (
+      <li class="nums__item">
+        <p class="nums__text">
+          {it.title && <strong>{it.title}.</strong>} {it.text}
+        </p>
+      </li>
+    ))
+  }
+</ol>
+
+<style>
+  .nums {
+    display: grid;
+    counter-reset: item;
+  }
+
+  .nums__item {
+    counter-increment: item;
+    display: grid;
+    grid-template-columns: 2.75rem minmax(0, 1fr);
+    column-gap: var(--s2);
+    align-items: baseline;
+    padding-block: var(--s2) var(--s3);
+    border-top: var(--hair);
+  }
+
+  .nums__item:last-child {
+    border-bottom: var(--hair);
+  }
+
+  .nums__item::before {
+    content: counter(item);
+    grid-column: 1;
+    font-family: var(--font-mono);
+    font-size: var(--fs-large);
+    line-height: 1;
+  }
+
+  .nums__text {
+    grid-column: 2;
+    font-size: var(--fs-medium);
+    line-height: 1.35;
+    letter-spacing: var(--track-medium);
+    max-width: 34em;
+  }
+
+  @media (min-width: 720px) {
+    .nums__item {
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      column-gap: var(--gap);
+    }
+
+    .nums__item::before {
+      grid-column: 1 / span 1;
+    }
+
+    .nums__text {
+      grid-column: 2 / span 9;
+    }
+  }
+
+  @media (min-width: 1080px) {
+    .nums--row {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      column-gap: var(--gap);
+    }
+
+    .nums--row .nums__item {
+      grid-template-columns: minmax(0, 1fr);
+      row-gap: var(--s2);
+      align-content: start;
+      border-bottom: 0;
+    }
+
+    .nums--row .nums__item::before,
+    .nums--row .nums__text {
+      grid-column: 1 / -1;
+    }
+  }
+</style>

@@ -1,0 +1,66 @@
+---
+// A short contact block (anchor "contact", the target of «Написать») for the
+// case pages and /free/: the heading of the /cases/ contact block, the plain Telegram
+// button (`site.telegram.plainButton`, opens the chat, like the home hero),
+// the email line, then the workload and the given lines (default: the
+// global price line). The full grid of service buttons stays on /cases/.
+//
+//   <ContactShort block={getBlock(getPage('cases'), 'contact')} />
+//   <ContactShort block={b} />   <!-- /free/: the contact-short block of pages/free.md -->
+import Section from './Section.astro';
+import Button from './Button.astro';
+import EmailLine from './EmailLine.astro';
+import { gref, site, workloadLine, type Block } from '../lib/content';
+
+interface Props {
+  /** A contact block: its heading, workload and email line are used. */
+  block: Block;
+  /** Lines under the email (text or global references); default the global price line. */
+  lines?: string[];
+  class?: string;
+}
+
+const { block, lines = ['global.work.price'], class: className } = Astro.props;
+const workload = workloadLine(block.workload);
+const texts: string[] = lines.map((l) => gref(l)).filter((l): l is string => typeof l === 'string' && l.length > 0);
+const emailLine: string = typeof block.email === 'string' ? block.email : 'global.email.line';
+---
+
+<Section id={block.anchor ?? 'contact'} heading={block.heading} size="medium" class:list={['contact-short', className]}>
+  <div class="contact-short__body">
+    <div class="contact-short__actions">
+      <Button href={site.contacts.telegram.url} variant="primary" goal="telegram">{site.telegram.plainButton}</Button>
+      <EmailLine line={gref(emailLine)} />
+    </div>
+    {
+      (workload || texts.length > 0) && (
+        <div class="contact-short__lines">
+          {workload && <p>{workload}</p>}
+          {texts.map((t) => (
+            <p>{t}</p>
+          ))}
+        </div>
+      )
+    }
+  </div>
+</Section>
+
+<style>
+  .contact-short__body {
+    display: grid;
+    gap: var(--s3);
+  }
+
+  .contact-short__actions {
+    display: grid;
+    justify-items: start;
+    gap: var(--s2);
+  }
+
+  .contact-short__lines {
+    display: grid;
+    gap: var(--s1);
+    max-width: var(--measure);
+    color: var(--muted);
+  }
+</style>

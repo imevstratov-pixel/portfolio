@@ -1,0 +1,196 @@
+---
+// «Как устроена работа» on /services/ (block type "formats", anchor
+// "formats", the target of work.html): the four steps «Что будет после
+// вашего сообщения» with the flags from the block, the two payment formats in
+// two columns, «Почему со мной предсказуемо» as three items in a row with
+// the work screenshots under them (`proofImages`, decision 13 of 14.10), and
+// «Документы, оплата и права» as a list. Phones: one column.
+// Screenshots: from 720px on the same 3-column grid as the three items above,
+// each figure starting on its column line (the first under «Оценки на
+// данных», which they illustrate). All share one height: the widest-ratio
+// image fills its column and the others are as wide as that height allows,
+// so no figure leaves its column. The caption under each; a click opens the
+// full image in a new tab (a plain link, no lightbox script). More than three
+// wrap to the next row. Phones: one under the other, at most 24rem high.
+import Section from '../Section.astro';
+import Steps from '../Steps.astro';
+import Media from '../Media.astro';
+import { gref, visible, type Block } from '../../lib/content';
+import { imageSize } from '../../lib/media';
+import { url } from '../../lib/url';
+
+interface Props {
+  block: Block;
+}
+
+const { block } = Astro.props;
+const hw = block.howWeStart ?? {};
+const pricing = block.pricing;
+const predictable = block.predictable;
+const terms = block.terms;
+const termItems = visible((terms?.items ?? []) as Array<{ text?: string; source?: string }>);
+const termLines: string[] = termItems
+  .map((it) => (it.text ? it.text : gref(it.source)))
+  .filter((x: unknown): x is string => typeof x === 'string' && x.length > 0);
+
+type Shot = { src: string; alt: string; caption?: string; r: number };
+const shots: Shot[] = visible((block.proofImages ?? []) as Array<{ src: string; alt?: string; caption?: string }>)
+  .filter((it) => it.src)
+  .map((it) => {
+    const size = imageSize(it.src);
+    return { src: it.src, alt: it.alt ?? '', caption: it.caption, r: size ? size.width / size.height : 1 };
+  });
+const ratioMax = shots.reduce((a, it) => Math.max(a, it.r), 0);
+---
+
+<Section id={block.anchor ?? 'formats'} heading={block.heading} class="formats">
+  <div class="formats__body">
+    <Steps
+      level={3}
+      showConsultationNote={!!hw.showConsultationNote}
+      showPrepare={!!hw.showPrepare}
+      showWorkload={!!hw.showWorkload}
+    />
+
+    {
+      pricing && (
+        <div class="formats__part">
+          <h3 class="formats__heading">{pricing.heading}</h3>
+          <div class="cols cols-2">
+            {pricing.items.map((it: { title: string; points: string[] }) => (
+              <div class="formats__price">
+                <h4>{it.title}</h4>
+                <ul class="list-dash" role="list">
+                  {it.points.map((p) => (
+                    <li>{p}</li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </div>
+      )
+    }
+
+    {
+      predictable && (
+        <div class="formats__part">
+          <h3 class="formats__heading">{predictable.heading}</h3>
+          <ul class="cols cols-3 formats__points" role="list">
+            {predictable.items.map((it: { title: string; text: string }) => (
+              <li>
+                <p>
+                  <strong>{it.title}.</strong> {it.text}
+                </p>
+              </li>
+            ))}
+          </ul>
+          {shots.length > 0 && (
+            <div class="shots" style={`--rmax: ${ratioMax.toFixed(4)}`}>
+              {shots.map((it) => (
+                <figure class="shots__item" style={`--r: ${it.r.toFixed(4)}`}>
+                  <a class="shots__link" href={url(it.src)} target="_blank" rel="noopener">
+                    <Media src={it.src} alt={it.alt} />
+                  </a>
+                  {it.caption && <figcaption class="shots__caption">{it.caption}</figcaption>}
+                </figure>
+              ))}
+            </div>
+          )}
+        </div>
+      )
+    }
+
+    {
+      termLines.length > 0 && (
+        <div class="formats__part">
+          <h3 class="formats__heading">{terms.heading}</h3>
+          <ul class="list-rules formats__terms" role="list">
+            {termLines.map((t) => (
+              <li>{t}</li>
+            ))}
+          </ul>
+        </div>
+      )
+    }
+  </div>
+</Section>
+
+<style>
+  .formats__body {
+    display: grid;
+    gap: var(--s5);
+  }
+
+  .formats__heading {
+    margin-bottom: var(--s3);
+    max-width: 22em;
+  }
+
+  .formats__price,
+  .formats__points > li {
+    display: grid;
+    align-content: start;
+    gap: var(--s2);
+    padding-top: var(--s2);
+    border-top: var(--hair);
+  }
+
+  .formats__points > li > p {
+    max-width: var(--measure);
+  }
+
+  .formats__terms {
+    max-width: var(--measure);
+  }
+
+  /* work screenshots: phones one under the other, at most 24rem high */
+  .shots {
+    margin-top: var(--s4);
+    display: grid;
+    gap: var(--s3) var(--gap);
+    align-items: start;
+  }
+
+  @media (max-width: 719.98px) {
+    .shots__item {
+      max-width: min(100%, calc(24rem * var(--r)));
+    }
+  }
+
+  /* from 720px: the 3 columns of the items above (.cols-3), one height for
+     all; the column width comes from the container (cqw of .shots) */
+  @media (min-width: 720px) {
+    .shots {
+      container-type: inline-size;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .shots__item {
+      --col: calc((100cqw - 2 * var(--gap)) / 3);
+      width: calc(var(--col) * var(--r) / var(--rmax));
+    }
+  }
+
+  .shots__item {
+    display: grid;
+    gap: var(--s1);
+    min-width: 0;
+  }
+
+  .shots__link {
+    display: block;
+  }
+
+  .shots__link :global(.media) {
+    outline: var(--hair);
+    outline-offset: -1px;
+  }
+
+  .shots__caption {
+    font-family: var(--font-mono);
+    font-size: var(--fs-small);
+    line-height: var(--lh-small);
+    max-width: 44ch;
+  }
+</style>

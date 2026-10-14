@@ -1,0 +1,104 @@
+---
+// The free-guide block (type "lead-magnet") on the home page and on
+// /services/ (decision 18): a small cover beside the heading (medium), one
+// line and a framed small link to /free/. The cover is a link to the same
+// place for the mouse only: out of the tab order and hidden from screen
+// readers (tabindex="-1" aria-hidden="true"), the button is the one stop.
+//
+// Grid: phones 4 columns (the cover in 1, the text in 2-4); from 720px 12
+// columns (the cover in 1-2, the text in 3-9).
+//
+//   <LeadMagnet block={getBlock(page, 'free-guide')} />
+import Section from './Section.astro';
+import Button from './Button.astro';
+import Media from './Media.astro';
+import { url } from '../lib/url';
+import type { Block } from '../lib/content';
+
+interface Props {
+  /** heading, text, link { label, href }, image? { src, alt } */
+  block: Block;
+}
+
+const { block } = Astro.props;
+const id: string = block.anchor ?? block.id;
+const link: { label: string; href: string } | undefined = block.link?.href && block.link?.label ? block.link : undefined;
+const image: { src: string; alt: string } | undefined = block.image?.src ? block.image : undefined;
+---
+
+<Section id={id} labelledby={`${id}-heading`} class="lm">
+  <div class:list={['lm__grid', image && 'lm__grid--image']}>
+    {
+      image && (
+        <a class="lm__cover" href={link ? url(link.href) : undefined} tabindex="-1" aria-hidden="true">
+          <Media type="image" src={image.src} alt={image.alt} />
+        </a>
+      )
+    }
+    <div class="lm__body">
+      <h2 id={`${id}-heading`} class="lm__heading t-medium">{block.heading}</h2>
+      {block.text && <p class="lm__text">{block.text}</p>}
+      {
+        link && (
+          <Button href={link.href} size="small" class="lm__link">
+            {link.label}
+          </Button>
+        )
+      }
+    </div>
+  </div>
+</Section>
+
+<style>
+  .lm__grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    column-gap: var(--gap);
+    align-items: start;
+  }
+
+  .lm__body {
+    grid-column: 1 / -1;
+    display: grid;
+    justify-items: start;
+    gap: var(--s2);
+  }
+
+  .lm__grid--image .lm__body {
+    grid-column: 2 / span 3;
+  }
+
+  .lm__cover {
+    grid-column: 1;
+    display: block;
+  }
+
+  /* the cover is a white page on a white page: a hairline frame */
+  .lm__cover :global(.media) {
+    outline: var(--hair);
+    outline-offset: -1px;
+  }
+
+  .lm__text {
+    max-width: var(--measure);
+  }
+
+  @media (min-width: 720px) {
+    .lm__grid {
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+    }
+
+    .lm__cover {
+      grid-column: 1 / span 2;
+    }
+
+    .lm__body,
+    .lm__grid--image .lm__body {
+      grid-column: 3 / span 7;
+    }
+
+    .lm__grid:not(.lm__grid--image) .lm__body {
+      grid-column: 1 / span 8;
+    }
+  }
+</style>

@@ -1,0 +1,78 @@
+---
+// Questions and answers as native <details>/<summary>: no script, no
+// animation. The marker is «+» / «−» (no arrows on the site).
+import { visible } from '../lib/content';
+import type { FaqItem } from '../lib/types';
+
+interface Props {
+  items: FaqItem[];
+  /** Open every answer by default (e.g. for print or a short list). */
+  open?: boolean;
+  class?: string;
+}
+
+const { items, open = false, class: className } = Astro.props;
+const list = visible(items).filter((it) => it.q && it.a);
+---
+
+<div class:list={['faq', className]}>
+  {
+    list.map((it) => (
+      <details class="faq__item" open={open}>
+        <summary class="faq__q">{it.q}</summary>
+        <div class="faq__a">
+          <p>{it.a}</p>
+        </div>
+      </details>
+    ))
+  }
+</div>
+
+<style>
+  .faq {
+    border-bottom: var(--hair);
+  }
+
+  .faq__item {
+    border-top: var(--hair);
+  }
+
+  .faq__q {
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: var(--s2);
+    padding-block: var(--s2);
+    cursor: pointer;
+    font-size: var(--fs-medium);
+    line-height: var(--lh-medium);
+    letter-spacing: var(--track-medium);
+    font-weight: var(--bold);
+  }
+
+  .faq__q::-webkit-details-marker {
+    display: none;
+  }
+
+  .faq__q::after {
+    content: '+';
+    font-family: var(--font-mono);
+    font-weight: var(--regular);
+  }
+
+  .faq__item[open] > .faq__q::after {
+    content: '−';
+  }
+
+  .faq__q:hover {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+
+  .faq__a {
+    padding-bottom: var(--s3);
+    max-width: var(--measure);
+  }
+</style>

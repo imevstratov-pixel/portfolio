@@ -1,0 +1,84 @@
+---
+// Key numbers: value (large mono), label, small source line, optional note.
+// Two per row on phones; four (or three) per row on wide screens.
+import type { NumberItem } from '../lib/types';
+
+interface Props {
+  items: NumberItem[];
+  /** Line under the numbers, e.g. «Источники: …». */
+  note?: string;
+  /** Items per row on wide screens (default 4; /hire/ with 6 items uses 3). */
+  columns?: 2 | 3 | 4;
+  class?: string;
+}
+
+const { items, note, columns = 4, class: className } = Astro.props;
+---
+
+<div class:list={['numbers', className]}>
+  <dl class:list={['numbers__list', `numbers__list--${columns}`]}>
+    {
+      items.map((n) => (
+        <div class="numbers__item">
+          <dt class="numbers__value">{n.value}</dt>
+          <dd class="numbers__label">{n.label}</dd>
+          {n.source && <dd class="numbers__source label">{n.source}</dd>}
+        </div>
+      ))
+    }
+  </dl>
+  {note && <p class="numbers__foot label">{note}</p>}
+</div>
+
+<style>
+  .numbers__list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--s3) var(--gap);
+  }
+
+  @media (min-width: 720px) {
+    .numbers__list--3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 1080px) {
+    .numbers__list--4 {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    /* four in a row: keep «2 млрд ₽+» on one line */
+    .numbers__list--4 .numbers__value {
+      font-size: min(var(--fs-large), 3.4vw);
+    }
+  }
+
+  .numbers__item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s1);
+    padding-top: var(--s1);
+    border-top: var(--line);
+  }
+
+  .numbers__value {
+    font-family: var(--font-mono);
+    font-size: var(--fs-large);
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    white-space: nowrap;
+  }
+
+  .numbers__label {
+    max-width: 24em;
+  }
+
+  .numbers__source {
+    margin-top: auto;
+  }
+
+  .numbers__foot {
+    margin-top: var(--s3);
+  }
+</style>

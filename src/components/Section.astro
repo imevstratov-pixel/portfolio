@@ -1,0 +1,105 @@
+---
+// A page section: optional anchor id, small mono label, heading, and a rule
+// on top (ink line between sections by default). Content goes in the slot,
+// inside the page container unless wrap={false}.
+interface Props {
+  /** Anchor id (e.g. "contact", "formats"): the section gets id and aria-labelledby. */
+  id?: string;
+  /** Small mono label above the heading. */
+  label?: string;
+  heading?: string;
+  /** Heading level, default 2. */
+  level?: 2 | 3;
+  /** Heading size class; default follows the level (h2 large, h3 medium). */
+  size?: 'huge' | 'large' | 'medium';
+  /** Rule on top: "line" (ink, default), "hair" (grey) or "none". */
+  rule?: 'line' | 'hair' | 'none';
+  /** Space above the rule: "s3", "s4" or "s5" (default). */
+  pad?: 's3' | 's4' | 's5';
+  /** Put the content inside .wrap (default true). Use false for full-bleed rows. */
+  wrap?: boolean;
+  /** Id of a heading inside the slot that names the section (when `heading` is not passed). */
+  labelledby?: string;
+  class?: string;
+}
+
+const {
+  id,
+  label,
+  heading,
+  level = 2,
+  size,
+  rule = 'line',
+  pad = 's5',
+  wrap = true,
+  labelledby,
+  class: className,
+} = Astro.props;
+const Tag = `h${level}` as 'h2' | 'h3';
+const headingId = id && heading ? `${id}-heading` : undefined;
+const labelId = headingId ?? labelledby;
+const hasHead = !!(label || heading || Astro.slots.has('head'));
+---
+
+<section id={id} class:list={['section', `section--${pad}`, className]} aria-labelledby={labelId}>
+  <div class:list={['section__inner', `section__inner--${rule}`, wrap && 'wrap']}>
+    <div class="section__body">
+      {
+        hasHead && (
+          <div class="section__head">
+            {label && <p class="label section__label">{label}</p>}
+            {heading && (
+              <Tag id={headingId} class:list={['section__title', size && `t-${size}`]}>
+                {heading}
+              </Tag>
+            )}
+            <slot name="head" />
+          </div>
+        )
+      }
+      <slot />
+    </div>
+  </div>
+</section>
+
+<style>
+  .section--s3 {
+    padding-top: var(--s3);
+  }
+
+  .section--s4 {
+    padding-top: var(--s4);
+  }
+
+  .section--s5 {
+    padding-top: var(--s5);
+  }
+
+  .section__body {
+    padding-top: var(--s2);
+  }
+
+  .section__inner--line > .section__body {
+    border-top: var(--line);
+  }
+
+  .section__inner--hair > .section__body {
+    border-top: var(--hair);
+  }
+
+  .section__inner--none > .section__body {
+    padding-top: 0;
+  }
+
+  .section__head {
+    margin-bottom: var(--s4);
+  }
+
+  .section__label {
+    margin-bottom: var(--s3);
+  }
+
+  .section__title {
+    max-width: 22em;
+  }
+</style>

@@ -1,0 +1,93 @@
+---
+// «Срок» and «Цена» of a service as two rows on one rail: the small mono name
+// on the left (4.5rem), the value beside it, both values on one left edge.
+// The name sits on the baseline of the value's first line, so «Цена» stands
+// at the foot of the figure. The price is a PriceBlock (the service's own
+// price, else the global line), in the size of the service title by default.
+//
+//   <ServiceTerms service={s} />                          /services/ cards
+//   <ServiceTerms service={s} show="note" />              home rows, the case page offer
+//   <ServiceTerms service={s} show="main" size="base" />  home rows «Ещё делаю на заказ»
+//
+// «Срок» and «Цена» are the texts renderer's labels (it writes «Срок: …» and
+// «Цена: …»); the duration is shown as written in the content.
+import PriceBlock from './PriceBlock.astro';
+import { getService, type ServiceEntry } from '../lib/content';
+
+interface Props {
+  service: string | ServiceEntry;
+  /** Show the duration row (default true). */
+  duration?: boolean;
+  /** Show the price row (default true). */
+  price?: boolean;
+  /** PriceBlock `show`: 'full' (default), 'note' or 'main'. */
+  show?: 'full' | 'note' | 'main';
+  /** PriceBlock `size`: 'medium' (default), 'base' or 'large'. */
+  size?: 'medium' | 'base' | 'large';
+  class?: string;
+}
+
+const { service, duration = true, price = true, show = 'full', size = 'medium', class: className } = Astro.props;
+const s = typeof service === 'string' ? getService(service) : service;
+const d = s.data.duration?.trim();
+const durationText = d ? d.replace(/[.]$/, '') : '';
+---
+
+{
+  ((duration && durationText) || price) && (
+    <dl class:list={['terms', `terms--${size}`, className]}>
+      {duration && durationText && (
+        <div class="terms__row">
+          <dt class="terms__name label">Срок</dt>
+          <dd class="terms__value">{durationText}</dd>
+        </div>
+      )}
+      {price && (
+        <div class="terms__row terms__row--price">
+          <dt class="terms__name label">Цена</dt>
+          <dd class="terms__value">
+            <PriceBlock service={s} show={show} size={size} />
+          </dd>
+        </div>
+      )}
+    </dl>
+  )
+}
+
+<style>
+  .terms {
+    display: grid;
+    min-width: 0;
+  }
+
+  .terms__row {
+    display: grid;
+    grid-template-columns: 4.5rem minmax(0, 1fr);
+    align-items: baseline;
+    padding-block: 0.55rem 0.7rem;
+    border-top: var(--hair);
+  }
+
+  .terms__row:last-child {
+    padding-bottom: 0;
+  }
+
+  .terms__name {
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .terms__value {
+    margin: 0;
+    min-width: 0;
+  }
+
+  .terms--large .terms__row--price {
+    padding-top: 0.75rem;
+  }
+
+  /* the name in the small mono beside a body-size figure sits on its baseline */
+  .terms--base .terms__row {
+    padding-block: 0.4rem 0.5rem;
+  }
+</style>

@@ -1,0 +1,27 @@
+---
+// A line of text whose link labels become links inside the sentence
+// (linkSegments in lib/content.ts): the services group note on /services/,
+// «Если захотите обсудить свой курс, есть консультация и аудит курса.» on
+// /free/, the line about the free guide on a case page. Renders inline: wrap
+// it in your own <p>.
+//
+//   <p><LinkedText text={d.text} links={d.links} where="pages/free" /></p>
+//   <LinkedText text={note.text} links={note.links} servicesPage />   <!-- #anchor links on /services/ -->
+import { linkSegments, type TextLink } from '../lib/content';
+
+interface Props {
+  text: string;
+  links?: TextLink[];
+  /** The line stands on /services/: service links are same-page anchors. */
+  servicesPage?: boolean;
+  /** Where the line comes from, for the build error when a label is missing. */
+  where?: string;
+  /** Analytics goal for the links (see docs, section 7). */
+  goal?: string;
+}
+
+const { text, links = [], servicesPage = false, where, goal } = Astro.props;
+const segments = linkSegments(text, links, { servicesPage, where });
+---
+
+{segments.map((s) => (s.href ? <a href={s.href} data-goal={goal}>{s.text}</a> : s.text))}

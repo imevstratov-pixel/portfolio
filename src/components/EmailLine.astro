@@ -1,0 +1,29 @@
+---
+// The email fallback next to Telegram buttons: «Или напишите на почту: …».
+// The address inside the line becomes a mailto link whose subject is the
+// codeword and whose body is the same message start as the button.
+import { gref, mailtoHref, site } from '../lib/content';
+
+interface Props {
+  /** Line text or a global reference; default global.email.line. */
+  line?: string;
+  codeword?: string;
+  template?: string;
+  /** Explicit subject (e.g. hire: "Вакансия"); otherwise the codeword or the default subject. */
+  subject?: string;
+  size?: 'base' | 'medium' | 'small';
+  class?: string;
+}
+
+const { line = 'global.email.line', codeword, template, subject, size = 'base', class: className } = Astro.props;
+const text: string = gref(line);
+const email = site.contacts.email;
+const href = mailtoHref({ codeword, template, subject });
+const at = text.indexOf(email);
+const before = at >= 0 ? text.slice(0, at) : text + (text ? ' ' : '');
+const after = at >= 0 ? text.slice(at + email.length) : '';
+---
+
+<p class:list={['email-line', size !== 'base' && `t-${size}`, className]}>
+  {before}<a href={href} data-goal="email">{email}</a>{after}
+</p>

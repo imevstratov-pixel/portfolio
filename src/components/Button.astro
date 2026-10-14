@@ -1,0 +1,55 @@
+---
+// A link or button with a frame. Primary: ink fill; secondary: ink frame.
+// href is a content path ("/services/", "#contact", "https://…"); it goes
+// through url() here, so pass it raw. External http(s) links open in a new tab.
+import { isExternal, url } from '../lib/url';
+
+interface Props {
+  href?: string;
+  variant?: 'primary' | 'secondary';
+  size?: 'base' | 'small';
+  /** Full width of its container. */
+  block?: boolean;
+  /** Force or prevent a new tab (default: true for external http(s) links). */
+  newTab?: boolean;
+  /** Analytics goal name sent on click in production (telegram, email, hire, product). */
+  goal?: string;
+  type?: 'button' | 'submit';
+  class?: string;
+  [attr: string]: unknown;
+}
+
+const {
+  href,
+  variant = 'secondary',
+  size = 'base',
+  block = false,
+  newTab,
+  goal,
+  type = 'button',
+  class: className,
+  ...rest
+} = Astro.props;
+const cls = ['btn', `btn--${variant}`, size === 'small' && 'btn--small', block && 'btn--block', className];
+const external = !!href && /^https?:|^\/\//i.test(href);
+const blank = newTab ?? external;
+---
+
+{
+  href ? (
+    <a
+      class:list={cls}
+      href={isExternal(href) ? href : url(href)}
+      target={blank ? '_blank' : undefined}
+      rel={blank ? 'noopener' : undefined}
+      data-goal={goal}
+      {...rest}
+    >
+      <slot />
+    </a>
+  ) : (
+    <button class:list={cls} type={type} data-goal={goal} {...rest}>
+      <slot />
+    </button>
+  )
+}

@@ -1,0 +1,153 @@
+---
+// /cases/ table of contents by service (block type "cases-toc").
+// Mirrors render_cases() in the texts renderer: groups in the block's order,
+// rows = published cases whose service codeword matches (the fields of
+// block.row.fields: today the short title only, decision 10 of 14.10 and the
+// review of 14.10) linking to the case pages /cases/<slug>/ (decision 17),
+// then the group's visible products with their labels
+// («Свой продукт, Разработка», linking to /products/#anchor); empty groups are
+// skipped. Under the table one small line about the labels.
+//
+// Layout (the first case should start within about one screen):
+// - from 720px the table is open: the groups flow in 2 columns, 3 from
+//   1080px (CSS columns, a group never splits);
+// - phones: the table is folded in a native <details> whose summary is the
+//   heading itself, with «+» / «−» (no animation, no script).
+// The two renderings carry the same links; only one is displayed at a time
+// (display: none removes the other from the accessibility tree too).
+import Section from '../Section.astro';
+import TocGroups, { type TocGroup, type TocRow } from './TocGroups.astro';
+import { caseHref, cases, getService, visibleProducts, type Block } from '../../lib/content';
+import { url } from '../../lib/url';
+
+interface Props {
+  block: Block;
+}
+
+const { block } = Astro.props;
+const fields: string[] = block.row?.fields ?? ['shortTitle'];
+const [titleField, ...metaFields] = fields;
+const productLabels: string[] = block.productRow?.labels ?? [];
+const productHrefPattern: string = block.productRow?.hrefPattern ?? '/products/#{anchor}';
+
+const groups: TocGroup[] = (block.groups ?? [])
+  .map((g: { service: string; products?: string[] }) => {
+    const service = getService(g.service);
+    const caseRows: TocRow[] = cases
+      .filter((c) => c.data.service === service.data.codeword)
+      .map((c) => {
+        const d = c.data as Record<string, unknown>;
+        return {
+          key: c.id,
+          title: String(d[titleField] ?? c.data.shortTitle),
+          href: caseHref(c),
+          meta: metaFields
+            .map((f) => d[f])
+            .filter((v) => v !== undefined && v !== null && v !== '')
+            .map(String),
+        };
+      });
+    const productRows: TocRow[] = visibleProducts(g.products).map((p) => ({
+      key: p.id,
+      title: p.data.title,
+      href: url(productHrefPattern.replace('{anchor}', p.data.anchor)),
+      meta: [productLabels.join(', ')].filter(Boolean),
+    }));
+    return { id: service.id, name: service.data.short, rows: [...caseRows, ...productRows] };
+  })
+  .filter((g: TocGroup) => g.rows.length > 0);
+
+const legend: string[] = [block.legend?.origin, block.legend?.direction].filter(Boolean);
+---
+
+<Section id="toc" labelledby="toc-heading" pad="s4" class="cases-toc">
+  <div class="toc-open">
+    <h2 id="toc-heading" class="toc-open__title">{block.heading}</h2>
+    <div class="toc-open__cols">
+      <TocGroups groups={groups} labelledby="toc-heading" />
+    </div>
+    {legend.length > 0 && <p class="toc-legend label">{legend.join(' ')}</p>}
+  </div>
+
+  <details class="toc-fold">
+    <summary class="toc-fold__summary">
+      <h2 id="toc-heading-fold" class="toc-fold__title">{block.heading}</h2>
+    </summary>
+    <div class="toc-fold__body">
+      <TocGroups groups={groups} labelledby="toc-heading-fold" />
+      {legend.length > 0 && <p class="toc-legend label">{legend.join(' ')}</p>}
+    </div>
+  </details>
+</Section>
+
+<style>
+  .toc-open {
+    display: none;
+  }
+
+  .toc-open__title {
+    margin-bottom: var(--s3);
+  }
+
+  .toc-legend {
+    margin-top: var(--s1);
+    max-width: 92ch;
+  }
+
+  /* phones: the heading is the summary of the folded table */
+  .toc-fold__summary {
+    list-style: none;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--s2);
+    padding-block: var(--s1);
+    cursor: pointer;
+  }
+
+  .toc-fold__summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .toc-fold__summary::after {
+    content: '+';
+    font-family: var(--font-mono);
+    font-size: var(--fs-medium);
+    line-height: 1;
+  }
+
+  .toc-fold[open] > .toc-fold__summary::after {
+    content: '−';
+  }
+
+  .toc-fold__title {
+    font-size: var(--fs-medium);
+    line-height: var(--lh-medium);
+    letter-spacing: var(--track-medium);
+  }
+
+  .toc-fold__body {
+    margin-top: var(--s2);
+  }
+
+  @media (min-width: 720px) {
+    .toc-open {
+      display: block;
+    }
+
+    .toc-fold {
+      display: none;
+    }
+
+    .toc-open__cols {
+      columns: 2;
+      column-gap: var(--gap);
+    }
+  }
+
+  @media (min-width: 1080px) {
+    .toc-open__cols {
+      columns: 3;
+    }
+  }
+</style>

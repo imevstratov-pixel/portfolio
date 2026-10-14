@@ -1,0 +1,370 @@
+---
+// One service on /services/ as a compact card (decisions 8, 10, 16 and 17 of
+// 14.10), ported from render_card() and render_service() in the texts
+// renderer.
+//
+// Card: number, title, the italic one-line summary; the three `highlights`,
+// «Срок» and «Цена» (ServiceTerms: the duration, then the PriceBlock with the
+// figure in the title's size, regular, the note and the sub-prices, or the global line when the
+// service has no price), the verb button (`button`, e.g. «Заказать аудит
+// курса»: the Telegram action that copies the start of the message with the
+// codeword). The copy hint and the email line are not repeated on every
+// card: ServicesIntro shows them once under «Не нашли своё?», and the
+// contact block at the bottom.
+// «Подробнее» (Disclosure: a native details, no animation) opens the full
+// template on the spot: body, the AgentsScheme for `scheme: "ai-agents"`
+// (without heading and facts), «Для кого», «Что получите на руки», «Сколько
+// длится», «Как идёт работа», «Что нужно от вас», «Что не входит»,
+// «Нейросеть и расходы», proof («Что можно открыть» and «Что я написал сам»
+// for app; otherwise «Чем подтверждено» and «Мои продукты»), «Что говорят
+// коллеги». While it is open its «Свернуть» sticks under the site header with
+// the service's short name beside it, and a second «Свернуть» at the end
+// closes it and jumps back to the top of this card (data-disclose-root).
+// short (group variant "short", the guide): the same card with the `more`
+// link («Подробнее о тренажёре», /guide/) beside the verb button; its
+// «Подробнее» opens «Для кого» and «Что получите на руки» only.
+//
+// Layout: an ink line on top. From 720px the card has two halves on the page
+// grid: number, title and summary in columns 1-6, the offer in 7-12. The
+// parts of the full template are rows (ServicePart): the name in 1-3, the
+// text in 4-10. The scheme takes the full width. Phones: one column.
+import ServicePart from './ServicePart.astro';
+import Disclosure from '../Disclosure.astro';
+import ServiceTerms from '../ServiceTerms.astro';
+import Prose from '../Prose.astro';
+import Quote from '../Quote.astro';
+import TelegramAction from '../TelegramAction.astro';
+import AgentsScheme from '../scheme/AgentsScheme.astro';
+import {
+  bodyHtml,
+  caseHref,
+  contentHref,
+  getService,
+  getTestimonial,
+  productHref,
+  publishedCases,
+  testimonialSignature,
+  visible,
+  visibleProducts,
+  type ServiceEntry,
+} from '../../lib/content';
+import { url } from '../../lib/url';
+
+interface Props {
+  service: string | ServiceEntry;
+  /** pages/services.md serviceTemplate.labels. */
+  labels: Record<string, string>;
+  /** Position on the page (1–7), shown as «01». */
+  number: number;
+  /** Short variant (service-group with variant: short). */
+  short?: boolean;
+}
+
+const { service, labels, number, short = false } = Astro.props;
+const s = typeof service === 'string' ? getService(service) : service;
+const d = s.data;
+const titleId = `${d.anchor}-title`;
+const num = String(number).padStart(2, '0');
+const body = short ? '' : bodyHtml(s);
+const highlights = visible(d.highlights).filter(Boolean);
+
+type ProofItem = { title: string; href: string; aside?: string; note?: string };
+const ext = (href: string) => /^https?:/i.test(href);
+const notes: Record<string, string> = d.proofNotes ?? {};
+const caseItems: ProofItem[] = publishedCases(d.proofCases).map((c) => ({
+  title: c.data.shortTitle,
+  href: caseHref(c),
+  note: notes[c.id],
+}));
+const linkItems: ProofItem[] = (d.proofLinks ?? []).map((l) => ({
+  title: l.label,
+  href: contentHref(l.url),
+  aside: l.note,
+}));
+const productItems: ProofItem[] = visibleProducts(d.proofProducts).map((p) => ({
+  title: p.data.title,
+  href: productHref(p),
+  note: p.data.oneLiner,
+}));
+// renderer: slug "app" shows what can be opened first, then what I wrote
+const proofGroups: Array<{ label: string; items: ProofItem[] }> = short
+  ? []
+  : s.id === 'app'
+    ? [
+        { label: labels.proofLinks, items: linkItems },
+        { label: labels.proofCasesBuilt, items: caseItems },
+      ]
+    : [
+        { label: labels.proof, items: [...caseItems, ...linkItems] },
+        { label: labels.proofProducts, items: productItems },
+      ];
+const quotes = short ? [] : (d.testimonials ?? []).map(getTestimonial);
+const duration = `${d.duration}.${d.durationNote ? ' ' + d.durationNote : ''}`;
+// «Свернуть»: the open summary and the button at the end of the text
+// (serviceTemplate.labels.less when the content has it)
+const less = labels.less || 'Свернуть';
+---
+
+<article id={d.anchor} class:list={['svc', short && 'svc--short']} aria-labelledby={titleId} data-disclose-root>
+  <div class="svc__card">
+    <header class="svc__head">
+      <p class="label svc__num">{num}</p>
+      <h3 id={titleId} class="svc__title">{d.title}</h3>
+      <p class="svc__summary">{d.summary}</p>
+    </header>
+
+    <div class="svc__offer">
+      {
+        highlights.length > 0 && (
+          <ul class="list-dash svc__points" role="list">
+            {highlights.map((h) => (
+              <li>{h}</li>
+            ))}
+          </ul>
+        )
+      }
+      <ServiceTerms service={s} class="svc__terms" />
+      <div class="svc__cta">
+        <TelegramAction codeword={d.codeword} label={d.button} caption={false} hint={false} email={false} class="svc__action" />
+        {
+          short && d.more && (
+            <p class="svc__more-link">
+              <a href={url(d.more.url)}>{d.more.label}</a>
+            </p>
+          )
+        }
+      </div>
+    </div>
+  </div>
+
+  {
+    short ? (
+      <Disclosure more={labels.more} less={less} context={d.short} class="svc__more">
+        <div class="svc__full">
+          <ServicePart label={labels.forWhom}>
+            <ul class="list-dash" role="list">
+              {d.forWhom.map((x) => (
+                <li>{x}</li>
+              ))}
+            </ul>
+          </ServicePart>
+          <ServicePart label={labels.youGet}>
+            <ul class="list-dash" role="list">
+              {d.youGet.map((x) => (
+                <li>{x}</li>
+              ))}
+            </ul>
+          </ServicePart>
+        </div>
+      </Disclosure>
+    ) : (
+      <Disclosure more={labels.more} less={less} context={d.short} class="svc__more">
+        <div class="svc__full">
+          {body && (
+            <ServicePart>
+              <Prose html={body} />
+            </ServicePart>
+          )}
+
+          {d.scheme === 'ai-agents' && (
+            <div class="svc__scheme">
+              <AgentsScheme heading={false} facts={false} idPrefix={`${d.anchor}-scheme`} />
+            </div>
+          )}
+
+          <ServicePart label={labels.forWhom}>
+            <ul class="list-dash" role="list">
+              {d.forWhom.map((x) => (
+                <li>{x}</li>
+              ))}
+            </ul>
+          </ServicePart>
+
+          <ServicePart label={labels.youGet}>
+            <ul class="list-dash" role="list">
+              {d.youGet.map((x) => (
+                <li>{x}</li>
+              ))}
+            </ul>
+          </ServicePart>
+
+          <ServicePart label={labels.duration}>
+            <p class="measure">{duration}</p>
+          </ServicePart>
+
+          <ServicePart label={labels.steps}>
+            <ol class="list-num" role="list">
+              {d.steps.map((x) => (
+                <li>{x}</li>
+              ))}
+            </ol>
+          </ServicePart>
+
+          {d.fromYou && (
+            <ServicePart label={labels.fromYou}>
+              <p class="measure">{d.fromYou}</p>
+            </ServicePart>
+          )}
+
+          <ServicePart label={labels.notIncluded}>
+            <ul class="list-dash" role="list">
+              {d.notIncluded.map((x) => (
+                <li>{x}</li>
+              ))}
+            </ul>
+          </ServicePart>
+
+          {d.ai && (
+            <ServicePart label={labels.ai}>
+              <p class="measure">{d.ai}</p>
+            </ServicePart>
+          )}
+
+          {proofGroups
+            .filter((g) => g.items.length > 0)
+            .map((g) => (
+              <ServicePart label={g.label}>
+                <ul class="proof" role="list">
+                  {g.items.map((it) => (
+                    <li>
+                      <p class="proof__title">
+                        <a
+                          href={it.href}
+                          target={ext(it.href) ? '_blank' : undefined}
+                          rel={ext(it.href) ? 'noopener' : undefined}
+                        >
+                          {it.title}
+                        </a>
+                        {it.aside && <span class="proof__aside"> ({it.aside})</span>}
+                      </p>
+                      {it.note && <p class="proof__line">{it.note}</p>}
+                    </li>
+                  ))}
+                </ul>
+              </ServicePart>
+            ))}
+
+          {quotes.length > 0 && (
+            <ServicePart label={labels.testimonials}>
+              <div class="quotes">
+                {quotes.map((t) => (
+                  <Quote text={t.data.quote} cite={testimonialSignature(t)} size="medium" />
+                ))}
+              </div>
+            </ServicePart>
+          )}
+        </div>
+      </Disclosure>
+    )
+  }
+</article>
+
+<style>
+  .svc {
+    padding-top: var(--s2);
+    border-top: var(--line);
+  }
+
+  .svc__card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--s3) var(--gap);
+    align-items: start;
+  }
+
+  .svc__head {
+    display: grid;
+    align-content: start;
+    gap: var(--s2);
+  }
+
+  .svc__num {
+    margin-bottom: calc(var(--s1) - var(--s2));
+  }
+
+  .svc__title {
+    max-width: 18em;
+  }
+
+  /* the one-line description in italic (as the texts ask), base size under
+     the medium bold title, so the pair reads as title and line */
+  .svc__summary {
+    font-style: italic;
+    max-width: 60ch;
+  }
+
+  .svc__offer {
+    display: grid;
+    align-content: start;
+    gap: var(--s2);
+  }
+
+  .svc__points {
+    gap: 0.35rem;
+  }
+
+  /* the verb button; the guide's «Подробнее о тренажёре» beside it */
+  .svc__cta {
+    margin-top: var(--s1);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--s1) var(--s3);
+  }
+
+  /* the Disclosure renders the details itself: style it through :global */
+  .svc :global(.svc__more) {
+    margin-top: var(--s3);
+  }
+
+  .svc__full {
+    display: grid;
+    align-content: start;
+    gap: var(--s3);
+    margin-top: var(--s3);
+  }
+
+  .svc__scheme {
+    min-width: 0;
+  }
+
+  /* the next part's hairline closes the drawing */
+  .svc__scheme :global(.agents-scheme__scroll) {
+    border-bottom: 0;
+  }
+
+  .proof {
+    display: grid;
+    gap: var(--s2);
+    max-width: var(--measure);
+  }
+
+  .proof__title {
+    font-weight: var(--bold);
+  }
+
+  .proof__aside {
+    font-weight: var(--regular);
+    color: var(--muted);
+  }
+
+  .quotes {
+    display: grid;
+    gap: var(--s3);
+  }
+
+  @media (min-width: 720px) {
+    .svc__card {
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+    }
+
+    .svc__head {
+      grid-column: 1 / span 6;
+      padding-right: var(--s3);
+    }
+
+    .svc__offer {
+      grid-column: 7 / span 6;
+    }
+  }
+</style>

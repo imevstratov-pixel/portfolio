@@ -1,0 +1,787 @@
+/* Global styles: reset, type, links, focus, buttons, rules, grid and
+   utilities. Component styles live in the components (scoped). Class names
+   are documented in docs/components.md.
+   No rounded corners, shadows, gradients, transitions or animations. */
+
+@import './tokens.css';
+
+/* ------------------------------------------------------------- reset */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  /* anchored sections stop below the sticky header */
+  scroll-padding-top: calc(var(--header-h) + var(--s2));
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: var(--fs-base);
+  font-weight: var(--regular);
+  line-height: var(--lh-base);
+  font-kerning: normal;
+  font-optical-sizing: auto;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  overflow-wrap: break-word;
+}
+
+main {
+  flex: 1 0 auto;
+}
+
+img,
+video,
+svg,
+picture {
+  display: block;
+  max-width: 100%;
+}
+
+img,
+video {
+  height: auto;
+}
+
+input,
+button,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+ul[role='list'],
+ol[role='list'] {
+  list-style: none;
+  padding: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* --------------------------------------------------------------- type */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: var(--bold);
+  text-wrap: balance;
+}
+
+h1,
+.t-huge {
+  font-size: var(--fs-huge);
+  line-height: var(--lh-huge);
+  letter-spacing: var(--track-huge);
+}
+
+h2,
+.t-large {
+  font-size: var(--fs-large);
+  line-height: var(--lh-large);
+  letter-spacing: var(--track-large);
+}
+
+h3,
+.t-medium {
+  font-size: var(--fs-medium);
+  line-height: var(--lh-medium);
+  letter-spacing: var(--track-medium);
+}
+
+h4,
+h5,
+h6,
+.t-base {
+  font-size: var(--fs-base);
+  line-height: var(--lh-base);
+  letter-spacing: 0;
+}
+
+/* Small mono: labels, captions, sources, meta */
+.t-small,
+.label {
+  font-family: var(--font-mono);
+  font-size: var(--fs-small);
+  font-weight: var(--regular);
+  line-height: var(--lh-small);
+  letter-spacing: 0;
+}
+
+.label {
+  color: var(--muted);
+}
+
+.mono {
+  font-family: var(--font-mono);
+  letter-spacing: 0;
+}
+
+.sans {
+  font-family: var(--font-sans);
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.bold,
+strong,
+b {
+  font-weight: var(--bold);
+}
+
+.regular {
+  font-weight: var(--regular);
+}
+
+.measure {
+  max-width: var(--measure);
+}
+
+.lead {
+  font-size: var(--fs-medium);
+  line-height: 1.35;
+  letter-spacing: var(--track-medium);
+  max-width: 34em;
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+p,
+li,
+dd,
+figcaption,
+blockquote {
+  text-wrap: pretty;
+}
+
+/* -------------------------------------------------------------- links */
+
+a {
+  color: inherit;
+  text-decoration-line: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+  text-decoration-skip-ink: auto;
+}
+
+a:hover {
+  text-decoration-thickness: 2px;
+}
+
+/* Navigation-style links: underline appears on hover and on the current page */
+.link-quiet {
+  text-decoration-line: none;
+}
+
+.link-quiet:hover,
+.link-quiet[aria-current='page'] {
+  text-decoration-line: underline;
+}
+
+/* -------------------------------------------------------------- focus */
+
+:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+summary:focus-visible {
+  outline-offset: 4px;
+}
+
+/* ------------------------------------------------------------ buttons */
+
+/* A frame means a button. Primary: ink fill. Secondary: ink frame.
+   Hover inverts the colours; nothing else moves. */
+.btn {
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 0.2em;
+  min-height: 3rem;
+  padding: 0.7rem 1.15rem;
+  border: 1px solid var(--ink);
+  border-radius: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: var(--fs-base);
+  font-weight: var(--bold);
+  line-height: 1.2;
+  letter-spacing: 0;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.btn:hover {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.btn--primary {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.btn--primary:hover {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.btn--small {
+  min-height: 2.25rem;
+  padding: 0.35rem 0.85rem;
+  font-size: 0.9375rem;
+}
+
+.btn--block {
+  display: flex;
+  width: 100%;
+}
+
+/* second line on a button: the Telegram caption */
+.btn__caption {
+  font-family: var(--font-mono);
+  font-size: var(--fs-small);
+  font-weight: var(--regular);
+  line-height: var(--lh-small);
+}
+
+/* Disclosure: native <details class="disclose"> (component Disclosure). The
+   <summary> holds a small framed button «Подробнее +», which reads «Свернуть −»
+   while open (no arrows, no animation; the swap is CSS only). Services
+   «Подробнее». */
+.disclose > summary {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  width: fit-content;
+  max-width: 100%;
+  cursor: pointer;
+}
+
+.disclose > summary::-webkit-details-marker {
+  display: none;
+}
+
+.disclose__btn {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--s2);
+  min-height: 2.75rem;
+  padding: 0.55rem 0.9rem;
+  border: 1px solid var(--ink);
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 0.9375rem;
+  font-weight: var(--bold);
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.disclose__btn::after {
+  content: '+';
+  font-family: var(--font-mono);
+  font-weight: var(--regular);
+}
+
+.disclose[open] > summary .disclose__btn::after {
+  content: '−';
+}
+
+.disclose > summary:hover .disclose__btn {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+/* the focus ring on the button, not around the whole bar */
+.disclose > summary:focus-visible {
+  outline: none;
+}
+
+.disclose > summary:focus-visible .disclose__btn {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
+
+.disclose__less,
+.disclose[open] > summary .disclose__more,
+.disclose__ctx {
+  display: none;
+}
+
+.disclose[open] > summary .disclose__less {
+  display: inline;
+}
+
+/* open and long: the summary sticks under the site header as a full-width
+   bar on paper, the context (the service's name) beside the button */
+.disclose--sticky[open] > summary {
+  position: sticky;
+  top: calc(var(--header-h) + 1px);
+  z-index: 5;
+  width: auto;
+  padding-block: var(--s1);
+  background: var(--paper);
+  border-bottom: var(--hair);
+}
+
+.disclose--sticky[open] > summary .disclose__ctx {
+  display: block;
+  min-width: 0;
+  overflow: clip;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: var(--fs-small);
+  line-height: var(--lh-small);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* While a sticky disclosure is open, whatever the browser scrolls into view
+   (focus with Tab and Shift+Tab, a find, an anchor) stops under its bar, not
+   behind it (WCAG 2.4.11): the page's scroll padding grows by the bar's
+   height (the button, its padding, the hairline and the 1px offset). Chrome
+   ignores scroll-margin when it decides whether a focused element needs
+   scrolling at all, so the padding of the page has to grow, not the margin
+   of the elements. */
+:root {
+  --disclose-bar: calc(2.75rem + 2 * var(--s1) + 2px);
+}
+
+html:has(.disclose--sticky[open]) {
+  scroll-padding-top: calc(var(--header-h) + var(--disclose-bar) + var(--s2));
+}
+
+/* the second «Свернуть −» at the end: only once the script is there. The
+   same framed button as the summary (not the filled Telegram button). */
+.disclose__end {
+  display: none;
+}
+
+.disclose[data-ready] > .disclose__end {
+  display: flex;
+  margin-top: var(--s3);
+  padding-top: var(--s2);
+  border-top: var(--hair);
+}
+
+.disclose__close {
+  appearance: none;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.disclose__close .disclose__btn::after {
+  content: '−';
+}
+
+.disclose__close:hover .disclose__btn {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.disclose__close:focus-visible {
+  outline: none;
+}
+
+.disclose__close:focus-visible .disclose__btn {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
+
+/* ---------------------------------------------------------------- rules */
+
+hr,
+.rule {
+  border: 0;
+  border-top: var(--hair);
+}
+
+.rule--ink {
+  border-top: var(--line);
+}
+
+.top-hair {
+  border-top: var(--hair);
+}
+
+.top-line {
+  border-top: var(--line);
+}
+
+/* Lists with thin rules between items */
+.list-plain {
+  list-style: none;
+  padding: 0;
+}
+
+.list-rules {
+  list-style: none;
+  padding: 0;
+  border-bottom: var(--hair);
+}
+
+.list-rules > li {
+  border-top: var(--hair);
+  padding-block: var(--s2);
+}
+
+/* Lists with a hanging grey dash (.list-dash) or a small grey mono number
+   (.list-num) in front of each item; no dots on the site */
+.list-dash,
+.list-num {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: var(--s1);
+  max-width: var(--measure);
+}
+
+.list-dash > li,
+.list-num > li {
+  display: grid;
+  grid-template-columns: 1.6em minmax(0, 1fr);
+  align-items: baseline;
+}
+
+.list-dash > li::before {
+  content: '—';
+  color: var(--muted);
+}
+
+.list-num {
+  counter-reset: list-num;
+}
+
+.list-num > li::before {
+  counter-increment: list-num;
+  content: counter(list-num);
+  font-family: var(--font-mono);
+  font-size: var(--fs-small);
+  color: var(--muted);
+}
+
+/* Inline list separated by commas (no middle dots on the site) */
+.list-comma {
+  list-style: none;
+  padding: 0;
+  display: inline;
+}
+
+.list-comma > li {
+  display: inline;
+}
+
+.list-comma > li:not(:last-child)::after {
+  content: ', ';
+}
+
+/* --------------------------------------------------------------- prose */
+
+/* Markdown bodies (Prose component) */
+.prose > * + * {
+  margin-top: 1em;
+}
+
+.prose--medium {
+  font-size: var(--fs-medium);
+  line-height: 1.4;
+  letter-spacing: var(--track-medium);
+}
+
+.prose ul {
+  padding-left: 1.35em;
+}
+
+.prose li + li {
+  margin-top: 0.4em;
+}
+
+.prose ul > li::marker {
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+}
+
+/* numbered lists: the number in small grey mono inside the text column,
+   the same treatment as .list-num */
+.prose ol {
+  list-style: none;
+  padding-left: 0;
+  counter-reset: li;
+}
+
+.prose ol > li {
+  counter-increment: li;
+  padding-left: 1.8rem;
+}
+
+/* an inline-block in the first line, so the number sits on the text baseline */
+.prose ol > li::before {
+  content: counter(li);
+  display: inline-block;
+  width: 1.8rem;
+  margin-left: -1.8rem;
+  font-family: var(--font-mono);
+  font-size: var(--fs-small);
+  font-weight: var(--regular);
+  letter-spacing: 0;
+  color: var(--muted);
+}
+
+.prose :is(h2, h3, h4) {
+  font-size: var(--fs-medium);
+  line-height: var(--lh-medium);
+  letter-spacing: var(--track-medium);
+  margin-top: 1.6em;
+}
+
+.prose blockquote {
+  padding-left: var(--s2);
+  border-left: var(--line);
+}
+
+/* quoted texts keep their exact spacing (approved as is) */
+.prose blockquote p {
+  white-space: pre-wrap;
+}
+
+/* ------------------------------------------------------------- layout */
+
+.wrap {
+  width: 100%;
+  max-width: calc(var(--max) + 2 * var(--gutter));
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+/* 12 columns from 720px, 4 below. Children span the full row by default.
+   .col-N (>=720px), .lg-col-N (>=1080px), .m-col-N (<720px),
+   .start-N / .lg-start-N set the first column. */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+  column-gap: var(--gap);
+  row-gap: var(--s3);
+}
+
+.grid > * {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+
+.grid--tight {
+  row-gap: var(--s2);
+}
+
+.grid--flush {
+  row-gap: 0;
+}
+
+@media (max-width: 719.98px) {
+  .grid > .m-col-1 { grid-column: auto / span 1; }
+  .grid > .m-col-2 { grid-column: auto / span 2; }
+  .grid > .m-col-3 { grid-column: auto / span 3; }
+  .grid > .m-col-4 { grid-column: auto / span 4; }
+}
+
+@media (min-width: 720px) {
+  .grid > .col-1 { grid-column: auto / span 1; }
+  .grid > .col-2 { grid-column: auto / span 2; }
+  .grid > .col-3 { grid-column: auto / span 3; }
+  .grid > .col-4 { grid-column: auto / span 4; }
+  .grid > .col-5 { grid-column: auto / span 5; }
+  .grid > .col-6 { grid-column: auto / span 6; }
+  .grid > .col-7 { grid-column: auto / span 7; }
+  .grid > .col-8 { grid-column: auto / span 8; }
+  .grid > .col-9 { grid-column: auto / span 9; }
+  .grid > .col-10 { grid-column: auto / span 10; }
+  .grid > .col-11 { grid-column: auto / span 11; }
+  .grid > .col-12 { grid-column: auto / span 12; }
+  .grid > .start-1 { grid-column-start: 1; }
+  .grid > .start-2 { grid-column-start: 2; }
+  .grid > .start-3 { grid-column-start: 3; }
+  .grid > .start-4 { grid-column-start: 4; }
+  .grid > .start-5 { grid-column-start: 5; }
+  .grid > .start-6 { grid-column-start: 6; }
+  .grid > .start-7 { grid-column-start: 7; }
+  .grid > .start-8 { grid-column-start: 8; }
+  .grid > .start-9 { grid-column-start: 9; }
+  .grid > .start-10 { grid-column-start: 10; }
+  .grid > .start-11 { grid-column-start: 11; }
+  .grid > .start-12 { grid-column-start: 12; }
+}
+
+@media (min-width: 1080px) {
+  .grid > .lg-col-1 { grid-column: auto / span 1; }
+  .grid > .lg-col-2 { grid-column: auto / span 2; }
+  .grid > .lg-col-3 { grid-column: auto / span 3; }
+  .grid > .lg-col-4 { grid-column: auto / span 4; }
+  .grid > .lg-col-5 { grid-column: auto / span 5; }
+  .grid > .lg-col-6 { grid-column: auto / span 6; }
+  .grid > .lg-col-7 { grid-column: auto / span 7; }
+  .grid > .lg-col-8 { grid-column: auto / span 8; }
+  .grid > .lg-col-9 { grid-column: auto / span 9; }
+  .grid > .lg-col-10 { grid-column: auto / span 10; }
+  .grid > .lg-col-11 { grid-column: auto / span 11; }
+  .grid > .lg-col-12 { grid-column: auto / span 12; }
+  .grid > .lg-start-1 { grid-column-start: 1; }
+  .grid > .lg-start-2 { grid-column-start: 2; }
+  .grid > .lg-start-3 { grid-column-start: 3; }
+  .grid > .lg-start-4 { grid-column-start: 4; }
+  .grid > .lg-start-5 { grid-column-start: 5; }
+  .grid > .lg-start-6 { grid-column-start: 6; }
+  .grid > .lg-start-7 { grid-column-start: 7; }
+  .grid > .lg-start-8 { grid-column-start: 8; }
+  .grid > .lg-start-9 { grid-column-start: 9; }
+  .grid > .lg-start-10 { grid-column-start: 10; }
+  .grid > .lg-start-11 { grid-column-start: 11; }
+  .grid > .lg-start-12 { grid-column-start: 12; }
+}
+
+/* Equal columns that wrap: .cols-2/3/4 (from 720px); .m-cols-2 below 720px */
+.cols {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--s3) var(--gap);
+}
+
+@media (max-width: 719.98px) {
+  .cols.m-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (min-width: 720px) {
+  .cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .cols-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (min-width: 1080px) {
+  .cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+/* Vertical rhythm: .stack spaces its children by --flow (default --s2) */
+.stack > * + * {
+  margin-top: var(--flow, var(--s2));
+}
+
+.flow-1 { --flow: var(--s1); }
+.flow-2 { --flow: var(--s2); }
+.flow-3 { --flow: var(--s3); }
+.flow-4 { --flow: var(--s4); }
+.flow-5 { --flow: var(--s5); }
+
+/* Horizontal group that wraps */
+.cluster {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s1) var(--s2);
+}
+
+/* Spacing utilities (the five steps) */
+.mt-0 { margin-top: 0; }
+.mt-1 { margin-top: var(--s1); }
+.mt-2 { margin-top: var(--s2); }
+.mt-3 { margin-top: var(--s3); }
+.mt-4 { margin-top: var(--s4); }
+.mt-5 { margin-top: var(--s5); }
+.mb-1 { margin-bottom: var(--s1); }
+.mb-2 { margin-bottom: var(--s2); }
+.mb-3 { margin-bottom: var(--s3); }
+.mb-4 { margin-bottom: var(--s4); }
+.mb-5 { margin-bottom: var(--s5); }
+.pt-3 { padding-top: var(--s3); }
+.pt-4 { padding-top: var(--s4); }
+.pt-5 { padding-top: var(--s5); }
+.pb-3 { padding-bottom: var(--s3); }
+.pb-4 { padding-bottom: var(--s4); }
+.pb-5 { padding-bottom: var(--s5); }
+
+/* Content for screen readers only */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: clip;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* A row that scrolls sideways on phones and tablets and becomes an even row
+   from 1080px (reels). Set --row-items for the wide layout (default 6). */
+.scroll-row {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(9.5rem, 42%);
+  gap: var(--gap);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  padding-bottom: var(--s1);
+}
+
+.scroll-row > * {
+  scroll-snap-align: start;
+}
+
+@media (min-width: 720px) {
+  .scroll-row {
+    grid-auto-columns: minmax(11rem, 28%);
+  }
+}
+
+@media (min-width: 1080px) {
+  .scroll-row {
+    grid-auto-flow: row;
+    grid-template-columns: repeat(var(--row-items, 6), minmax(0, 1fr));
+    overflow-x: visible;
+  }
+}

@@ -1,0 +1,38 @@
+---
+// /cases/<slug>/: one page per published case (decision 17 of 14.10), slug =
+// the file name in src/content/cases. CaseFull renders the case («Все
+// кейсы», labels, title, infographic, the text with the reel, scheme, links,
+// testimonials, «Что из этого сделаю для вас», previous and next), then the
+// short contact block. Search title and description come from the case
+// (caseSeo). The labels, sections and the service line name are the ones of
+// the cases-list block of pages/cases.md, as on /cases/.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ContactShort from '../../components/ContactShort.astro';
+import CaseFull from '../../components/cases/CaseFull.astro';
+import { cases, caseSeo, getBlock, getPage, pageBlocks, type CaseEntry } from '../../lib/content';
+
+export function getStaticPaths() {
+  return cases.map((c) => ({ params: { slug: c.id }, props: { entry: c } }));
+}
+
+interface Props {
+  entry: CaseEntry;
+}
+
+const { entry } = Astro.props;
+const page = getPage('cases');
+const list = pageBlocks(page).find((b) => b.type === 'cases-list');
+if (!list) throw new Error('pages/cases.md: the cases-list block is missing');
+const seo = caseSeo(entry);
+---
+
+<BaseLayout page={page} title={seo.title} description={seo.description} current="/cases/">
+  <CaseFull
+    case={entry}
+    sections={list.sections}
+    labels={list.labels}
+    serviceLinkLabel={list.serviceLinkLabel}
+    status={!!list.statusField}
+  />
+  <ContactShort block={getBlock(page, 'contact')} />
+</BaseLayout>

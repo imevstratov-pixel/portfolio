@@ -1,0 +1,119 @@
+---
+// Site header. Name (link home), page links, «Написать» button to the page's
+// contact block. The first row sticks to the top. On phones the links sit in a
+// second row that scrolls away; there is no burger menu.
+import { url } from '../lib/url';
+import type { HeaderData } from '../lib/types';
+
+interface Props {
+  header: HeaderData;
+  /** Site path of the current page, e.g. "/services/", for aria-current. */
+  current?: string;
+}
+
+const { header, current } = Astro.props;
+const isCurrent = (href: string) => (current && href === current ? 'page' : undefined);
+---
+
+<header class="site-header">
+  <div class="wrap site-header__row">
+    <a class="site-header__name link-quiet" href={url(header.name.href)} aria-current={isCurrent(header.name.href)}>
+      {header.name.label}
+    </a>
+    <nav class="site-header__nav" aria-label="Основные разделы">
+      <ul class="site-header__links" role="list">
+        {
+          header.links.map((l) => (
+            <li>
+              <a class="link-quiet" href={url(l.href)} aria-current={isCurrent(l.href)}>
+                {l.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+    <a class="btn btn--primary btn--small site-header__cta" href={url(header.cta.href)}>{header.cta.label}</a>
+  </div>
+</header>
+<nav class="site-subnav" aria-label="Основные разделы">
+  <div class="wrap">
+  <ul class="site-subnav__links" role="list">
+    {
+      header.links.map((l) => (
+        <li>
+          <a class="link-quiet" href={url(l.href)} aria-current={isCurrent(l.href)}>
+            {l.label}
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+  </div>
+</nav>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--paper);
+    border-bottom: var(--hair);
+  }
+
+  .site-header__row {
+    display: flex;
+    align-items: center;
+    gap: var(--s2) var(--s3);
+    min-height: var(--header-h);
+  }
+
+  .site-header__name {
+    font-weight: var(--bold);
+    letter-spacing: var(--track-medium);
+    white-space: nowrap;
+  }
+
+  .site-header__nav {
+    display: none;
+  }
+
+  .site-header__links,
+  .site-subnav__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s1) var(--s3);
+    list-style: none;
+    padding-left: 0;
+  }
+
+  .site-header__cta {
+    margin-left: auto;
+  }
+
+  .site-subnav {
+    border-bottom: var(--hair);
+  }
+
+  /* the padding sits on the links, so each is a ~43px tall tap target */
+  .site-subnav__links {
+    padding-block: 0;
+    font-size: 0.9375rem;
+    gap: 0 var(--s2);
+  }
+
+  .site-subnav__links a {
+    display: inline-block;
+    padding-block: 0.6rem;
+  }
+
+  @media (min-width: 720px) {
+    .site-header__nav {
+      display: block;
+    }
+
+    .site-subnav {
+      display: none;
+    }
+  }
+</style>

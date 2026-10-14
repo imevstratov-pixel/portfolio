@@ -1,0 +1,39 @@
+---
+// A Telegram button and, when the content gives one, the email as a second
+// framed button beside it (the subject and the start of the message come
+// from the codeword's template). Used by the /hire/ first screen («Обсудить
+// роль») and by ContactBlock for a block with one `button` (guide, hire).
+// No hint here: the caller places it.
+import TelegramButton from './TelegramButton.astro';
+import Button from './Button.astro';
+import { mailtoHref, telegramButton } from '../lib/content';
+
+interface Props {
+  button: { codeword: string; label?: string; caption?: string | false };
+  email?: { text: string; subject?: string };
+  class?: string;
+}
+
+const { button, email, class: className } = Astro.props;
+const template = telegramButton(button.codeword).template;
+---
+
+<div class:list={['tg-pair', className]}>
+  <TelegramButton codeword={button.codeword} label={button.label} caption={button.caption} variant="primary" />
+  {
+    email?.text && (
+      <Button href={mailtoHref({ codeword: button.codeword, template, subject: email.subject })} goal="email">
+        {email.text}
+      </Button>
+    )
+  }
+</div>
+
+<style>
+  .tg-pair {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: var(--s1);
+  }
+</style>

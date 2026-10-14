@@ -1,0 +1,77 @@
+---
+// A short case card: label line, title, one result line, service label and
+// a link to the case on /cases/ («Читать кейс»).
+import CaseLabels from './CaseLabels.astro';
+import { caseHref, caseService, getCase, type CaseEntry } from '../lib/content';
+
+interface Props {
+  case: string | CaseEntry;
+  /** Result line (featured cases on the home page carry their own `line`). */
+  line?: string;
+  /** Link text, e.g. block.cardLink «Читать кейс». No link when omitted. */
+  linkLabel?: string;
+  /** Which title to show: "shortTitle" (default) or "title". */
+  title?: 'shortTitle' | 'title';
+  /** Label fields; false hides the label line. Default origin, industry, year, direction. */
+  labels?: readonly string[] | false;
+  /** Show the service short name («AI-агенты») under the line. */
+  service?: boolean;
+  /** Heading level of the title (default 3). */
+  level?: 2 | 3 | 4;
+  class?: string;
+}
+
+const {
+  case: c,
+  line,
+  linkLabel,
+  title = 'shortTitle',
+  labels = ['origin', 'industry', 'year', 'direction'],
+  service = false,
+  level = 3,
+  class: className,
+} = Astro.props;
+const entry = typeof c === 'string' ? getCase(c) : c;
+const Tag = `h${level}` as 'h2' | 'h3' | 'h4';
+const titleId = `${entry.data.anchor}-card`;
+const svc = service ? caseService(entry) : undefined;
+---
+
+<article class:list={['case-card', className]} aria-labelledby={titleId}>
+  {labels !== false && <CaseLabels case={entry} fields={labels} />}
+  <Tag id={titleId} class="case-card__title t-medium">{entry.data[title]}</Tag>
+  {line && <p class="case-card__line">{line}</p>}
+  {svc && <p class="case-card__service label">{svc.data.short}</p>}
+  {
+    linkLabel && (
+      <p class="case-card__link">
+        <a href={caseHref(entry)} aria-describedby={titleId}>
+          {linkLabel}
+        </a>
+      </p>
+    )
+  }
+</article>
+
+<style>
+  .case-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s1);
+    padding-top: var(--s2);
+    border-top: var(--hair);
+  }
+
+  .case-card__title {
+    margin-top: var(--s1);
+  }
+
+  .case-card__line {
+    max-width: var(--measure);
+  }
+
+  .case-card__link {
+    margin-top: auto;
+    padding-top: var(--s1);
+  }
+</style>

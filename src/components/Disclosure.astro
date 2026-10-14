@@ -1,0 +1,58 @@
+---
+// A native <details class="disclose"> that reads well when it is long
+// (decision 17 of 14.10, services «Подробнее»):
+// - the summary is a small framed button «Подробнее +»; while the details is
+//   open it reads «Свернуть −» (CSS only, so it works without JS);
+// - `sticky`: while open, the summary sticks to the top of the viewport under
+//   the site header as a full-width bar on paper with a hairline under it,
+//   and shows `context` (e.g. the service's short name) beside the button, so
+//   the reader can close it from the middle of the text;
+// - at the end of the content a second «Свернуть −» button, framed exactly
+//   like the summary (not a filled button: that is the Telegram CTA's look),
+//   shown only once the script ran (without JS the summary still works). It
+//   closes the details, moves the focus to the summary and jumps back to the
+//   top of the closest [data-disclose-root] (the service card) at once, with
+//   no smooth scrolling, keeping the summary on screen. Closing from the stuck
+//   summary does the same jump only when the summary's own place is above the
+//   screen after closing. Script: src/scripts/disclose.ts.
+// - while open, everything inside keeps clear of the stuck bar when the
+//   browser scrolls it into view (focus with Tab and Shift+Tab): CSS
+//   scroll-margin-top in global.css.
+//
+//   <Disclosure more="Подробнее" less="Свернуть" context="Разбор курса" sticky>…</Disclosure>
+interface Props {
+  /** Summary text while closed («Подробнее»). */
+  more: string;
+  /** Summary text while open, and the end button («Свернуть»). */
+  less: string;
+  /** Text beside the button in the stuck bar (e.g. the service's short name). */
+  context?: string;
+  /** Stick the open summary under the site header (default true). */
+  sticky?: boolean;
+  class?: string;
+}
+
+const { more, less, context, sticky = true, class: className } = Astro.props;
+---
+
+<details class:list={['disclose', sticky && 'disclose--sticky', className]} data-disclose>
+  <summary>
+    <span class="disclose__btn">
+      <span class="disclose__more">{more}</span>
+      <span class="disclose__less">{less}</span>
+    </span>
+    {context && <span class="disclose__ctx">{context}</span>}
+  </summary>
+  <div class="disclose__content">
+    <slot />
+  </div>
+  <div class="disclose__end">
+    <button type="button" class="disclose__close" data-disclose-close>
+      <span class="disclose__btn">{less}</span>
+    </button>
+  </div>
+</details>
+
+<script>
+  import '../scripts/disclose.ts';
+</script>

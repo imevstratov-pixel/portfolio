@@ -1,0 +1,168 @@
+---
+// «Узнаёте себя?» on /guide/ (block type "recognize"), in the renderer's
+// order: the three scenes with large numbers, then the story of the first
+// trainer («Первый тренажёр я собрал для близкого мне человека») with the
+// quote, one task from the demo in full and the link to the demo.
+// From 1080px the story text is on the left (6 of 12 columns) and the quote
+// on the right; the task and the demo link follow as a row: caption on the
+// left (4 columns), the task on the right (8). Phones: one column.
+import Section from '../Section.astro';
+import Quote from '../Quote.astro';
+import Button from '../Button.astro';
+import Media from '../Media.astro';
+import NumberedItems from './NumberedItems.astro';
+import { isHidden, type Block } from '../../lib/content';
+
+interface Props {
+  block: Block;
+}
+
+const { block } = Astro.props;
+const scenes: string[] = block.scenes ?? [];
+const story = block.story;
+const storyText: string[] = story?.text ?? [];
+const quote = block.quote && !isHidden(block.quote) && block.quote.text ? block.quote : undefined;
+const task = block.task;
+const demo = block.demo;
+const taskMedia = task?.media?.src ? task.media : undefined;
+// The renderer prints «Готовый запрос: …» before the prompt; the words are a
+// label of the renderer, like «Срок:» on the home page.
+const PROMPT_LABEL = 'Готовый запрос';
+---
+
+<Section id={block.anchor ?? block.id} heading={block.heading}>
+  {scenes.length > 0 && <NumberedItems items={scenes} layout="row" />}
+</Section>
+
+{
+  story && (
+    <Section id="story" heading={story.heading} class="story">
+      <div class="grid story__grid">
+        {storyText.length > 0 && (
+          <div class="story__text">
+            {storyText.map((p) => (
+              <p>{p}</p>
+            ))}
+          </div>
+        )}
+        {quote && (
+          <div class="story__quote">
+            <Quote text={quote.text} cite={quote.attribution} size="medium" />
+          </div>
+        )}
+      </div>
+
+      {(task || demo) && (
+        <div class="grid task">
+          {task && (
+            <>
+              <div class="task__head">
+                {task.caption && <h3 class="task__caption">{task.caption}</h3>}
+                {task.source && <p class="label">{task.source}</p>}
+              </div>
+              <div class="task__body">
+                {task.instruction && <p>{task.instruction}</p>}
+                {task.prompt && (
+                  <div class="task__prompt">
+                    <p class="label">{PROMPT_LABEL}</p>
+                    <p class="task__prompt-text">{task.prompt}</p>
+                  </div>
+                )}
+                {task.notice && <p>{task.notice}</p>}
+                {taskMedia && <Media src={taskMedia.src} alt={taskMedia.alt} maxWidth="24rem" />}
+              </div>
+            </>
+          )}
+          {demo && (
+            <div class="task__demo">
+              <Button href={demo.url}>{demo.label}</Button>
+              {demo.note && <p class="label task__aside">{demo.note}</p>}
+              {demo.tryFirst && <p class="task__try">{demo.tryFirst}</p>}
+            </div>
+          )}
+        </div>
+      )}
+    </Section>
+  )
+}
+
+<style>
+  .story__grid {
+    row-gap: var(--s4);
+  }
+
+  .story__text {
+    display: grid;
+    align-content: start;
+    gap: var(--s2);
+    max-width: var(--measure);
+  }
+
+  @media (min-width: 1080px) {
+    .story__text {
+      grid-column: 1 / span 6;
+    }
+
+    .story__quote {
+      grid-column: 8 / span 5;
+    }
+  }
+
+  .task {
+    margin-top: var(--s5);
+    padding-top: var(--s2);
+    border-top: var(--hair);
+  }
+
+  .task__head {
+    display: grid;
+    align-content: start;
+    gap: var(--s1);
+  }
+
+  .task__caption {
+    max-width: 16em;
+  }
+
+  .task__body,
+  .task__demo {
+    display: grid;
+    align-content: start;
+    justify-items: start;
+    gap: var(--s2);
+    max-width: var(--measure);
+  }
+
+  .task__prompt {
+    display: grid;
+    gap: var(--s1);
+    width: 100%;
+    padding-left: var(--s2);
+    border-left: var(--line);
+  }
+
+  .task__prompt-text {
+    font-size: var(--fs-medium);
+    line-height: 1.35;
+    letter-spacing: var(--track-medium);
+  }
+
+  .task__demo {
+    margin-top: var(--s2);
+  }
+
+  @media (min-width: 1080px) {
+    .task__head {
+      grid-column: 1 / span 4;
+    }
+
+    .task__body,
+    .task__demo {
+      grid-column: 5 / span 8;
+    }
+
+    .task__demo {
+      margin-top: 0;
+    }
+  }
+</style>

@@ -1,0 +1,288 @@
+---
+// The infographic strip of a case (field `infographic`, decision 10 of
+// 14.10), right under the case title on /cases/:
+// - facts: 2–4 items, the value in large mono and its label under it, an ink
+//   line on top of each (as the numbers on the home page). Only the number
+//   is large: a qualifier before it («около», «почти», «в») and a unit after
+//   it («дня», «часов», «млн ₽») are set small beside it, so word spaces do
+//   not open gaps in the mono line. A value without a digit is set in bold
+//   sans at the medium size. Every value box has the height of one large mono
+//   line, so the labels of a row start on one line;
+// - flow (optional): numbered steps joined by 1px rules: in a row from 560px
+//   of available width, a column with a vertical rule below that;
+// - beforeAfter (optional): two columns «Было» and «Стало».
+// The words «Шаги», «Было», «Стало» are the texts renderer's labels.
+// The strip adapts to its own width (container queries), so it works on the
+// /cases/ cards and at the full width of a case page.
+// `parts` picks what to show (default all three; the /cases/ cards show the
+// facts only, the case page everything).
+interface Props {
+  infographic: {
+    facts: Array<{ value: string; label: string }>;
+    flow?: string[];
+    beforeAfter?: { before: string; after: string };
+  };
+  /** Which parts to show (default facts, flow and beforeAfter). */
+  parts?: Array<'facts' | 'flow' | 'beforeAfter'>;
+  class?: string;
+}
+
+const { infographic: ig, parts = ['facts', 'flow', 'beforeAfter'], class: className } = Astro.props;
+
+// «около 1000» -> pre «около», num «1000»; «5–6 часов» -> num «5–6», post «часов»;
+// «100+ млн ₽» -> num «100+», post «млн ₽»; «1‑е», «×26», «2982%», «500 000», «30 ₽» stay whole.
+type Parts = { pre: string; num: string; post: string } | null;
+const NUM = /^(.*?)\s*([×+−-]?\d(?:[\d\u00a0\u202f,.–‑-]*\d)?(?:[%+]+|[‑-][а-яё]+)?(?:[\s\u00a0\u202f]?[₽$€](?=\s|$))?)(?:\s+(.*))?$/u;
+const split = (value: string): Parts => {
+  const m = value.trim().match(NUM);
+  if (!m) return null;
+  return { pre: m[1].trim(), num: m[2], post: (m[3] ?? '').trim() };
+};
+const facts = (parts.includes('facts') ? (ig.facts ?? []) : []).filter((f) => f.value && f.label).map((f) => ({ ...f, parts: split(f.value) }));
+const flow = parts.includes('flow') ? (ig.flow ?? []).filter(Boolean) : [];
+const ba = parts.includes('beforeAfter') && ig.beforeAfter?.before && ig.beforeAfter?.after ? ig.beforeAfter : null;
+---
+
+<div class:list={['ig', className]}>
+  {
+    facts.length > 0 && (
+      <ul class:list={['ig__facts', `ig__facts--${facts.length}`]} role="list">
+        {facts.map((f) => (
+          <li class="ig__fact">
+            {f.parts ? (
+              <span class="ig__value">
+                {f.parts.pre && <span class="ig__unit">{f.parts.pre}</span>}
+                {f.parts.pre && ' '}
+                <span class="ig__num">{f.parts.num}</span>
+                {f.parts.post && ' '}
+                {f.parts.post && <span class="ig__unit">{f.parts.post}</span>}
+              </span>
+            ) : (
+              <span class="ig__value ig__value--word">{f.value}</span>
+            )}{' '}
+            <span class="ig__label">{f.label}</span>
+          </li>
+        ))}
+      </ul>
+    )
+  }
+  {
+    flow.length > 0 && (
+      <div class="ig__part">
+        <p class="ig__name label">Шаги</p>
+        <ol class="ig__flow" role="list" style={`--steps: ${flow.length}`}>
+          {flow.map((step, i) => (
+            <li class="ig__step">
+              <span class="ig__n">{i + 1}</span>
+              <span class="ig__what">{step}</span>
+            </li>
+          ))}
+        </ol>
+      </div>
+    )
+  }
+  {
+    ba && (
+      <dl class="ig__ba">
+        <div class="ig__was">
+          <dt class="label">Было</dt>
+          <dd>{ba.before}</dd>
+        </div>
+        <div class="ig__now">
+          <dt class="label">Стало</dt>
+          <dd>{ba.after}</dd>
+        </div>
+      </dl>
+    )
+  }
+</div>
+
+<style>
+  .ig {
+    container-type: inline-size;
+    display: grid;
+    gap: var(--s3);
+    min-width: 0;
+  }
+
+  /* facts: two per row, all in one row when there is room */
+  .ig__facts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--s3) var(--gap);
+  }
+
+  .ig__fact {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s1);
+    padding-top: var(--s1);
+    border-top: var(--line);
+  }
+
+  /* one large mono line: the box keeps this height for words too, so the
+     labels in a row line up */
+  .ig__value {
+    --ig-size: clamp(1.5rem, 1.2rem + 1.4vw, 2.5rem);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    column-gap: 0.35em;
+    min-height: calc(var(--ig-size) * 1.05);
+    font-family: var(--font-mono);
+    font-size: var(--ig-size);
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+  }
+
+  .ig__num {
+    white-space: nowrap;
+  }
+
+  /* «около», «почти», «дня», «млн ₽»: small, beside the number */
+  .ig__unit {
+    font-family: var(--font-sans);
+    font-size: var(--fs-base);
+    line-height: 1;
+    letter-spacing: 0;
+  }
+
+  /* a value without a digit: bold sans at the medium size, at the foot of the box */
+  .ig__value--word {
+    align-items: flex-end;
+    font-family: var(--font-sans);
+    font-weight: var(--bold);
+    font-size: var(--fs-medium);
+    line-height: var(--lh-medium);
+    letter-spacing: var(--track-medium);
+  }
+
+  .ig__label {
+    max-width: 22em;
+  }
+
+  @container (min-width: 560px) {
+    .ig__facts--3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  /* four in a row only when each gets about 170px: labels like
+     «уровня самостоятельности» must not break inside a word */
+  @container (min-width: 760px) {
+    .ig__facts--4 {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  /* flow: a column of numbers joined by a vertical rule */
+  .ig__part {
+    display: grid;
+    gap: var(--s1);
+  }
+
+  .ig__flow {
+    display: grid;
+    gap: var(--s2);
+  }
+
+  .ig__step {
+    position: relative;
+    display: grid;
+    grid-template-columns: 2rem minmax(0, 1fr);
+    align-items: baseline;
+  }
+
+  .ig__n {
+    font-family: var(--font-mono);
+    line-height: var(--lh-base);
+  }
+
+  /* the rule from this number down to the next one */
+  .ig__step:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    left: 0.3em;
+    top: 1.7em;
+    bottom: calc(-1 * var(--s2) + 0.2em);
+    border-left: 1px solid var(--ink);
+  }
+
+  /* a row: the number, then a rule to the next number; the step under it */
+  @container (min-width: 560px) {
+    .ig__flow {
+      grid-template-columns: repeat(var(--steps), minmax(0, 1fr));
+      column-gap: var(--gap);
+    }
+
+    .ig__step {
+      grid-template-columns: minmax(0, 1fr);
+      align-content: start;
+      gap: var(--s1);
+    }
+
+    .ig__step:not(:last-child)::before {
+      content: none;
+    }
+
+    .ig__n {
+      display: flex;
+      align-items: center;
+      gap: var(--s1);
+    }
+
+    .ig__step:not(:last-child) .ig__n::after {
+      content: '';
+      flex: 1;
+      margin-right: calc(-1 * var(--gap) + var(--s1));
+      border-top: 1px solid var(--ink);
+    }
+
+    .ig__what {
+      padding-right: var(--s1);
+    }
+  }
+
+  /* before and after side by side */
+  .ig__ba {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--gap);
+  }
+
+  .ig__ba > div {
+    display: grid;
+    align-content: start;
+    gap: var(--s1);
+    padding-top: var(--s1);
+  }
+
+  .ig__ba dd {
+    margin: 0;
+    max-width: 30em;
+  }
+
+  .ig__was {
+    border-top: var(--hair);
+  }
+
+  .ig__was dd {
+    color: var(--muted);
+  }
+
+  .ig__now {
+    border-top: var(--line);
+  }
+
+  .ig__now dd {
+    font-weight: var(--bold);
+  }
+
+  @container (min-width: 560px) {
+    .ig__ba dd {
+      font-size: var(--fs-medium);
+      line-height: 1.3;
+      letter-spacing: var(--track-medium);
+    }
+  }
+</style>

@@ -1,0 +1,76 @@
+---
+// Old home-page anchors (the single-page site before v1, e.g. «…/portfolio/#c3»
+// in a message from 2025). BaseLayout puts this tiny inline script at the top
+// of <head> on the home page only. It runs before the page renders:
+// - an anchor whose content now has its own page goes there with
+//   location.replace (the old URL leaves no history entry; ?utm… is kept):
+//   #hire -> hire/, #cases -> cases/, #c1…#c7 -> cases/staff-c1/…staff-c7/
+//   (the same seven cases, checked against the old index.html; a case that is
+//   not published falls back to cases/);
+// - an anchor whose section is still on the home page scrolls there once the
+//   page is parsed: #cta -> #contact, #testimonials -> «Что говорят коллеги»,
+//   #timeline -> «Обо мне» (the closest the new home has to the old «Опыт»),
+//   #numbers -> the top (the numbers are in the first screen now). The block
+//   gives its anchor when the content has one, else its heading.
+// The map is built from the content here and travels in data-legacy-anchors,
+// so the script itself is static and tools/prodcheck.mjs can check every
+// target. An anchor the new home has itself is never redirected.
+import { cases, caseHref, getPage, pageBlocks, type Block } from '../lib/content';
+import { url } from '../lib/url';
+
+const blocks = pageBlocks(getPage('home'));
+const own = new Set(blocks.map((b) => b.anchor).filter(Boolean));
+
+const pages: Record<string, string> = { hire: url('/hire/'), cases: url('/cases/') };
+for (let n = 1; n <= 7; n++) {
+  const c = cases.find((e) => e.id === `staff-c${n}`);
+  pages[`c${n}`] = c ? caseHref(c) : url('/cases/');
+}
+
+type Target = { id?: string; heading?: string };
+function target(b: Block | undefined, fallbackId?: string): Target {
+  if (!b) return {};
+  const id = b.anchor ?? fallbackId;
+  if (id) return { id };
+  // the testimonials block shows headingColleaguesOnly when it has no client quotes
+  const heading = b.type === 'testimonials' && !b.clients?.items?.length ? (b.headingColleaguesOnly ?? b.heading) : b.heading;
+  return heading ? { heading } : {};
+}
+const byType = (t: string) => blocks.find((b) => b.type === t);
+const here: Record<string, Target> = {
+  cta: target(byType('contact'), 'contact'),
+  testimonials: target(byType('testimonials')),
+  timeline: target(byType('about')),
+  numbers: {},
+};
+
+for (const k of Object.keys(pages)) if (own.has(k)) delete pages[k];
+for (const k of Object.keys(here)) if (own.has(k)) delete here[k];
+const map = JSON.stringify({ pages, here });
+---
+
+<script is:inline data-legacy-anchors={map}>
+  (function (s) {
+    var h = location.hash.slice(1);
+    if (!h) return;
+    var m = JSON.parse(s.getAttribute('data-legacy-anchors'));
+    if (m.pages.hasOwnProperty(h)) return location.replace(m.pages[h] + location.search);
+    if (!m.here.hasOwnProperty(h)) return;
+    document.addEventListener('DOMContentLoaded', function () {
+      if (document.getElementById(h)) return;
+      var t = m.here[h];
+      if (t.id && document.getElementById(t.id)) return location.replace('#' + t.id);
+      var norm = function (x) { return x.replace(/\s+/g, ' ').trim(); };
+      var el = null;
+      if (t.heading) {
+        document.querySelectorAll('main section').forEach(function (sec) {
+          var h2 = sec.querySelector('h2');
+          if (!el && h2 && norm(h2.textContent) === norm(t.heading)) el = sec;
+        });
+      }
+      history.replaceState(null, '', location.pathname + location.search);
+      if (el) el.scrollIntoView();
+      else window.scrollTo(0, 0);
+    });
+  })(document.currentScript);
+</script>

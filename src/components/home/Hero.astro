@@ -1,0 +1,125 @@
+---
+// Home first screen (block "hero"): name and role, the h1 in the huge size
+// across the page, the lead in a narrow column with the Telegram button and
+// the email beside it, the availability line, then the four numbers in a row
+// (2 by 2 on phones) with their source note.
+// The hero button only opens the chat (no message template), so it is a plain
+// Button to the chat link, as docs/components.md says.
+import Button from '../Button.astro';
+import EmailLine from '../EmailLine.astro';
+import Numbers from '../Numbers.astro';
+import { visible, type Block } from '../../lib/content';
+import type { NumberItem } from '../../lib/types';
+
+interface Props {
+  block: Block;
+}
+
+const { block: b } = Astro.props;
+const numbers = visible<NumberItem>(b.numbers);
+// The role is two sentences; each starts its own line so that the line never
+// breaks inside «AI-инструменты». The text stays exactly as approved (the
+// space between the sentences is kept).
+const roleParts: string[] = b.role ? String(b.role).split(/(?<=\.)\s+/) : [];
+---
+
+<section class="hero" aria-labelledby="hero-heading">
+  <div class="wrap">
+    <p class="hero__who">
+      {b.name && <span class="hero__name">{b.name}</span>}{' '}
+      {
+        roleParts.length > 0 && (
+          <span class="hero__role">
+            {roleParts.map((part, i) => (
+              <>
+                {i > 0 && ' '}
+                <span class="hero__role-part">{part}</span>
+              </>
+            ))}
+          </span>
+        )
+      }
+    </p>
+    <h1 id="hero-heading" class="hero__title">{b.headline}</h1>
+    <div class="grid hero__body">
+      {b.lead && <p class="lead hero__lead col-8 lg-col-7">{b.lead}</p>}
+      <div class="hero__actions col-8 lg-col-7">
+        <div class="hero__buttons">
+          {
+            b.button?.href && (
+              <Button href={b.button.href} variant="primary" goal="telegram">
+                {b.button.label}
+              </Button>
+            )
+          }
+          {b.email && <EmailLine line={b.email} />}
+        </div>
+        {b.availability && <p class="hero__availability label">{b.availability}</p>}
+      </div>
+    </div>
+    {
+      numbers.length > 0 && (
+        <div class="hero__numbers">
+          <Numbers items={numbers} note={b.numbersNote} />
+        </div>
+      )
+    }
+  </div>
+</section>
+
+<style>
+  /* a compact rhythm so the numbers row fits the first screen at 1280×800 */
+  .hero {
+    padding-top: var(--s3);
+  }
+
+  .hero__who {
+    display: grid;
+    line-height: 1.35;
+  }
+
+  @media (min-width: 720px) {
+    .hero__who {
+      font-size: var(--fs-medium);
+      line-height: var(--lh-medium);
+      letter-spacing: var(--track-medium);
+    }
+  }
+
+  .hero__name {
+    font-weight: var(--bold);
+  }
+
+  .hero__role-part {
+    display: block;
+  }
+
+  /* the huge size, kept to about 10 em so the headline breaks into two or
+     three balanced lines (h1 has text-wrap: balance globally) */
+  .hero__title {
+    margin-top: var(--s3);
+    max-width: 10.5em;
+  }
+
+  .hero__body {
+    margin-top: var(--s2);
+    row-gap: var(--s3);
+  }
+
+  .hero__actions {
+    display: grid;
+    justify-items: start;
+    gap: var(--s2);
+  }
+
+  .hero__buttons {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--s2) var(--s3);
+  }
+
+  .hero__numbers {
+    margin-top: var(--s3);
+  }
+</style>

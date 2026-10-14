@@ -1,0 +1,57 @@
+---
+// /services/: the blocks of pages/services.md in content order, as
+// render_services() in the texts renderer: intro (h1, lead, table of
+// contents, «Другое»), the three service groups (services numbered 1–7 in
+// page order, each a compact ServiceCard whose «Подробнее» opens the full
+// template), the free-guide block between the groups (LeadMagnet, a link to
+// /free/), #formats (with the work screenshots), #faq and #contact.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Section from '../../components/Section.astro';
+import FAQ from '../../components/FAQ.astro';
+import ContactBlock from '../../components/ContactBlock.astro';
+import ServicesIntro from '../../components/services/ServicesIntro.astro';
+import ServiceGroup from '../../components/services/ServiceGroup.astro';
+import Formats from '../../components/services/Formats.astro';
+import LeadMagnet from '../../components/LeadMagnet.astro';
+import { getPage, pageBlocks } from '../../lib/content';
+
+const page = getPage('services');
+const template = page.serviceTemplate ?? {};
+const labels: Record<string, string> = template.labels ?? {};
+const blocks = pageBlocks(page);
+
+// renderer: num += 1 for every service of every group, in page order
+const numbers = new Map<string, number>();
+for (const b of blocks) {
+  if (b.type === 'service-group') for (const slug of b.services as string[]) numbers.set(slug, numbers.size + 1);
+}
+
+const known = new Set(['intro', 'service-group', 'lead-magnet', 'formats', 'faq', 'contact']);
+for (const b of blocks) {
+  if (!known.has(b.type)) throw new Error(`/services/: block "${b.id}" has unknown type "${b.type}"`);
+}
+---
+
+<BaseLayout page={page} current="/services/">
+  {
+    blocks.map((b) =>
+      b.type === 'intro' ? (
+        <ServicesIntro block={b} numbers={numbers} />
+      ) : b.type === 'service-group' ? (
+        <ServiceGroup block={b} labels={labels} numbers={numbers} />
+      ) : b.type === 'lead-magnet' ? (
+        <LeadMagnet block={b} />
+      ) : b.type === 'formats' ? (
+        <Formats block={b} />
+      ) : b.type === 'faq' ? (
+        <Section id={b.anchor ?? 'faq'} heading={b.heading}>
+          <div class="grid">
+            <FAQ items={b.items ?? []} open class="lg-col-8" />
+          </div>
+        </Section>
+      ) : (
+        <ContactBlock block={b} />
+      ),
+    )
+  }
+</BaseLayout>

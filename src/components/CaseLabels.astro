@@ -1,0 +1,47 @@
+---
+// The mono label line of a case: «В штате, EdTech, …, 2025–2026, Обучение»,
+// then the status («в работе») in bold. Commas, no middle dots. Shown in grey
+// capitals (CSS only, the text stays as approved), the status in black.
+// Typography only: a number stays on the line of the word after it («23 дня»,
+// «5 недель»), the space between them becomes non-breaking.
+import { caseLabels, CASE_LABEL_FIELDS, getCase, type CaseEntry } from '../lib/content';
+
+interface Props {
+  case: string | CaseEntry;
+  /** Fields to show, in order (default origin, industry, year, duration, direction). */
+  fields?: readonly string[];
+  /** Show the status after the labels (default true). */
+  status?: boolean;
+  class?: string;
+}
+
+const { case: c, fields = CASE_LABEL_FIELDS, status = true, class: className } = Astro.props;
+const entry = typeof c === 'string' ? getCase(c) : c;
+const values = caseLabels(entry, fields).map((v) => v.replace(/(\d) (?=\p{L})/gu, '$1\u00a0'));
+const st = status ? entry.data.status : undefined;
+---
+
+{
+  (values.length > 0 || st) && (
+    <p class:list={['case-labels label', className]}>
+      {values.join(', ')}
+      {st && (
+        <>
+          {values.length > 0 && ', '}
+          <strong class="case-labels__status">{st}</strong>
+        </>
+      )}
+    </p>
+  )
+}
+
+<style>
+  .case-labels {
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .case-labels__status {
+    color: var(--ink);
+  }
+</style>

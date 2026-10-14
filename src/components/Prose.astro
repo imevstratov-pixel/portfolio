@@ -1,0 +1,19 @@
+---
+// Long-form text from a markdown body, at a comfortable measure.
+// Pass rendered HTML (bodyHtml(entry) or a section from bodySections(entry)),
+// or put markup in the slot. Styles: .prose in src/styles/global.css (the HTML
+// is injected, so scoped styles would not reach it).
+interface Props {
+  html?: string;
+  /** Limit the line length to --measure (default true). */
+  measure?: boolean;
+  /** Text size: "base" (default) or "medium" for a lead paragraph. */
+  size?: 'base' | 'medium';
+  class?: string;
+}
+
+const { html, measure = true, size = 'base', class: className } = Astro.props;
+const cls = ['prose', measure && 'measure', size === 'medium' && 'prose--medium', className];
+---
+
+{html !== undefined ? <div class:list={cls} set:html={html} /> : <div class:list={cls}><slot /></div>}

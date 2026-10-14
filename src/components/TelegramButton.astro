@@ -1,0 +1,102 @@
+---
+// Telegram button: codeword in bold, caption below. A click copies the start
+// of the message (the template) and opens the chat; the label then reads
+// «Скопировал, вставьте в чат» for a few seconds (src/scripts/telegram.ts).
+// Codeword, caption and template come from site/global.md telegram.buttons.
+// variant="link" renders a quiet text link with the same behaviour
+// (product links like «Написать о Barba»).
+import { site, telegramButton, telegramUrl } from '../lib/content';
+
+interface Props {
+  /** A codeword from site/global.md telegram.buttons ("Аудит", "Гайд", "Вакансия"…). */
+  codeword: string;
+  /** Message start to copy; default: the button's template. Required for codewords not in global (products). */
+  template?: string;
+  /** Second line; default: the button's caption. false hides it. */
+  caption?: string | false;
+  /** Main text; default: the codeword. */
+  label?: string;
+  variant?: 'primary' | 'secondary' | 'link';
+  size?: 'base' | 'small';
+  /** Full width of its container (used in grids). */
+  block?: boolean;
+  /** Analytics goal (default "telegram"; product links pass "product"). */
+  goal?: string;
+  class?: string;
+}
+
+const {
+  codeword,
+  template,
+  caption,
+  label,
+  variant = 'secondary',
+  size = 'base',
+  block = false,
+  goal = 'telegram',
+  class: className,
+} = Astro.props;
+
+const known = site.telegram.buttons.some((b) => b.codeword === codeword);
+if (!known && !template) {
+  throw new Error(`TelegramButton: codeword "${codeword}" is not in site/global.md; pass template`);
+}
+const data = known ? telegramButton(codeword) : undefined;
+const text = template ?? data!.template;
+const second = caption === false ? undefined : (caption ?? data?.caption);
+const isLink = variant === 'link';
+const cls = isLink
+  ? ['tg-link', className]
+  : [
+      'btn',
+      `btn--${variant}`,
+      'tg-btn',
+      !second && 'tg-btn--one',
+      size === 'small' && 'btn--small',
+      block && 'btn--block',
+      className,
+    ];
+---
+
+<a
+  class:list={cls}
+  href={telegramUrl}
+  target="_blank"
+  rel="noopener"
+  data-tg-template={text}
+  data-tg-copied={site.telegram.copiedLabel}
+  data-tg-ms={site.telegram.copiedMs}
+  data-goal={goal}
+>
+  {
+    isLink ? (
+      label ?? codeword
+    ) : (
+      <>
+        <span class="tg-btn__word">{label ?? codeword}</span>{' '}
+        {second && <span class="btn__caption">{second}</span>}
+      </>
+    )
+  }
+</a>
+
+<style>
+  .tg-btn {
+    min-height: 4rem;
+    justify-content: flex-start;
+  }
+
+  /* one line (a verb label without a caption, e.g. «Заказать аудит курса») */
+  .tg-btn--one {
+    min-height: 3rem;
+    justify-content: center;
+  }
+
+  .tg-btn.btn--small {
+    min-height: 2.25rem;
+  }
+
+  .tg-btn__word {
+    font-weight: var(--bold);
+  }
+</style>

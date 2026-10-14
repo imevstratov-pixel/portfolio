@@ -1,0 +1,53 @@
+---
+// /cases/: intro, table of contents by service, every published case as a
+// card (CaseListCard: labels, title, the infographic facts, one line, «Читать
+// кейс» to /cases/<slug>/) with its anchor, so old /cases/#case-… links
+// land on the card; the contact block. Blocks are rendered in content order.
+// The full cases live on their own pages (src/pages/cases/[slug].astro,
+// decision 17 of 14.10).
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Section from '../../components/Section.astro';
+import ContactBlock from '../../components/ContactBlock.astro';
+import CasesToc from '../../components/cases/CasesToc.astro';
+import CaseListCard from '../../components/cases/CaseListCard.astro';
+import { cases, caseWords, getPage, pageBlocks } from '../../lib/content';
+
+const page = getPage('cases');
+const blocks = pageBlocks(page);
+const words = caseWords();
+---
+
+<BaseLayout page={page} current="/cases/">
+  {
+    blocks.map((b) => {
+      if (b.type === 'intro') {
+        return (
+          <Section rule="none" pad="s4" class="cases-intro">
+            <h1>{b.heading}</h1>
+            {b.lead && <p class="lead mt-3">{b.lead}</p>}
+          </Section>
+        );
+      }
+      if (b.type === 'cases-toc') return <CasesToc block={b} />;
+      if (b.type === 'cases-list') {
+        return (
+          <div class="wrap cases-list">
+            {cases.map((c) => (
+              <CaseListCard case={c} labels={b.labels} status={!!b.statusField} linkLabel={words.cardLink} />
+            ))}
+          </div>
+        );
+      }
+      if (b.type === 'contact') return <ContactBlock block={b} />;
+      return null;
+    })
+  }
+</BaseLayout>
+
+<style>
+  .cases-list {
+    margin-top: var(--s5);
+    display: grid;
+    row-gap: var(--s4);
+  }
+</style>

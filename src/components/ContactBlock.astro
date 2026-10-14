@@ -1,0 +1,146 @@
+---
+// The contact block that ends a page (anchor "contact", the target of
+// «Написать»). Takes the page block as is:
+//   type "contact" (home, services, cases): heading, hint, grid of buttons,
+//     email line, workload line, lines (price, payment, languages);
+//   type "contact" with one `button` (guide): heading, text, one button with
+//     its hint, email line, lines; when the codeword belongs to a service and
+//     the block gives no label, the button shows the service's verb label
+//     («Заказать тренажёр»), no caption (decision 8 of 14.10);
+//   type "contact" with `email: { text, subject }` (hire): heading, text, the
+//     Telegram button with its own label and caption, the email as a second
+//     button, telegramText, resume links (no hint);
+//   type "cta-line" (products): heading, text, links, hint, buttons, email, lines.
+// Global references ("global.email.line" …) are resolved here.
+// Order follows contact_block() in the texts renderer.
+import Section from './Section.astro';
+import TelegramButton from './TelegramButton.astro';
+import TelegramEmailButtons from './TelegramEmailButtons.astro';
+import EmailLine from './EmailLine.astro';
+import Resumes from './Resumes.astro';
+import { contentHref, gref, serviceByCodeword, singleHint, telegramButton, workloadLine, type Block } from '../lib/content';
+
+interface Props {
+  block: Block;
+  /** Heading size (default large). */
+  size?: 'huge' | 'large';
+  /** Rule on top (default "line"). */
+  rule?: 'line' | 'hair' | 'none';
+  class?: string;
+}
+
+const { block, size = 'large', rule = 'line', class: className } = Astro.props;
+const single: string | undefined = block.button?.codeword;
+const grid: string[] = single ? [] : (block.buttons ?? []);
+const hint: string | undefined = !single && block.hint ? gref(block.hint) : undefined;
+const workload = workloadLine(block.workload);
+const lines: string[] = (block.lines ?? []).map((l: string) => gref(l)).filter(Boolean);
+const links: Array<{ label: string; href: string }> = block.links ?? [];
+const emailObj: { text: string; subject?: string } | undefined =
+  block.email && typeof block.email === 'object' ? block.email : undefined;
+const emailLine: string = emailObj ? '' : (block.email ?? 'global.email.line');
+const template: string | undefined = single ? telegramButton(single).template : undefined;
+const resumes: Array<{ label: string; meta?: string; href: string }> = block.resumes ?? [];
+const verb: string | undefined = single && !block.button.label ? serviceByCodeword(single)?.data.button : undefined;
+const singleButton = single ? (verb ? { ...block.button, label: verb, caption: false as const } : block.button) : undefined;
+---
+
+<Section id={block.anchor ?? 'contact'} heading={block.heading} size={size} rule={rule} class:list={['contact', className]}>
+  <div class="contact__body">
+    {block.text && <p class="lead contact__text">{block.text}</p>}
+    {
+      links.length > 0 && (
+        <ul class="contact__links list-comma" role="list">
+          {links.map((l) => (
+            <li>
+              <a href={contentHref(l.href)}>{l.label}</a>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+    {
+      single ? (
+        <div class="contact__single">
+          <TelegramEmailButtons button={singleButton} email={emailObj} />
+          {block.button.hint && <p class="contact__hint label">{singleHint(single)}</p>}
+          {!emailObj && <EmailLine line={emailLine} codeword={single} template={template} />}
+          {block.telegramText && <p>{block.telegramText}</p>}
+        </div>
+      ) : (
+        <>
+          {hint && <p class="contact__hint label">{hint}</p>}
+          <ul class="contact__grid" role="list">
+            {grid.map((c) => (
+              <li>
+                <TelegramButton codeword={c} block />
+              </li>
+            ))}
+          </ul>
+          <EmailLine line={emailLine} size="medium" />
+        </>
+      )
+    }
+    {workload && <p class="contact__workload">{workload}</p>}
+    {
+      lines.length > 0 && (
+        <div class="contact__lines">
+          {lines.map((l) => (
+            <p>{l}</p>
+          ))}
+        </div>
+      )
+    }
+    {resumes.length > 0 && <Resumes items={resumes} />}
+  </div>
+</Section>
+
+<style>
+  .contact__body {
+    display: grid;
+    gap: var(--s3);
+  }
+
+  .contact__hint {
+    max-width: 52ch;
+  }
+
+  /* one button: the hint belongs to the button, air before the email line
+     (the same spacing as TelegramAction) */
+  .contact__single .contact__hint {
+    margin-top: 2px;
+    margin-bottom: var(--s1);
+  }
+
+  .contact__single {
+    display: grid;
+    justify-items: start;
+    gap: var(--s1);
+  }
+
+  .contact__grid {
+    list-style: none;
+    padding-left: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--s1);
+  }
+
+  .contact__grid > li {
+    display: flex;
+  }
+
+  @media (min-width: 720px) {
+    .contact__grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: var(--gap);
+    }
+  }
+
+  .contact__lines {
+    display: grid;
+    gap: var(--s1);
+    max-width: var(--measure);
+    color: var(--muted);
+  }
+</style>

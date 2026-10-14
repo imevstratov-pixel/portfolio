@@ -1,0 +1,27 @@
+---
+// «Что будет после вашего сообщения» (block "steps"): the shared Steps
+// component (text from site/global.md work.howWeStart) with the block's flags.
+// Defaults follow render_steps() in the texts renderer: the consultation note
+// and «Что подготовить» show unless switched off, the workload line only
+// when switched on.
+import Section from '../Section.astro';
+import Steps from '../Steps.astro';
+import type { Block } from '../../lib/content';
+
+interface Props {
+  block: Block;
+}
+
+const { block: b } = Astro.props;
+// the section is named by the Steps heading
+const headingId = `${b.anchor ?? b.id ?? 'how-we-start'}-heading`;
+---
+
+<Section id={b.anchor} labelledby={headingId}>
+  <Steps
+    headingId={headingId}
+    showConsultationNote={b.showConsultationNote ?? true}
+    showPrepare={b.showPrepare ?? true}
+    showWorkload={b.showWorkload ?? false}
+  />
+</Section>

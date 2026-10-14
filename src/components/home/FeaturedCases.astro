@@ -1,0 +1,62 @@
+---
+// «Похожие задачи я уже решал» (block "cases"): short case cards in two
+// columns (one on phones), each with a thin rule on top: labels, the full
+// title, the result line and «Читать кейс». Unpublished cases are skipped and
+// their places go to the fallback cases, as the structure doc asks. The
+// return line shows only when all its cases are published (renderer rule),
+// then «Все кейсы».
+import Section from '../Section.astro';
+import CaseCard from '../CaseCard.astro';
+import Button from '../Button.astro';
+import { isPublished, visible, type Block } from '../../lib/content';
+
+interface Props {
+  block: Block;
+}
+
+const { block: b } = Astro.props;
+type Item = { case: string; line?: string };
+const wanted = visible<Item>(b.items);
+const items: Item[] = wanted.filter((it) => isPublished(it.case));
+for (const slug of (b.fallback ?? []) as string[]) {
+  if (items.length >= wanted.length) break;
+  if (isPublished(slug) && !items.some((it) => it.case === slug)) items.push({ case: slug });
+}
+const rl = b.returnLine;
+const returnLine: string | undefined =
+  rl?.text && (rl.cases ?? []).every((c: string) => isPublished(c)) ? rl.text : undefined;
+---
+
+{
+  items.length > 0 && (
+    <Section id={b.anchor} heading={b.heading}>
+      <div class="cols cols-2 featured__cards">
+        {items.map((it) => (
+          <CaseCard case={it.case} line={it.line} linkLabel={b.cardLink} title="title" />
+        ))}
+      </div>
+      {(returnLine || b.allLink) && (
+        <div class="grid featured__foot">
+          {returnLine && <p class="lead col-8">{returnLine}</p>}
+          {b.allLink && (
+            <p class="featured__all">
+              <Button href={b.allLink.href}>{b.allLink.label}</Button>
+            </p>
+          )}
+        </div>
+      )}
+    </Section>
+  )
+}
+
+<style>
+  .featured__cards {
+    row-gap: var(--s4);
+  }
+
+  .featured__foot {
+    margin-top: var(--s4);
+    padding-top: var(--s3);
+    border-top: var(--hair);
+  }
+</style>

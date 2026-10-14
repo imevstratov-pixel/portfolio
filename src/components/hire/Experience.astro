@@ -1,0 +1,210 @@
+---
+// «Опыт» (block "experience", anchor #experience): the lead under the
+// heading, then one row per place of work between ink rules. From 1080px the
+// dates and the duration sit in mono on the left 3 columns (the rail of
+// «Коротко»), everything else on the right 9: «role, place» (h3), the full
+// name and the note in grey, the description, results as a dash list, the
+// tools line, the case lines (show: line, with their links) and the staff
+// cases in full (show: full, StaffCase with the reel beside the text, in
+// columns 4-12 like the body). A case with `scheme: true` gets the
+// AgentsScheme of the case right under it across all 12 columns: the drawing
+// needs 1180px at 1:1 and would scroll in the 9 columns of the body.
+// Below 1080px the dates stand above the heading. Order and words follow
+// render_hire() in the texts renderer.
+import Section from '../Section.astro';
+import StaffCase from './StaffCase.astro';
+import AgentsScheme from '../scheme/AgentsScheme.astro';
+import { contentHref, getCase, isPublished, visible, type Block } from '../../lib/content';
+import { isExternal } from '../../lib/url';
+
+interface Props {
+  block: Block;
+}
+
+type CaseRef = { case: string; show: 'line' | 'full'; links?: Array<{ label: string; url: string }>; scheme?: boolean };
+type Item = {
+  id: string;
+  dates: string;
+  duration?: string | null;
+  role: string;
+  place: string;
+  placeFull?: string;
+  placeNote?: string;
+  about?: string;
+  results?: string[];
+  stack?: string;
+  cases?: CaseRef[];
+};
+
+const { block: b } = Astro.props;
+const display = b.caseDisplay ?? {};
+const items = visible<Item>(b.items).map((it) => {
+  const refs = visible<CaseRef>(it.cases).filter((c) => isPublished(c.case));
+  return {
+    ...it,
+    results: visible<string>(it.results).filter(Boolean),
+    lines: refs
+      .filter((c) => c.show === 'line')
+      .map((c) => ({ text: getCase(c.case).data.hire?.line ?? '', links: visible(c.links).filter((l) => l?.url && l?.label) }))
+      .filter((l) => l.text),
+    full: refs
+      .filter((c) => c.show !== 'line')
+      .map((c) => {
+        const scheme = c.scheme ? getCase(c.case).data.scheme : undefined;
+        return { ...c, scheme, anchor: getCase(c.case).data.anchor };
+      }),
+  };
+});
+const dot = (t: string) => (/[.!?…]$/.test(t) ? t : t + '.');
+---
+
+<Section id={b.anchor} heading={b.heading}>
+  {b.lead && <p slot="head" class="exp__lead lead">{b.lead}</p>}
+  <ol class="exp" role="list">
+    {
+      items.map((it) => (
+        <li class="exp__item grid">
+          <p class="exp__when lg-col-3">
+            <span class="exp__dates">{it.dates}</span>{' '}
+            {it.duration && <span class="exp__duration">{it.duration}</span>}
+          </p>
+          <div class="exp__body lg-col-9">
+            <div class="exp__head">
+              <h3 class="exp__title">
+                {it.role}, {it.place}
+              </h3>
+              {it.placeFull && <p class="exp__aside">{dot(it.placeFull)}</p>}
+              {it.placeNote && <p class="exp__aside">{it.placeNote}</p>}
+            </div>
+            {it.about && <p class="exp__about">{it.about}</p>}
+            {it.results.length > 0 && (
+              <ul class="list-dash" role="list">
+                {it.results.map((r) => (
+                  <li>{r}</li>
+                ))}
+              </ul>
+            )}
+            {it.stack && (
+              <p class="exp__stack">
+                <span class="label">Инструменты:</span> {dot(it.stack)}
+              </p>
+            )}
+            {it.lines.length > 0 && (
+              <ul class="list-dash" role="list">
+                {it.lines.map((l) => (
+                  <li>
+                    <div>
+                      <p>{l.text}</p>
+                      {l.links.map((k) => (
+                        <p class="exp__link">
+                          <a
+                            href={contentHref(k.url)}
+                            target={isExternal(k.url) ? '_blank' : undefined}
+                            rel={isExternal(k.url) ? 'noopener' : undefined}
+                          >
+                            {k.label}
+                          </a>
+                        </p>
+                      ))}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+          {it.full.map((c) => (
+            <>
+              <div class="exp__case">
+                <StaffCase slug={c.case} display={display} />
+              </div>
+              {c.scheme === 'ai-agents' && (
+                <div class="exp__scheme">
+                  <AgentsScheme level={5} titleSize="base" idPrefix={`${c.anchor}-scheme`} />
+                </div>
+              )}
+            </>
+          ))}
+        </li>
+      ))
+    }
+  </ol>
+</Section>
+
+<style>
+  .exp__lead {
+    margin-top: var(--s3);
+  }
+
+  .exp {
+    display: grid;
+    gap: var(--s5);
+  }
+
+  .exp__item {
+    row-gap: var(--s2);
+    align-items: start;
+    padding-top: var(--s2);
+    border-top: var(--line);
+  }
+
+  .exp__when {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 var(--s2);
+    font-family: var(--font-mono);
+    font-size: var(--fs-small);
+    line-height: var(--lh-small);
+  }
+
+  .exp__duration {
+    color: var(--muted);
+  }
+
+  /* from 1080px the dates are a column: duration under the dates */
+  @media (min-width: 1080px) {
+    .exp__when {
+      flex-direction: column;
+      padding-top: 0.45em;
+    }
+  }
+
+  .exp__body {
+    display: grid;
+    gap: var(--s3);
+    min-width: 0;
+  }
+
+  .exp__body > * {
+    max-width: var(--measure);
+  }
+
+  .exp__head {
+    display: grid;
+    gap: var(--s1);
+  }
+
+  .exp__title {
+    max-width: 26em;
+  }
+
+  .exp__aside {
+    color: var(--muted);
+  }
+
+  .exp__link {
+    margin-top: 0.25rem;
+  }
+
+  /* staff cases under the body: columns 4-12 from 1080px; the scheme of a
+     case under it at the full width */
+  .exp__case,
+  .exp__scheme {
+    margin-top: var(--s2);
+  }
+
+  @media (min-width: 1080px) {
+    .exp__item > .exp__case {
+      grid-column: 4 / -1;
+    }
+  }
+</style>
