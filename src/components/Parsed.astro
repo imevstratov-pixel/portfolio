@@ -1,0 +1,67 @@
+---
+// A line of the content with the school parse (decision 1 of 15.10): the
+// tokens «[слова|роль]» become words underlined in the member's style
+// (src/lib/parse.ts, src/styles/accents.css).
+//
+//   <Parsed text={f.legend} inline where="site footer.legend" />                    (the footer legend)
+//   <Parsed text={b.headlineParse} plain={b.headline} where="pages/home hero" />   (a parsed line with its plain text;
+//                                                                                   the home h1 until it went to glyphs, decision 6 of 15.10)
+//
+// Default (not inline): screen readers get the plain text in one piece (a
+// visually hidden copy that cannot be selected), and the underlined copy is
+// aria-hidden, so the words are never read one by one. `inline`: the
+// underlined words stay in the text as plain spans (for a sentence whose
+// underlined words are its own words, like the legend).
+import { parseSentence, ROLE_CLASS } from '../lib/parse';
+
+interface Props {
+  /** The marked line, «[Образование|подлежащее], …». */
+  text: string;
+  /** The approved plain text the parse must read as (checked at build time). */
+  plain?: string;
+  /** Where the line comes from, for the build error. */
+  where?: string;
+  /** Underline in place, without the hidden plain copy. */
+  inline?: boolean;
+  class?: string;
+}
+
+const { text, plain, where, inline = false, class: className } = Astro.props;
+const parts = parseSentence(text, plain, where);
+const readable = parts.map((p) => p.text).join('');
+// typography only (the words stay as approved; `readable` and the build check
+// above use the text before this):
+// - a member of the sentence never breaks inside («не скамит» stays on one
+//   line with its two lines under it);
+// - between the members, a one- or two-letter word stays with the word after
+//   it («и» goes to the line of «не скамит», «в» to «жизни»): a non-breaking
+//   space at the end of a text node before a member's span keeps them together
+const SHORT = /(?<![А-Яа-яЁёA-Za-z0-9])([А-Яа-яЁё]{1,2}) /g;
+const shown = parts.map((p) =>
+  p.role ? { ...p, text: p.text.replace(/ /g, '\u00a0') } : { ...p, text: p.text.replace(SHORT, '$1\u00a0') },
+);
+---
+
+{
+  inline ? (
+    <span class:list={['parsed', className]}>
+      {shown.map((p) => (p.role ? <span class={ROLE_CLASS[p.role]}>{p.text}</span> : p.text))}
+    </span>
+  ) : (
+    <>
+      <span class="sr-only parsed__plain">{readable}</span>
+      <span class:list={['parsed', className]} aria-hidden="true">
+        {shown.map((p) => (p.role ? <span class={ROLE_CLASS[p.role]}>{p.text}</span> : p.text))}
+      </span>
+    </>
+  )
+}
+
+<style>
+  /* the hidden copy is for screen readers only: a mouse selection of the line
+     copies the visible words once */
+  .parsed__plain {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+</style>

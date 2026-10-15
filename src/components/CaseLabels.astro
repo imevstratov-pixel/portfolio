@@ -4,7 +4,9 @@
 // capitals (CSS only, the text stays as approved), the status in black.
 // Typography only: a number stays on the line of the word after it («23 дня»,
 // «5 недель»), the space between them becomes non-breaking.
-import { caseLabels, CASE_LABEL_FIELDS, getCase, type CaseEntry } from '../lib/content';
+// The duration carries the dash-dot line (обстоятельство: durations and
+// prices, src/styles/accents.css .u-circ), in the label's grey.
+import { CASE_LABEL_FIELDS, getCase, type CaseEntry } from '../lib/content';
 
 interface Props {
   case: string | CaseEntry;
@@ -17,14 +19,25 @@ interface Props {
 
 const { case: c, fields = CASE_LABEL_FIELDS, status = true, class: className } = Astro.props;
 const entry = typeof c === 'string' ? getCase(c) : c;
-const values = caseLabels(entry, fields).map((v) => v.replace(/(\d) (?=\p{L})/gu, '$1\u00a0'));
+// the same values as caseLabels(), with the field each one comes from
+const data = entry.data as Record<string, unknown>;
+const items = fields
+  .map((f) => ({ f, v: data[f] }))
+  .filter(({ v }) => v !== undefined && v !== null && v !== '')
+  .map(({ f, v }) => ({ f, v: String(v).replace(/(\d) (?=\p{L})/gu, '$1\u00a0') }));
+const values = items.map((it) => it.v);
 const st = status ? entry.data.status : undefined;
 ---
 
 {
   (values.length > 0 || st) && (
     <p class:list={['case-labels label', className]}>
-      {values.join(', ')}
+      {items.map((it, i) => (
+        <>
+          {i > 0 && ', '}
+          {it.f === 'duration' ? <span class="u-circ">{it.v}</span> : it.v}
+        </>
+      ))}
       {st && (
         <>
           {values.length > 0 && ', '}

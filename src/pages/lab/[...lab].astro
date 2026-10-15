@@ -1,0 +1,240 @@
+---
+// /lab/: the sandbox page with the «cherry» prototypes (decision 3 of 15.10):
+// A, the photo in glyphs; B, the first-screen phrase in glyphs; C, the photo
+// in one bit. Daniil chose B for the home first screen and C for «Обо мне»
+// (decision 6 of 15.10): they live in src/components/glyphs/ and are used on
+// the home page as they are shown here; A stays in src/components/lab/.
+//
+// Staging only: getStaticPaths returns the page only when PREVIEW is on, so
+// the production build (PREVIEW=0) has no /lab/ and the sitemap (built from
+// the files in dist/) cannot list it. In preview every page is noindex
+// anyway; BaseLayout gets `noindex` here too. Not in the header or footer;
+// «Написать» goes to the home contact block (no contact block here).
+// The photo and the phrase come from the content (pages/home.md).
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Section from '../../components/Section.astro';
+import AsciiPortrait from '../../components/lab/AsciiPortrait.astro';
+import AsciiHeadline from '../../components/glyphs/AsciiHeadline.astro';
+import DitherPortrait from '../../components/glyphs/DitherPortrait.astro';
+import LabControls, { type LabGroup } from '../../components/lab/LabControls.astro';
+import { getBlock, getPage } from '../../lib/content';
+import { PREVIEW } from '../../lib/env';
+import { url } from '../../lib/url';
+
+export function getStaticPaths() {
+  return PREVIEW ? [{ params: { lab: undefined } }] : [];
+}
+
+const home = getPage('home');
+const hero = getBlock(home, 'hero');
+const about = getBlock(home, 'about');
+
+// Two pictures: the drawn portrait of the old site (a frontal face, flat
+// tones: the technique reads on it) is the default; the selfie in the lift
+// mirror (about.photo) has the face behind the phone and its flash, so it is
+// only a placeholder until a frontal photo exists. Each with a closer crop.
+type Pic = { id: string; src: string; alt: string; crop: [number, number, number, number] };
+const PORTRAIT: Pic = { id: 'portrait', src: about.portrait, alt: about.portraitAlt, crop: [0.26, 0.1, 0.7, 0.64] };
+const SELFIE: Pic | null = about.photo?.src
+  ? { id: 'selfie', src: about.photo.src, alt: about.photo.alt, crop: [0.1, 0.12, 0.72, 0.62] }
+  : null;
+const pics = [PORTRAIT, SELFIE].filter((p): p is Pic => !!p);
+const photoGroup: LabGroup = {
+  attr: 'photo',
+  label: 'Фото',
+  value: PORTRAIT.id,
+  options: pics.flatMap((p) => {
+    const name = p === PORTRAIT ? 'Портрет' : 'Селфи';
+    const set = (crop: number[]) => ({ 'data-src': url(p.src), 'data-crop': crop.join(' '), 'aria-label': p.alt });
+    return [
+      [p.id, name, set(p.crop)],
+      [`${p.id}-full`, `${name} целиком`, set([0, 0, 1, 1])],
+    ] as LabGroup['options'];
+  }),
+};
+const shimmerGroup: LabGroup = {
+  attr: 'shimmer',
+  label: 'Мерцание в покое',
+  value: 'off',
+  options: [['off', 'Нет'], ['on', 'Да']],
+};
+const controls: Record<string, LabGroup[]> = {
+  'lab-a': [
+    photoGroup,
+    { attr: 'mode', label: 'Цвет', value: 'ink', options: [['ink', 'Чёрным по белому'], ['inverse', 'Белым по чёрному']] },
+    { attr: 'cols', label: 'Символов в строке', value: '96', options: [['64', '64'], ['96', '96'], ['128', '128']] },
+    shimmerGroup,
+  ],
+  'lab-b': [
+    { attr: 'mode', label: 'Цвет', value: 'ink', options: [['ink', 'Чёрным по белому'], ['inverse', 'Белым по чёрному']] },
+    { attr: 'letters', label: 'Буквы', value: 'clip', options: [['clip', 'Чёткий край'], ['grid', 'Только символы']] },
+    { attr: 'density', label: 'Символов на высоту строки', value: '11', options: [['8', '8'], ['11', '11'], ['15', '15']] },
+    { attr: 'halo', label: 'Точки вокруг букв', value: 'auto', options: [['auto', 'Авто'], ['on', 'Да'], ['off', 'Нет']] },
+    shimmerGroup,
+  ],
+  'lab-c': [
+    photoGroup,
+    { attr: 'mode', label: 'Цвет', value: 'ink', options: [['ink', 'Чёрным по белому'], ['inverse', 'Негатив']] },
+    { attr: 'algo', label: 'Растр', value: 'atkinson', options: [['atkinson', 'Аткинсон'], ['bayer', 'Байер']] },
+    { attr: 'pixel', label: 'Пиксель', value: '2', options: [['2', '2 px'], ['3', '3 px'], ['4', '4 px']] },
+    {
+      attr: 'lens',
+      label: 'Под курсором',
+      value: 'fine',
+      options: [['fine', 'Мельче'], ['coarse', 'Крупнее'], ['swap', 'Другой растр'], ['grey', 'Серый']],
+    },
+  ],
+};
+---
+
+<BaseLayout title="Лаборатория — Даниил Евстратов" noindex ctaHref="/#contact">
+  <Section rule="none" pad="s4">
+    <h1 class="lab-title">Лаборатория</h1>
+    <p class="lead lab-lead">
+      Графика из символов: три прототипа. На главной теперь B (заголовок первого экрана) и C (фото в «Обо мне»).
+      Страница есть только в песочнице: в рабочую сборку и в sitemap она не попадает.
+    </p>
+    <p class="label lab-hint">
+      Наведите курсор на картинку или проведите по ней пальцем. Сами по себе картинки не двигаются (мерцание в покое
+      можно включить для сравнения). Когда в системе включено уменьшение движения, они статичны.
+    </p>
+    <p class="label lab-hint">
+      Здесь по умолчанию рисованный портрет с сайта: на нём видно, как работает техника. В «Обо мне» на главной стоит
+      селфи в лифте (так решил Даниил), хотя лицо на нём закрыто телефоном и вспышкой.
+    </p>
+  </Section>
+
+  <Section id="lab-a-section" label="Вариант A" heading="ASCII-портрет">
+    <div class="grid lab-row">
+      <div class="col-7 lg-col-6">
+        <AsciiPortrait id="lab-a" src={PORTRAIT.src} alt={PORTRAIT.alt} cols={96} crop={PORTRAIT.crop} />
+      </div>
+      <div class="col-5 lg-col-5 lg-start-8 lab-side">
+        <p>
+          Фото из символов IBM Plex Mono: точки, кавычки, тире, слэши, скобки, звёздочки, буквы, по контурам штрихи
+          «/ \ | -». Под курсором символы растут и приближаются, набор становится плотнее, с буквами, внутри линзы
+          лёгкая тень.
+        </p>
+        <LabControls target="lab-a" groups={controls['lab-a']} />
+      </div>
+    </div>
+  </Section>
+
+  <Section id="lab-b-section" label="Вариант B" heading="ASCII-заголовок">
+    <AsciiHeadline id="lab-b" text={hero.headline} />
+    <div class="grid lab-row lab-row--under">
+      <div class="col-7 lg-col-6">
+        <p>
+          Фраза первого экрана, буквы заполнены символами, вокруг букв бледные точки. Настоящий текст остаётся на
+          странице под рисунком: его читают поисковики и скринридеры, его можно выделить, он задаёт высоту блока.
+        </p>
+        <p class="mt-2">
+          На телефоне строка символов не ниже 5,5 px, иначе фраза превращается в шум: там 11 и 15 выглядят почти как 8.
+          Точки вокруг букв в режиме «Авто» видны только на широком экране с плотными пикселями (ретина): на телефоне
+          они сливаются с буквами, а на обычном мониторе превращают строки в шум. Чем мельче буквы, тем плотнее серая
+          заливка под символами, чтобы фраза читалась и на телефоне.
+        </p>
+      </div>
+      <div class="col-5 lg-col-5 lg-start-8">
+        <LabControls target="lab-b" groups={controls['lab-b']} />
+      </div>
+    </div>
+  </Section>
+
+  <Section id="lab-c-section" label="Вариант C" heading="Однобитный портрет">
+    <div class="grid lab-row">
+      <div class="col-7 lg-col-6">
+        <DitherPortrait id="lab-c" src={PORTRAIT.src} alt={PORTRAIT.alt} crop={PORTRAIT.crop} />
+      </div>
+      <div class="col-5 lg-col-5 lg-start-8 lab-side">
+        <p>
+          Фото в один бит, точечным растром, как в glagstone: каждый пиксель чёрный или белый. Под курсором растр
+          меняется, а край линзы тоже растровый, так что картинка остаётся однобитной.
+        </p>
+        <LabControls target="lab-c" groups={controls['lab-c']} />
+      </div>
+    </div>
+  </Section>
+
+  <Section id="lab-cost" label="Для выбора" heading="Цена кадра">
+    <div class="grid lab-row">
+      <div class="col-7 lg-col-6">
+        <p>
+          Сколько миллисекунд занимает один кадр, пока курсор или палец водит по картинке (95% кадров быстрее).
+          На плавные 60 кадров в секунду есть 16 мс. В покое ни одна картинка ничего не тратит.
+        </p>
+        <p class="mt-2">
+          B самый тяжёлый: буквы с чётким краем дороже. После облегчения он стал в 3 раза быстрее и больше не
+          замирает почти на секунду при первом касании. Если выбираем B для первого экрана, перед публикацией
+          проверим его на настоящем Android-телефоне среднего класса.
+        </p>
+      </div>
+      <div class="col-5 lg-col-5 lg-start-8">
+        <table class="lab-cost">
+          <caption class="label">Мс на кадр. Chromium без видеокарты; «медленно»: процессор замедлен в 4 раза, как у телефона среднего класса</caption>
+          <thead>
+            <tr>
+              <th scope="col"></th>
+              <th scope="col">1280, 2×</th>
+              <th scope="col">1280, 2×, медленно</th>
+              <th scope="col">375, 3×, медленно</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row">A</th><td>1,3</td><td>7,1</td><td>5,7</td></tr>
+            <tr><th scope="row">B</th><td>3,9</td><td>19,6</td><td>15,6</td></tr>
+            <tr><th scope="row">B до облегчения</th><td>8,2</td><td>61</td><td>47</td></tr>
+            <tr><th scope="row">C</th><td>6,4</td><td>15,1</td><td>5,1</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </Section>
+</BaseLayout>
+
+<style>
+  .lab-lead {
+    margin-top: var(--s3);
+  }
+  .lab-hint {
+    margin-top: var(--s2);
+    max-width: 44rem;
+  }
+  .lab-row {
+    align-items: start;
+  }
+  .lab-row--under {
+    margin-top: var(--s3);
+  }
+  .lab-cost {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--font-mono);
+    font-size: var(--fs-small);
+    line-height: var(--lh-small);
+  }
+  .lab-cost caption {
+    caption-side: bottom;
+    padding-top: var(--s1);
+    text-align: left;
+  }
+  .lab-cost th,
+  .lab-cost td {
+    padding: var(--s1) var(--s1) var(--s1) 0;
+    border-top: var(--hair);
+    text-align: right;
+    font-weight: var(--regular);
+    vertical-align: bottom;
+  }
+  .lab-cost th[scope='row'],
+  .lab-cost thead th:first-child {
+    text-align: left;
+  }
+  .lab-cost thead th {
+    color: var(--muted);
+  }
+  /* the option groups are LabControls' own root: :global reaches it */
+  .lab-side :global(.lab-ctls) {
+    margin-top: var(--s3);
+  }
+</style>

@@ -11,7 +11,7 @@
 // <out>/<route>-<width>.png. Also reports horizontal overflow per width.
 import { createServer } from 'node:http';
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync } from 'node:fs';
-import { extname, join, resolve } from 'node:path';
+import { extname, join, relative, resolve, sep } from 'node:path';
 import { chromium } from 'playwright';
 
 const ROOT = resolve(import.meta.dirname, '..');
@@ -65,11 +65,13 @@ const TYPES = {
 
 function resolveFile(pathname) {
   if (!pathname.startsWith(BASE)) return null;
-  let rel = decodeURIComponent(pathname.slice(BASE.length));
-  if (rel.includes('..')) return null;
+  const rel = decodeURIComponent(pathname.slice(BASE.length));
   const candidates = [rel, join(rel, 'index.html'), rel + '.html'];
   for (const c of candidates) {
     const f = join(DIST, c);
+    // nothing outside dist/ (a name like «_..DvxxxWo_.css», the CSS of the
+    // /lab/ route [...lab], is a file, not a way up)
+    if (relative(DIST, f).split(sep)[0] === '..') return null;
     if (existsSync(f) && statSync(f).isFile()) return f;
   }
   return null;

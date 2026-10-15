@@ -5,7 +5,17 @@
 // (2 by 2 on phones) with their source note.
 // The hero button only opens the chat (no message template), so it is a plain
 // Button to the chat link, as docs/components.md says.
+// The headline is drawn in glyphs (decisions 6 and 9 of 15.10: prototype B of
+// /lab/ with Daniil's settings: black on white, clip letters, density 15, no
+// halo dots, idle shimmer on; the shimmer runs 5 s each time the hero comes into
+// view, then rests, and never with reduced motion). The h1 keeps the real text: search
+// engines and screen readers read it, it sets the box, and it is what shows
+// before the canvas is ready, without JS and under forced colours
+// (components/glyphs/AsciiHeadline.astro). Not underlined: the school parse
+// (`headlineParse`) is no longer drawn here; one- and two-letter words stay
+// with the next word («и не скамит»), typography only.
 import Button from '../Button.astro';
+import AsciiHeadline from '../glyphs/AsciiHeadline.astro';
 import EmailLine from '../EmailLine.astro';
 import Numbers from '../Numbers.astro';
 import { visible, type Block } from '../../lib/content';
@@ -21,6 +31,8 @@ const numbers = visible<NumberItem>(b.numbers);
 // breaks inside «AI-инструменты». The text stays exactly as approved (the
 // space between the sentences is kept).
 const roleParts: string[] = b.role ? String(b.role).split(/(?<=\.)\s+/) : [];
+// a one- or two-letter word keeps the word after it on its line (as Parsed did)
+const headline = String(b.headline ?? '').replace(/(?<![А-Яа-яЁёA-Za-z0-9])([А-Яа-яЁё]{1,2}) /g, '$1\u00a0');
 ---
 
 <section class="hero" aria-labelledby="hero-heading">
@@ -40,7 +52,13 @@ const roleParts: string[] = b.role ? String(b.role).split(/(?<=\.)\s+/) : [];
         )
       }
     </p>
-    <h1 id="hero-heading" class="hero__title">{b.headline}</h1>
+    {
+      headline && (
+        <div class="hero__title">
+          <AsciiHeadline text={headline} as="h1" id="hero-heading" size="var(--fs-huge)" width="10.5em" density={15} halo={false} shimmer={true} />
+        </div>
+      )
+    }
     <div class="grid hero__body">
       {b.lead && <p class="lead hero__lead col-8 lg-col-7">{b.lead}</p>}
       <div class="hero__actions col-8 lg-col-7">
@@ -94,11 +112,11 @@ const roleParts: string[] = b.role ? String(b.role).split(/(?<=\.)\s+/) : [];
     display: block;
   }
 
-  /* the huge size, kept to about 10 em so the headline breaks into two or
-     three balanced lines (h1 has text-wrap: balance globally) */
+  /* the headline in glyphs (AsciiHeadline): about 10 em wide so it breaks
+     into balanced lines; its own padding leaves room for the descenders and
+     the lens, so the gap above is a little smaller */
   .hero__title {
-    margin-top: var(--s3);
-    max-width: 10.5em;
+    margin-top: calc(var(--s3) - 0.12 * var(--fs-huge));
   }
 
   .hero__body {

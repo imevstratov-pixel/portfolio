@@ -23,17 +23,22 @@
 // Preview (PREVIEW not 0): no Metrika anywhere (mc.yandex.ru, data-metrika),
 // a robots noindex meta on every HTML page (search-engine verification files
 // google<token>.html and yandex_<token>.html excepted), robots.txt disallows everything
-// and names no sitemap, no sitemap.xml.
+// and names no sitemap, no sitemap.xml; while astro.config.mjs registers the
+// staging comment mode (tools/comment-mode.mjs), every generated page
+// (redirects excepted) loads it and the chunks it loads later are in dist/.
 // Production (PREVIEW=0): the Metrika counter on every generated page
 // (redirect stubs excepted), no noindex on them except 404, legacy files
 // byte-identical to public/ (en/ keeps its own counter, demo/ its own robots),
 // robots.txt allows and names SITE + BASE + sitemap.xml, and sitemap.xml lists
 // every indexable generated page (every route, /cases/<slug>/, new ones too)
 // plus the linked legacy pages (en/), each once, under SITE + BASE, and
-// nothing that is 404, noindex or a redirect.
+// nothing that is 404, noindex or a redirect. No file of the build carries the
+// staging comment mode (its marker, its scripts, the new-issue address), and
+// the preview-only /lab/ is absent (no lab/ page, no chunk of its islands).
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative, resolve, sep } from 'node:path';
 import { VERIFY } from './legacy-preview.mjs';
+import { COMMENT_MODE_MARKER } from './comment-mode.mjs';
 
 const ROOT = resolve(import.meta.dirname, '..');
 const DIST = resolve(process.argv[2] || process.env.DIST || join(ROOT, 'dist'));
@@ -179,6 +184,25 @@ if (PREVIEW) {
     if (/^(Allow|Sitemap):/im.test(robots)) err('robots.txt', 'preview robots.txt must not allow or name a sitemap');
   }
   if (existsSync(sitemapFile)) err('sitemap.xml', 'preview build must not have a sitemap');
+  // the staging comment mode (when astro.config.mjs registers it): on every
+  // generated page, its lazy chunks built
+  const commentModeOn = /\bcommentMode\(\)/.test(readFileSync(join(ROOT, 'astro.config.mjs'), 'utf8'));
+  if (!commentModeOn) console.log('prodcheck: note, the comment mode (tools/comment-mode.mjs) is not in astro.config.mjs');
+  const scriptsOf = (h) => [...h.matchAll(/<script\b[^>]*\ssrc="([^"]+)"[^>]*>/g)].map((x) => fileFor(decode(x[1]))).filter(Boolean);
+  const entries = new Set();
+  for (const f of commentModeOn ? generated : []) {
+    const h = html.get(f);
+    if (isRedirect(h)) continue;
+    const entry = scriptsOf(h).find((s) => readFileSync(join(DIST, s), 'utf8').includes(COMMENT_MODE_MARKER));
+    if (entry) entries.add(entry);
+    else err(f, 'preview page without the comment mode (tools/comment-mode.mjs)');
+  }
+  for (const e of entries) {
+    for (const m of readFileSync(join(DIST, e), 'utf8').matchAll(/import\(\s*[`'"](\.\/[^`'"]+\.js)[`'"]\s*\)/g)) {
+      const dep = join(e, '..', m[1]).split(sep).join('/');
+      if (!existsSync(join(DIST, dep))) err(e, `loads ${m[1]}, which is not in dist/`);
+    }
+  }
 } else {
   for (const f of generated) {
     const h = html.get(f);
@@ -198,6 +222,26 @@ if (PREVIEW) {
       ? readFileSync(a).equals(readFileSync(b))
       : statSync(a).size === statSync(b).size;
     if (!same) err(f, 'legacy file differs from public/ in a production build');
+  }
+  // the staging comment mode never ships (decision 4 of 15.10)
+  const COMMENT = [COMMENT_MODE_MARKER, 'data-comment-mode', 'comment-mode-ui', 'comment-mode-map', '/issues/new'];
+  for (const f of distFiles) {
+    if (publicFiles.has(f) || !/\.(html|js|mjs|css|txt|xml|json|svg)$/.test(f)) continue;
+    const text = readFileSync(join(DIST, f), 'utf8');
+    const hit = COMMENT.find((m) => text.includes(m));
+    if (hit) err(f, `production build carries the staging comment mode ("${hit}")`);
+  }
+  // the preview-only /lab/ (decision 3 of 15.10): no page, and no chunk named
+  // after its components or scripts (tools/lab-prune.mjs drops them; "core"
+  // is too common a chunk name to tell)
+  const labModules = ['components/lab', 'scripts/lab']
+    .flatMap((d) => (existsSync(join(ROOT, 'src', d)) ? readdirSync(join(ROOT, 'src', d)) : []))
+    .map((n) => n.replace(/\.(astro|ts)$/, ''))
+    .filter((n) => n !== 'core');
+  for (const f of distFiles) {
+    if (f.startsWith('lab/')) err(f, 'production build has the preview-only /lab/ page');
+    else if (f.startsWith('_astro/') && labModules.some((m) => f.slice('_astro/'.length).startsWith(m + '.')))
+      err(f, 'production build carries a script of the preview-only /lab/ (is labPrune() in astro.config.mjs?)');
   }
   if (robots !== null) {
     if (/^Disallow:\s*\/\s*$/m.test(robots)) err('robots.txt', 'production robots.txt disallows everything');

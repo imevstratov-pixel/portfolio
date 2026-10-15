@@ -1,0 +1,286 @@
+/* Typographic accents: the school sentence parse (decision 1 of 15.10).
+   No colour accents on the site; emphasis is an underline, one style per
+   member of the sentence, always in the text's own colour (currentColor), so
+   it inverts with a button and greys with a grey label.
+
+     подлежащее      .u-subj   one solid line   the main word of a heading,
+                                                the current page in a menu
+     сказуемое       .u-pred   two lines        action buttons and action
+                                                links
+     дополнение      .u-obj    dashed           ordinary links (every <a>)
+     определение     .u-attr   wavy             a link under the pointer or
+                                                the keyboard focus
+     обстоятельство  .u-circ   dash-dot         durations and prices
+
+   Loaded in BaseLayout right after global.css (it overrides the plain link
+   underline there). Lines are sized in em, so they follow the text: 1px in
+   body text, about 1.3px at 26px, 4–5px at the huge size. Lines
+   never move layout (text-decoration and a background only).
+
+   Support: solid, double, dashed and wavy are native text-decoration styles,
+   specified and shipped together (Chromium 57+, Firefox, Safari 12.1+;
+   Safari 8–12 reads the -webkit- copies). A browser without
+   text-decoration-style draws its default: one solid line, still a link.
+   Thickness and offset (Safari 12.1+) degrade to the browser's own line.
+   Dash-dot has no native style: it is a repeating gradient in currentColor
+   (dash, gap, dot, gap), which scales with the font size and follows the
+   colour; a data-URI SVG could not take currentColor (an SVG image never
+   sees the page's colour), and a grey label or an inverted button needs it.
+   Forced colours and print fall back to a native dotted line.
+   Motion: only the change of a link under the pointer animates (the wave
+   fades in and settles, then returns over the hover fade), and only with
+   prefers-reduced-motion: no-preference; nothing moves otherwise. This file
+   owns text-decoration and its motion on links, buttons and .tg-link;
+   motion.css (buttons' fill, press, page change) never sets it. A line
+   outside this file (the FAQ question, a case step's title) uses these
+   tokens and u-wave-in. */
+
+:root {
+  /* thickness: solid, dashed, the dash-dot */
+  --u-t: max(1px, 0.05em);
+  /* thickness of each of the two lines of the double style (gap = thickness) */
+  --u-t2: max(1px, 0.035em);
+  /* wavy: thinner, the wave itself is taller than a straight line */
+  --u-tw: max(1px, 0.04em);
+  /* offset of the line below the alphabetic baseline */
+  --u-o: 0.2em;
+  --u-o2: 0.16em;
+  --u-ow: 0.17em;
+  /* dash-dot geometry (in em of the text) and the descent of the face below
+     the baseline (Inter Tight 0.24em, IBM Plex Mono 0.28em; measured), which
+     places the background line where a text-decoration line would be */
+  --u-dash: 0.5em;
+  --u-gap: 0.17em;
+  --u-descent: 0.24em;
+  /* motion of the lines: the wave's entrance (u-wave-in); the way back uses
+     the hover fade of motion.css (--dur-hover, --ease-out) */
+  --u-dur: 200ms;
+  --u-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.mono,
+.label,
+.t-small {
+  --u-descent: 0.28em;
+}
+
+/* ------------------------------------------------------------ the five */
+
+/* Each utility sets the whole decoration, so it works on any inline text
+   (inside a heading, a paragraph). Longhands only: Safari ignores the
+   thickness inside the text-decoration shorthand. */
+.u-subj,
+.u-pred,
+.u-obj,
+.u-attr {
+  -webkit-text-decoration-line: underline;
+  text-decoration-line: underline;
+  -webkit-text-decoration-color: currentColor;
+  text-decoration-color: currentColor;
+  text-decoration-skip-ink: auto;
+  -webkit-text-decoration-style: solid;
+  text-decoration-style: solid;
+  text-decoration-thickness: var(--u-t);
+  text-underline-offset: var(--u-o);
+}
+
+.u-pred {
+  -webkit-text-decoration-style: double;
+  text-decoration-style: double;
+  text-decoration-thickness: var(--u-t2);
+  text-underline-offset: var(--u-o2);
+}
+
+.u-obj {
+  -webkit-text-decoration-style: dashed;
+  text-decoration-style: dashed;
+}
+
+.u-attr {
+  -webkit-text-decoration-style: wavy;
+  text-decoration-style: wavy;
+  text-decoration-thickness: var(--u-tw);
+  text-underline-offset: var(--u-ow);
+}
+
+/* Dash-dot: a dash, a gap, a dot, a gap, drawn as one repeating gradient in
+   currentColor (the dot is a short square stroke, a pen dot at 1px; round
+   gradients vanish at 1px on 1x screens). The painting area of an inline box
+   is its content area (ascent to descent), so the pattern is placed from the
+   bottom: the descent plus the extra padding, minus the offset and the
+   thickness, puts the line where the native lines are. The bottom padding of
+   an inline box does not change the line height. The period stretches by a
+   fraction of a pixel so that a whole number of dash, gap, dot, gap fits
+   (background-repeat: round): every line ends on a full pattern, never on a
+   stub that reads as a double dot. Each line of a wrapped phrase is fitted
+   on its own (box-decoration-break: clone; the span has no side padding or
+   border, so clone changes nothing else). Put it on an inline element (a
+   span around the words), not on a block. */
+.u-circ {
+  --u-dot: max(1px, 0.07em);
+  --u-period: calc(var(--u-dash) + 2 * var(--u-gap) + var(--u-dot));
+  --u-y: calc(var(--u-descent) + 0.15em - var(--u-o) - var(--u-t));
+  text-decoration-line: none;
+  padding-bottom: 0.15em;
+  background-image: linear-gradient(
+    90deg,
+    currentColor 0 var(--u-dash),
+    transparent 0 calc(var(--u-dash) + var(--u-gap)),
+    currentColor 0 calc(var(--u-dash) + var(--u-gap) + var(--u-dot)),
+    transparent 0
+  );
+  background-size: var(--u-period) var(--u-t);
+  background-position: left 0 bottom var(--u-y);
+  background-repeat: round no-repeat;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+/* ------------------------------------------------------------ the links */
+
+/* Ordinary links: dashed (дополнение). global.css draws a solid 1px line;
+   this file comes after it and replaces it. */
+a {
+  -webkit-text-decoration-line: underline;
+  text-decoration-line: underline;
+  -webkit-text-decoration-style: dashed;
+  text-decoration-style: dashed;
+  text-decoration-thickness: var(--u-t);
+  text-underline-offset: var(--u-o);
+  text-decoration-skip-ink: auto;
+}
+
+/* Under the pointer or the keyboard focus: wavy (определение). Hover only
+   where there is a real pointer, so a tap on a phone does not leave a wave
+   behind. global.css made the hover line 2px; the wave replaces it. */
+@media (hover: hover) {
+  a:hover {
+    -webkit-text-decoration-style: wavy;
+    text-decoration-style: wavy;
+    text-decoration-thickness: var(--u-tw);
+    text-underline-offset: var(--u-ow);
+  }
+}
+
+a:focus-visible {
+  -webkit-text-decoration-style: wavy;
+  text-decoration-style: wavy;
+  text-decoration-thickness: var(--u-tw);
+  text-underline-offset: var(--u-ow);
+}
+
+/* Quiet navigation links (header, table of contents): no line at rest, the
+   wave under the pointer, one solid line on the current page (подлежащее:
+   «you are here»). The current page in the footer list too. */
+.link-quiet {
+  text-decoration-line: none;
+}
+
+@media (hover: hover) {
+  .link-quiet:hover {
+    text-decoration-line: underline;
+  }
+}
+
+.link-quiet:focus-visible {
+  text-decoration-line: underline;
+}
+
+a[aria-current='page'],
+.link-quiet[aria-current='page'] {
+  -webkit-text-decoration-line: underline;
+  text-decoration-line: underline;
+  -webkit-text-decoration-style: solid;
+  text-decoration-style: solid;
+  text-decoration-thickness: var(--u-t);
+  text-underline-offset: var(--u-o);
+}
+
+/* The change animates only when motion is welcome: the wave fades in from
+   below and settles at its place (the style itself switches at once; the
+   colour and the offset are what move); when the pointer or the focus
+   leaves, colour, thickness and offset go back over the hover fade (a .btn
+   keeps the fill transition of motion.css instead: its lines never change).
+   Nothing moves with reduced motion. */
+@media (prefers-reduced-motion: no-preference) {
+  a {
+    transition:
+      text-decoration-color var(--dur-hover) var(--ease-out),
+      text-decoration-thickness var(--dur-hover) var(--ease-out),
+      text-underline-offset var(--dur-hover) var(--ease-out);
+  }
+
+  @media (hover: hover) {
+    a:not(.btn, [aria-current='page']):hover {
+      animation: u-wave-in var(--u-dur) var(--u-ease);
+    }
+  }
+
+  a:not(.btn, [aria-current='page']):focus-visible {
+    animation: u-wave-in var(--u-dur) var(--u-ease);
+  }
+}
+
+@keyframes u-wave-in {
+  from {
+    text-decoration-color: transparent;
+    text-underline-offset: calc(var(--u-ow) + 0.18em);
+  }
+}
+
+/* ------------------------------------------------------------ buttons */
+
+/* A button stays a button (frame, fill, inverted on hover); its label gets
+   two lines (сказуемое: the button does something). A plain button (text
+   only: Button, the header «Написать», a Telegram button showing
+   «Скопировал…») carries the lines itself; a button with a second line
+   underlines only its label (the word of a Telegram button, .btn__label of
+   the download button), the mono caption stays plain. Without :has() (Safari
+   before 15.4, Firefox before 121) plain buttons simply have no lines. */
+.btn {
+  text-decoration-line: none;
+}
+
+.btn:not(:has(> .btn__caption, > .tg-btn__word)),
+.btn > .btn__label,
+.btn > .tg-btn__word,
+.tg-link {
+  -webkit-text-decoration-line: underline;
+  text-decoration-line: underline;
+  -webkit-text-decoration-style: double;
+  text-decoration-style: double;
+  text-decoration-thickness: max(1px, 0.06em);
+  text-underline-offset: 0.2em;
+  text-decoration-skip-ink: auto;
+}
+
+/* The action links (.tg-link, variant="link" of TelegramButton: «Записаться
+   на консультацию» on the home rows, «Написать о …» on /products/) are links
+   too: under the pointer or the focus a:hover and a:focus-visible (more
+   specific than .tg-link) turn their two lines into the wave like any link. */
+
+/* --------------------------------------------- fallbacks: forced colours */
+
+/* Forced colours (Windows contrast themes) and print may drop background
+   images: the dash-dot becomes a native dotted line there. */
+@media (forced-colors: active) {
+  .u-circ {
+    background-image: none;
+    padding-bottom: 0;
+    text-decoration-line: underline;
+    text-decoration-style: dotted;
+    text-decoration-thickness: var(--u-t);
+    text-underline-offset: var(--u-o);
+  }
+}
+
+@media print {
+  .u-circ {
+    background-image: none;
+    padding-bottom: 0;
+    text-decoration-line: underline;
+    text-decoration-style: dotted;
+    text-decoration-thickness: var(--u-t);
+    text-underline-offset: var(--u-o);
+  }
+}

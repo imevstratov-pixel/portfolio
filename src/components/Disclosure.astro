@@ -18,6 +18,10 @@
 // - while open, everything inside keeps clear of the stuck bar when the
 //   browser scrolls it into view (focus with Tab and Shift+Tab): CSS
 //   scroll-margin-top in global.css.
+// - motion (decision 2 of 15.10): when the system allows motion, the
+//   details opens and closes on a spring (src/scripts/accordion.ts, Motion);
+//   the end button and the stuck summary jump back first and then fold the
+//   text up. With prefers-reduced-motion everything is instant, as before.
 //
 //   <Disclosure more="Подробнее" less="Свернуть" context="Разбор курса" sticky>…</Disclosure>
 interface Props {

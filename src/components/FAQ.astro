@@ -1,6 +1,12 @@
 ---
-// Questions and answers as native <details>/<summary>: no script, no
-// animation. The marker is «+» / «−» (no arrows on the site).
+// Questions and answers as native <details>/<summary>. The marker is «+» /
+// «−» (no arrows on the site).
+// Motion (decision 2 of 15.10): when the system allows motion, an answer
+// opens and closes on a spring (src/scripts/accordion.ts, Motion); with
+// prefers-reduced-motion, and without JS, the details toggles at once as
+// before. Under the pointer the question gets the wave of a link
+// (определение, accents.css, decision 1), which fades in and settles like a
+// link's (u-wave-in) only when motion is allowed.
 import { visible } from '../lib/content';
 import type { FaqItem } from '../lib/types';
 
@@ -18,8 +24,8 @@ const list = visible(items).filter((it) => it.q && it.a);
 <div class:list={['faq', className]}>
   {
     list.map((it) => (
-      <details class="faq__item" open={open}>
-        <summary class="faq__q">{it.q}</summary>
+      <details class="faq__item" open={open} data-accordion>
+        <summary class="faq__q"><span class="faq__q-text">{it.q}</span></summary>
         <div class="faq__a">
           <p>{it.a}</p>
         </div>
@@ -27,6 +33,12 @@ const list = visible(items).filter((it) => it.q && it.a);
     ))
   }
 </div>
+
+<script>
+  import { enhance } from '../scripts/accordion';
+
+  document.querySelectorAll<HTMLDetailsElement>('details[data-accordion]').forEach((d) => enhance(d));
+</script>
 
 <style>
   .faq {
@@ -49,6 +61,7 @@ const list = visible(items).filter((it) => it.q && it.a);
     line-height: var(--lh-medium);
     letter-spacing: var(--track-medium);
     font-weight: var(--bold);
+    text-decoration-line: none;
   }
 
   .faq__q::-webkit-details-marker {
@@ -61,14 +74,42 @@ const list = visible(items).filter((it) => it.q && it.a);
     font-weight: var(--regular);
   }
 
-  .faq__item[open] > .faq__q::after {
+  /* closing on the spring: the marker shows the closed state at once */
+  .faq__item[open]:not([data-closing]) > .faq__q::after {
     content: '−';
   }
 
-  .faq__q:hover {
-    text-decoration: underline;
-    text-decoration-thickness: 1px;
-    text-underline-offset: 0.2em;
+  /* a question under the pointer: the wave (определение, accents.css), only
+     where there is a real pointer (a tap leaves no wave behind). The line is
+     on the text's own span: the summary is a flex row and its «+/−» marker
+     (::after) an in-flow flex item, which a line set on the summary would
+     run under too. */
+  @media (hover: hover) {
+    .faq__q:hover .faq__q-text {
+      text-decoration-line: underline;
+      text-decoration-style: wavy;
+      text-decoration-thickness: var(--u-tw);
+      text-underline-offset: var(--u-ow);
+    }
+
+    /* motion allowed: the wave comes in like a link's (u-wave-in) and fades
+       out over the hover fade; the line is there at rest, transparent (not in
+       forced colours, which would paint it) */
+    @media (prefers-reduced-motion: no-preference) and (forced-colors: none) {
+      .faq__q-text {
+        text-decoration-line: underline;
+        text-decoration-style: wavy;
+        text-decoration-thickness: var(--u-tw);
+        text-underline-offset: var(--u-ow);
+        text-decoration-color: transparent;
+        transition: text-decoration-color var(--dur-hover) var(--ease-out);
+      }
+
+      .faq__q:hover .faq__q-text {
+        text-decoration-color: currentColor;
+        animation: u-wave-in var(--u-dur) var(--u-ease);
+      }
+    }
   }
 
   .faq__a {

@@ -11,7 +11,7 @@
 // codeword). The copy hint and the email line are not repeated on every
 // card: ServicesIntro shows them once under «Не нашли своё?», and the
 // contact block at the bottom.
-// «Подробнее» (Disclosure: a native details, no animation) opens the full
+// «Подробнее» (Disclosure: a native details, on a spring when motion is allowed) opens the full
 // template on the spot: body, the AgentsScheme for `scheme: "ai-agents"`
 // (without heading and facts), «Для кого», «Что получите на руки», «Сколько
 // длится», «Как идёт работа», «Что нужно от вас», «Что не входит»,
@@ -99,7 +99,9 @@ const proofGroups: Array<{ label: string; items: ProofItem[] }> = short
         { label: labels.proofProducts, items: productItems },
       ];
 const quotes = short ? [] : (d.testimonials ?? []).map(getTestimonial);
-const duration = `${d.duration}.${d.durationNote ? ' ' + d.durationNote : ''}`;
+// «Сколько длится»: the duration with the dash-dot line (обстоятельство), the
+// note after it plain; the text is exactly `duration + '. ' + durationNote`
+const durationRest = `.${d.durationNote ? ' ' + d.durationNote : ''}`;
 // «Свернуть»: the open summary and the button at the end of the text
 // (serviceTemplate.labels.less when the content has it)
 const less = labels.less || 'Свернуть';
@@ -189,7 +191,7 @@ const less = labels.less || 'Свернуть';
           </ServicePart>
 
           <ServicePart label={labels.duration}>
-            <p class="measure">{duration}</p>
+            <p class="measure"><span class="u-circ">{d.duration}</span>{durationRest}</p>
           </ServicePart>
 
           <ServicePart label={labels.steps}>

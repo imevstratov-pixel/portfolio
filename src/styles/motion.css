@@ -1,0 +1,125 @@
+/* Motion baseline (decision 2 of 15.10: proven components, smooth and
+   native, nothing for show). global.css imports this file right after the
+   tokens. Every transition here answers an action: a hover shows what will
+   react, a press shows that it did, a page change keeps the header still
+   while the content changes under it. Nothing loops, nothing moves by
+   itself, no colour.
+
+   prefers-reduced-motion: every rule that moves or fades sits inside
+   @media (prefers-reduced-motion: no-preference), so with «reduce» (or a
+   browser that does not know the query) every change is instant, exactly
+   as before this file. The scripts check the same query: the accordions
+   toggle natively, the carousel keeps the native scroll row with instant
+   buttons, the lightbox opens and closes without zoom.
+
+   Springs are Motion's own spring generator written out as CSS linear()
+   (spring(visualDuration, bounce) from the package «motion»), so CSS and
+   the scripts share one feel. */
+
+:root {
+  /* hover: a short ease-out, colour and underline only */
+  --dur-hover: 160ms;
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+  /* press: in fast, out on a light spring (spring(0.2, 0.3)) */
+  --dur-press-in: 90ms;
+  --spring-release: 450ms
+    linear(0, 0.2348, 0.6075, 0.8763, 1.0076, 1.0451, 1.0389, 1.0217, 1.0079, 1.0006, 0.9981, 0.9981, 0.9988, 0.9995, 1);
+  --press-scale: 0.97;
+  /* page change: a short cross-fade of the content */
+  --dur-page: 200ms;
+}
+
+/* No blue tap flash on phones (the browser's own highlight is a colour):
+   a press shows as the scale below, a tapped button inverts as on hover. */
+a,
+button,
+summary,
+[role='button'] {
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* ---------------------------------------------------- page to page
+     Cross-document view transitions: plain links, no client router, so the
+     Telegram copy script, Metrika and the old home anchors work as on any
+     page load. Browsers without support navigate as before. The header
+     keeps its place (its own snapshot cross-fades in the same box), the
+     rest cross-fades. */
+  @view-transition {
+    navigation: auto;
+  }
+
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: var(--dur-page);
+    animation-timing-function: var(--ease-out);
+  }
+
+  .site-header {
+    view-transition-name: site-header;
+  }
+
+  ::view-transition-group(site-header) {
+    animation-duration: var(--dur-page);
+  }
+
+  /* ---------------------------------------------------------- buttons
+     Hover still inverts (global.css), now over a short fade; a press
+     shrinks the frame a little and lets it go on a spring. */
+  .btn,
+  .carousel__btn,
+  .disclose__btn,
+  .lightbox__close {
+    transition:
+      background-color var(--dur-hover) var(--ease-out),
+      color var(--dur-hover) var(--ease-out),
+      border-color var(--dur-hover) var(--ease-out),
+      transform var(--spring-release);
+  }
+
+  .btn:active,
+  .carousel__btn:active:not(:disabled, [aria-disabled='true']),
+  .disclose > summary:active .disclose__btn,
+  .disclose__close:active .disclose__btn,
+  .lightbox__close:active {
+    transform: scale(var(--press-scale));
+    transition-duration: var(--dur-hover), var(--dur-hover), var(--dur-hover), var(--dur-press-in);
+    transition-timing-function: var(--ease-out);
+  }
+
+  /* ------------------------------------------------------------ links
+     Underlines are the typographic accents (accents.css, decision 1 of
+     15.10): their styles and their motion (the wave's entrance under the
+     pointer, the way back over --dur-hover) live there, behind the same
+     query. This file never sets text-decoration; a component that moves a
+     line uses the accents tokens and u-wave-in (FAQ, CaseFull). */
+}
+
+/* ----------------------------------------------------- accordions
+   While a details closes on a spring (src/scripts/accordion.ts) it is still
+   open, so the summary takes its closed look at once: «Подробнее +», no
+   bar, no context. The script measures the closed height after this. */
+.disclose[open][data-closing] > summary .disclose__less,
+.disclose[open][data-closing] > summary .disclose__ctx {
+  display: none;
+}
+
+.disclose[open][data-closing] > summary .disclose__more {
+  display: inline;
+}
+
+.disclose[open][data-closing] > summary .disclose__btn::after {
+  content: '+';
+}
+
+.disclose--sticky[open][data-closing] > summary {
+  position: static;
+  width: fit-content;
+  padding-block: 0;
+  border-bottom: 0;
+}
+
+/* the height animates on the details itself; its content is clipped to it */
+details[data-animating] {
+  overflow: clip;
+}

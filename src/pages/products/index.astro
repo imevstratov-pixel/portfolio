@@ -6,6 +6,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import Section from '../../components/Section.astro';
 import ContactBlock from '../../components/ContactBlock.astro';
 import ProductItem from '../../components/products/ProductItem.astro';
+import Lightbox from '../../components/motion/Lightbox.astro';
 import { getPage, pageBlocks, visibleProducts } from '../../lib/content';
 
 const page = getPage('products');
@@ -33,6 +34,9 @@ const blocks = pageBlocks(page);
       if (b.type === 'products') {
         return (
           <div class="products-list">
+            {/* one lightbox for every screenshot on the page (decision 2 of 15.10);
+                its code loads at the first pointer, touch or focus on one */}
+            <Lightbox />
             {visibleProducts(b.items).map((p, i) => (
               <ProductItem product={p} labels={b.labels} first={i === 0} />
             ))}

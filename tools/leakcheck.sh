@@ -17,6 +17,12 @@
 #   404.html) must contain none of them. The one exception is the ARIA
 #   attribute aria-hidden (a mouse-only duplicate link, e.g. the cover of the
 #   free guide): "hidden" right after "aria-" is not a content marker.
+# - The client bundles (_astro/*.js) are compiled code: the libraries of the
+#   scripts (Motion, Embla; decision 2 of 15.10) use "hidden" as code
+#   (document.hidden, overflow: hidden, the hidden attribute). Content does
+#   not reach them as text (it is in the pages' HTML, checked in full
+#   above), so in them "hidden" fails only as a content status (status:
+#   "hidden"); every other marker fails as anywhere else.
 # - Files copied verbatim from the old site (assets/, resume/, demo/, en/,
 #   styles.css, script.js, game.js, products/*.jpg) must contain none of the content
 #   markers; in them "hidden" and "_note" also occur as ordinary CSS/HTML
@@ -38,6 +44,7 @@ DIST="${DIST:-$TOOLS/../dist}"
 DIST="$(cd "$DIST" && pwd)"
 
 ALL='_note|_todo|_draft|(?<!aria-)hidden|МЕСТО ДЛЯ|seller-ai-course|studio-expert|university-curator'
+JS="_note|_todo|_draft|status[\"'\`]?\\s*:\\s*[\"'\`]hidden|МЕСТО ДЛЯ|seller-ai-course|studio-expert|university-curator"
 CONTENT='_todo|_draft|МЕСТО ДЛЯ|seller-ai-course|studio-expert|university-curator'
 SOFT='_note|hidden'
 # print each hit as file:line: …context… (minified files have very long lines)
@@ -50,7 +57,8 @@ LEGACY=(assets resume demo en styles.css script.js game.js products/top-pick.jpg
 cd "$DIST"
 prune=()
 for p in "${LEGACY[@]}"; do prune+=(-path "./$p" -prune -o); done
-mapfile -t generated < <(find . "${prune[@]}" -type f -print | sort)
+mapfile -t generated < <(find . "${prune[@]}" -type f -not -path './_astro/*.js' -print | sort)
+mapfile -t bundles < <(find ./_astro -maxdepth 1 -type f -name '*.js' 2>/dev/null | sort)
 legacy=()
 for p in "${LEGACY[@]}"; do
   [ -e "$p" ] && mapfile -t -O "${#legacy[@]}" legacy < <(find "./$p" -type f | sort)
@@ -59,6 +67,10 @@ done
 fail=0
 if [ "${#generated[@]}" -gt 0 ] && hits "$ALL" "${generated[@]}"; then
   echo "leakcheck: internal markers found in generated files (above)" >&2
+  fail=1
+fi
+if [ "${#bundles[@]}" -gt 0 ] && hits "$JS" "${bundles[@]}"; then
+  echo "leakcheck: internal markers found in client bundles _astro/*.js (above)" >&2
   fail=1
 fi
 if [ "${#legacy[@]}" -gt 0 ] && hits "$CONTENT" "${legacy[@]}"; then
@@ -95,7 +107,7 @@ if [ -n "$soft" ]; then
   fi
 fi
 
-echo "leakcheck: ${#generated[@]} generated files, ${#legacy[@]} legacy files checked"
+echo "leakcheck: ${#generated[@]} generated files, ${#bundles[@]} client bundles, ${#legacy[@]} legacy files checked"
 if [ "$fail" = 1 ]; then exit 1; fi
 echo "OK: no internal notes in dist/"
 

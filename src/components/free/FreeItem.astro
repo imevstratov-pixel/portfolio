@@ -92,7 +92,7 @@ const cover = item.cover?.src ? item.cover : undefined;
     <div class="free__get">
       {item.format && <p class="label free__format">{item.format}</p>}
       <a class="btn btn--primary" href={url(item.file)} download={fileName} type="application/pdf" data-goal="download">
-        {item.downloadLabel}
+        <span class="btn__label">{item.downloadLabel}</span>
         <span class="btn__caption">{size}</span>
       </a>
     </div>

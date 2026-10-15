@@ -1,0 +1,18 @@
+---
+// Image lightbox (decision 2 of 15.10). Renders nothing: it adds the small
+// script that loads the lightbox (src/scripts/lightbox.ts, then
+// src/scripts/lightbox-ui.ts at the first pointer, touch or focus on a
+// thumbnail) and its styles. Once per page, anywhere (Astro bundles the
+// script once even if two components render it):
+//
+//   <Lightbox />
+//   <a href={url(src)} target="_blank" rel="noopener" data-lightbox><Media src={src} alt={alt} /></a>
+//
+// Without JS, and until it is used, a thumbnail is a plain link to the file
+// in a new tab.
+import './Lightbox.css';
+---
+
+<script>
+  import '../../scripts/lightbox.ts';
+</script>

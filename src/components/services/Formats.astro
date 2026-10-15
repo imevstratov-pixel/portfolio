@@ -9,12 +9,14 @@
 // each figure starting on its column line (the first under «Оценки на
 // данных», which they illustrate). All share one height: the widest-ratio
 // image fills its column and the others are as wide as that height allows,
-// so no figure leaves its column. The caption under each; a click opens the
-// full image in a new tab (a plain link, no lightbox script). More than three
-// wrap to the next row. Phones: one under the other, at most 24rem high.
+// so no figure leaves its column. The caption under each. Each is a plain
+// link to the full image (new tab); with JS a click zooms it out of the page
+// instead (Lightbox, decision 2 of 15.10). More than three wrap to the next row.
+// Phones: one under the other, at most 24rem high.
 import Section from '../Section.astro';
 import Steps from '../Steps.astro';
 import Media from '../Media.astro';
+import Lightbox from '../motion/Lightbox.astro';
 import { gref, visible, type Block } from '../../lib/content';
 import { imageSize } from '../../lib/media';
 import { url } from '../../lib/url';
@@ -85,11 +87,13 @@ const ratioMax = shots.reduce((a, it) => Math.max(a, it.r), 0);
               </li>
             ))}
           </ul>
+          {/* the lightbox's code loads at the first pointer, touch or focus on a screenshot */}
+          {shots.length > 0 && <Lightbox />}
           {shots.length > 0 && (
             <div class="shots" style={`--rmax: ${ratioMax.toFixed(4)}`}>
               {shots.map((it) => (
                 <figure class="shots__item" style={`--r: ${it.r.toFixed(4)}`}>
-                  <a class="shots__link" href={url(it.src)} target="_blank" rel="noopener">
+                  <a class="shots__link" href={url(it.src)} target="_blank" rel="noopener" data-lightbox>
                     <Media src={it.src} alt={it.alt} />
                   </a>
                   {it.caption && <figcaption class="shots__caption">{it.caption}</figcaption>}

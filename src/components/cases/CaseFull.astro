@@ -363,13 +363,50 @@ const { prev, next } = caseNeighbours(c);
     line-height: var(--lh-medium);
     letter-spacing: var(--track-medium);
     font-weight: var(--bold);
-    text-decoration: underline;
-    text-decoration-thickness: 1px;
-    text-underline-offset: 0.15em;
   }
 
-  .cp__step:hover .cp__step-title {
-    text-decoration-thickness: 2px;
+  /* the title is the link's visible text: dashed like every link, the wave
+     under the pointer or the focus (accents.css: дополнение, определение) */
+  .cp__step-title {
+    text-decoration-line: underline;
+    text-decoration-style: dashed;
+    text-decoration-thickness: var(--u-t);
+    text-underline-offset: var(--u-o);
+  }
+
+  .cp__step:focus-visible .cp__step-title {
+    text-decoration-style: wavy;
+    text-decoration-thickness: var(--u-tw);
+    text-underline-offset: var(--u-ow);
+  }
+
+  @media (hover: hover) {
+    .cp__step:hover .cp__step-title {
+      text-decoration-style: wavy;
+      text-decoration-thickness: var(--u-tw);
+      text-underline-offset: var(--u-ow);
+    }
+  }
+
+  /* the line sits on the title, not on the link, so it takes the link's
+     motion itself (accents.css: the wave comes in, the way back fades) */
+  @media (prefers-reduced-motion: no-preference) {
+    .cp__step-title {
+      transition:
+        text-decoration-color var(--dur-hover) var(--ease-out),
+        text-decoration-thickness var(--dur-hover) var(--ease-out),
+        text-underline-offset var(--dur-hover) var(--ease-out);
+    }
+
+    .cp__step:focus-visible .cp__step-title {
+      animation: u-wave-in var(--u-dur) var(--u-ease);
+    }
+
+    @media (hover: hover) {
+      .cp__step:hover .cp__step-title {
+        animation: u-wave-in var(--u-dur) var(--u-ease);
+      }
+    }
   }
 
   @media (min-width: 720px) {

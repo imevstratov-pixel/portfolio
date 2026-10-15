@@ -2,6 +2,11 @@
 // Site footer: Telegram and email as text, links to every page (incl.
 // «Работодателям» and «English»), «Сделано вместе с Claude», year.
 // The Telegram link here only opens the chat (no message template).
+// Under them the legend of the underlines (decision 1 of 15.10, content
+// `footer.legend`): «Подчёркнуто как в школе: …», each member of the sentence
+// underlined in its own style (Parsed inline, accents.css), small and grey,
+// the samples in ink.
+import Parsed from './Parsed.astro';
 import { site, mailtoHref } from '../lib/content';
 import { url } from '../lib/url';
 
@@ -13,6 +18,9 @@ const { current } = Astro.props;
 const f = site.footer;
 const year = new Date().getFullYear();
 const goalFor = (href: string) => (href === '/hire/' ? 'hire' : undefined);
+// typography only: a dash stays on the line of the word before it
+const legendRaw = (f as Record<string, unknown>).legend;
+const legend = typeof legendRaw === 'string' ? legendRaw.replace(/ ([—–]) /g, '\u00a0$1 ') : '';
 ---
 
 <footer class="site-footer">
@@ -45,6 +53,13 @@ const goalFor = (href: string) => (href === '/hire/' ? 'hire' : undefined);
       <p>{f.madeWith}</p>
       <p>{f.copyright.replace('{year}', String(year))}</p>
     </div>
+    {
+      legend && (
+        <p class="site-footer__legend col-12">
+          <Parsed text={legend} inline where="site/global.md footer.legend" />
+        </p>
+      )
+    }
   </div>
   </div>
 </footer>
@@ -91,6 +106,20 @@ const goalFor = (href: string) => (href === '/hire/' ? 'hire' : undefined);
     display: grid;
     align-content: start;
     gap: 0.15rem;
+  }
+
+  /* the legend: one small grey line under a hairline, the five samples in ink */
+  .site-footer__legend {
+    padding-top: var(--s2);
+    border-top: var(--hair);
+    max-width: 72ch;
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    color: var(--muted);
+  }
+
+  .site-footer__legend :global(:is(.u-subj, .u-pred, .u-obj, .u-attr, .u-circ)) {
+    color: var(--ink);
   }
 
   @media (min-width: 1080px) {

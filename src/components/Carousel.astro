@@ -2,21 +2,29 @@
 // A horizontal row of slides (decision 11 of 14.10): «Что говорят коллеги»
 // on the home page, /hire/ and /cases/, and the product galleries.
 //
-// The row scrolls sideways with scroll snap (swipe on phones, trackpad or
-// the keyboard elsewhere) and always shows part of the next slide. Under it
-// a bar: «1 из 5» in mono and the buttons «Назад» and «Дальше», which move
-// by one slide at once (no animated scrolling, no autoplay). The bar shows
-// only once the script has run (data-ready): without JS the row still
-// scrolls by swipe or trackpad, and no counter can name the wrong slides.
-// When every slide fits, the script removes the bar (data-static). One
-// slide: no bar at all.
+// Static HTML first: the row (track) scrolls sideways with scroll snap
+// (swipe on phones, trackpad or the keyboard elsewhere) and always shows
+// part of the next slide. Under it a bar: «1 из 5» in mono and the buttons
+// «Назад» and «Дальше». The bar shows only once the script has run
+// (data-ready): without JS the row still scrolls by swipe or trackpad, and
+// no counter can name the wrong slides. When every slide fits, the script
+// removes the bar (data-static). One slide: no bar at all.
+//
+// Motion (decision 2 of 15.10, src/scripts/carousel.ts): when the system
+// allows motion, the row becomes an Embla Carousel (the engine of the
+// shadcn/ui carousel) once it comes near the screen: drag with the mouse,
+// swipe, trackpad (wheel gestures plugin), momentum and snap to a slide,
+// the buttons and the arrow keys glide to the next slide; Tab into a slide
+// brings it into view. The track then clips (data-embla) and the rail moves.
+// With prefers-reduced-motion the native row stays and the buttons move by
+// one slide at once, as before; Embla is not even loaded.
 //
 // Accessibility: the row is a focusable region named by `label`
 // (aria-roledescription «карусель»), the arrow keys move by one slide; each
 // slide is a group «2 из 5»; the buttons are real buttons with text and
 // aria-controls. The counter is a polite live region (aria-atomic), so «2 из 5»
-// is announced after «Дальше» or «Назад». Every slide stays in the DOM, so
-// screen readers read them all.
+// is announced once the row has come to rest after «Дальше», «Назад», a key
+// or a swipe. Every slide stays in the DOM, so screen readers read them all.
 //
 // Usage: pass the items and a function child that renders one slide.
 //   <Carousel items={list} label="Что говорят коллеги" id="home-voices">
@@ -26,9 +34,10 @@
 //     {(g) => <figure>…</figure>}
 //   </Carousel>
 // kind "cards" (default): slide width 85% of the row on phones, 60% on
-// tablets, 5 of 12 columns from 1080px. kind "media": every slide has the
-// row height and the width of its own ratio (`ratios`, width / height),
-// at most 85% of the row; pass `height` to change the row height.
+// tablets, 5 of 12 columns from 1080px; a swipe moves one card. kind
+// "media": every slide has the row height and the width of its own ratio
+// (`ratios`, width / height), at most 85% of the row; pass `height` to
+// change the row height; a flick may travel past several shots.
 // bleed: the row runs into the side gutters (to the screen edges on phones).
 
 interface Props {
@@ -73,7 +82,7 @@ const rootStyle = height ? `--h-lg: ${height}` : undefined;
     <div
       class:list={['carousel', `carousel--${kind}`, bleed && 'carousel--bleed', className]}
       style={rootStyle}
-      data-carousel
+      data-carousel={kind}
     >
       <div
         class="carousel__track"
@@ -84,16 +93,18 @@ const rootStyle = height ? `--h-lg: ${height}` : undefined;
         tabindex="0"
         data-carousel-track
       >
-        {slides.map((html, i) => (
-          <div
-            class="carousel__item"
-            role="group"
-            aria-roledescription="слайд"
-            aria-label={`${i + 1} из ${n}`}
-            style={slideStyle(i)}
-            set:html={html}
-          />
-        ))}
+        <div class="carousel__rail" data-carousel-rail>
+          {slides.map((html, i) => (
+            <div
+              class="carousel__item"
+              role="group"
+              aria-roledescription="слайд"
+              aria-label={`${i + 1} из ${n}`}
+              style={slideStyle(i)}
+              set:html={html}
+            />
+          ))}
+        </div>
       </div>
       {n > 1 && (
         <div class="carousel__bar">
@@ -122,15 +133,19 @@ const rootStyle = height ? `--h-lg: ${height}` : undefined;
   .carousel {
     --h: 25rem;
     display: grid;
+    /* one column that never grows past the container: with Embla the track
+       clips (overflow: clip is not a scroll container), so its automatic
+       minimum width would be the rail's min-content and push the bleed row
+       past the screen edge */
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--s2);
     min-width: 0;
   }
 
+  /* the track scrolls (no JS, reduced motion) or clips while Embla moves
+     the rail (data-embla); the slides measure their offsetLeft from it */
   .carousel__track {
-    position: relative; /* slides measure their offsetLeft from here */
-    display: flex;
-    align-items: flex-start;
-    gap: var(--gap);
+    position: relative;
     overflow-x: auto;
     overscroll-behavior-x: contain;
     scroll-snap-type: x mandatory;
@@ -140,10 +155,48 @@ const rootStyle = height ? `--h-lg: ${height}` : undefined;
     padding-bottom: var(--s1);
   }
 
+  .carousel__rail {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--gap);
+  }
+
+  /* Embla: no native scrolling, the rail follows the finger or the mouse;
+     vertical swipes still scroll the page */
+  .carousel[data-embla] .carousel__track {
+    overflow: clip;
+    scroll-snap-type: none;
+    cursor: grab;
+    /* the native track's scrollbar (classic scrollbars), measured by the
+       script, so the row keeps its height in both modes */
+    padding-bottom: calc(var(--s1) + var(--carousel-sb, 0px));
+  }
+
+  .carousel[data-embla] .carousel__rail {
+    touch-action: pan-y pinch-zoom;
+  }
+
+  .carousel[data-embla][data-dragging] .carousel__track {
+    cursor: grabbing;
+    user-select: none;
+  }
+
+  .carousel[data-embla][data-static] .carousel__track {
+    cursor: auto;
+  }
+
   .carousel--bleed .carousel__track {
     margin-inline: calc(-1 * var(--gutter));
     padding-inline: var(--gutter);
     scroll-padding-inline: var(--gutter);
+  }
+
+  /* native row with bleed: the last slide stops at the gutter, as the
+     first starts at it (a block's end padding is not scrollable overflow) */
+  .carousel--bleed:not([data-embla]) .carousel__rail::after {
+    content: '';
+    flex: 0 0 max(0px, calc(var(--gutter) - var(--gap)));
+    align-self: stretch; /* a box with no height adds no scrollable overflow */
   }
 
   .carousel__item {

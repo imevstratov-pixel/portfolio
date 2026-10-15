@@ -1,15 +1,20 @@
 ---
 // «Обо мне» (block "about"): portrait on the left (4 of 12 columns; half the
-// width on phones), the paragraphs on the right (8 of 12). The real photo
-// (`photo { src, alt }`, decision 9 of 14.10) replaces the drawn portrait
-// when it is visible: same column (half the width on phones), a 4:5 frame;
-// while it is hidden (the export drops it) the drawn portrait stays. /hire/
-// keeps the drawn one. Under them the short experience across the grid
-// between thin rules: years in mono under the portrait column, place, role
-// and note under the text (stacked on phones). Then «Весь опыт по годам» to /hire/#experience and the line about
-// own products with «Мои продукты», aligned with the text column.
+// width on phones), the paragraphs on the right (8 of 12). The picture is the
+// photo in one bit (decision 6 of 15.10: prototype C of /lab/ with its
+// default settings, components/glyphs/DitherPortrait.astro): Daniil's photo
+// (`photo { src, alt }`, decision 9 of 14.10) in its own 4:5 box, the same
+// box the plain photo had; while the photo is hidden (the export drops it)
+// the drawn portrait in its 1:1 box. ONE_BIT below switches to the drawn
+// portrait (as /lab/ shows it by default) in one line. The <img> inside
+// stays the fallback without JS and under forced colours, the box carries
+// the alt. /hire/ keeps the drawn one. Under them the short experience
+// across the grid between thin rules: years in mono under the portrait
+// column, place, role and note under the text (stacked on phones). Then
+// «Весь опыт по годам» to /hire/#experience and the line about own products
+// with «Мои продукты», aligned with the text column.
 import Section from '../Section.astro';
-import Media from '../Media.astro';
+import DitherPortrait from '../glyphs/DitherPortrait.astro';
 import { isHidden, visible, type Block } from '../../lib/content';
 import { url } from '../../lib/url';
 
@@ -22,11 +27,16 @@ const text = visible<string>(b.text).filter(Boolean);
 const experience = visible(b.experience);
 const pl = b.productsLine;
 const photo = b.photo?.src && !isHidden(b.photo) ? (b.photo as { src: string; alt?: string }) : null;
-const picture = photo
-  ? { src: photo.src, alt: photo.alt ?? b.portraitAlt ?? '', ratio: '4 / 5' }
-  : b.portrait
-    ? { src: b.portrait as string, alt: b.portraitAlt as string, ratio: '1 / 1' }
-    : null;
+// 'photo': Daniil's photo (his choice); 'portrait': the drawn portrait, cropped to the face as on /lab/
+const ONE_BIT = 'photo' as 'photo' | 'portrait';
+type Picture = { src: string; alt: string; crop?: [number, number, number, number] };
+const drawn: Picture | null = b.portrait ? { src: b.portrait as string, alt: b.portraitAlt as string } : null;
+const picture: Picture | null =
+  ONE_BIT === 'photo' && photo
+    ? { src: photo.src, alt: photo.alt ?? b.portraitAlt ?? '', crop: [0.1, 0.12, 0.72, 0.62] }
+    : drawn && ONE_BIT === 'portrait'
+      ? { ...drawn, crop: [0.26, 0.1, 0.7, 0.64] }
+      : drawn;
 ---
 
 <Section id={b.anchor} heading={b.heading}>
@@ -34,7 +44,7 @@ const picture = photo
     {
       picture && (
         <div class="about__portrait col-4 m-col-2">
-          <Media src={picture.src} alt={picture.alt} ratio={picture.ratio} />
+          <DitherPortrait src={picture.src} alt={picture.alt} crop={picture.crop} algo="bayer" pixel={2} lens="fine" />
         </div>
       )
     }

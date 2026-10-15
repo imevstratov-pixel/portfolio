@@ -22,7 +22,16 @@ import '@fontsource/ibm-plex-mono/cyrillic-400.css';
 import '@fontsource/ibm-plex-mono/cyrillic-ext-400.css';
 import interCyr400 from '@fontsource/inter-tight/files/inter-tight-cyrillic-400-normal.woff2?url';
 import interCyr700 from '@fontsource/inter-tight/files/inter-tight-cyrillic-700-normal.woff2?url';
+// the Latin subset holds the space, digits and punctuation, so every Russian
+// line needs it too: without its preload it came later than the Cyrillic one
+// and the hero lead re-wrapped on phones (a layout shift of 0.008 at 390 px)
+import interLat400 from '@fontsource/inter-tight/files/inter-tight-latin-400-normal.woff2?url';
+import interLat700 from '@fontsource/inter-tight/files/inter-tight-latin-700-normal.woff2?url';
+// the home page draws its h1 glyphs and its big numbers in IBM Plex Mono (Latin)
+import monoLat400 from '@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-400-normal.woff2?url';
 import '../styles/global.css';
+// typographic accents (decision 1 of 15.10): after global.css, it replaces the link underline
+import '../styles/accents.css';
 
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
@@ -93,6 +102,9 @@ const header: HeaderData = Astro.props.header ?? {
     />
     <link rel="preload" href={interCyr400} as="font" type="font/woff2" crossorigin />
     <link rel="preload" href={interCyr700} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={interLat400} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={interLat700} as="font" type="font/woff2" crossorigin />
+    {isHome && <link rel="preload" href={monoLat400} as="font" type="font/woff2" crossorigin />}
 
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="ru_RU" />

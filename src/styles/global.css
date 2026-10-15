@@ -1,9 +1,15 @@
 /* Global styles: reset, type, links, focus, buttons, rules, grid and
    utilities. Component styles live in the components (scoped). Class names
    are documented in docs/components.md.
-   No rounded corners, shadows, gradients, transitions or animations. */
+   No rounded corners, shadows or gradients. Transitions and animations
+   (decision 2 of 15.10): motion.css and the few components that move (FAQ,
+   Lightbox), always behind prefers-reduced-motion: no-preference. The
+   underlines of links and buttons, and their motion, are the typographic
+   accents of accents.css (decision 1 of 15.10), which BaseLayout loads
+   after this file; the plain lines below are its fallback. */
 
 @import './tokens.css';
+@import './motion.css';
 
 /* ------------------------------------------------------------- reset */
 
@@ -285,7 +291,8 @@ summary:focus-visible {
 
 /* Disclosure: native <details class="disclose"> (component Disclosure). The
    <summary> holds a small framed button «Подробнее +», which reads «Свернуть −»
-   while open (no arrows, no animation; the swap is CSS only). Services
+   while open (no arrows; the swap is CSS only; the spring of the opening,
+   motion allowed only, is scripts/accordion.ts and motion.css). Services
    «Подробнее». */
 .disclose > summary {
   list-style: none;

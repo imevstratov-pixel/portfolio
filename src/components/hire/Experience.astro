@@ -66,7 +66,11 @@ const dot = (t: string) => (/[.!?…]$/.test(t) ? t : t + '.');
         <li class="exp__item grid">
           <p class="exp__when lg-col-3">
             <span class="exp__dates">{it.dates}</span>{' '}
-            {it.duration && <span class="exp__duration">{it.duration}</span>}
+            {it.duration && (
+              <span class="exp__duration">
+                <span class="u-circ">{it.duration}</span>
+              </span>
+            )}
           </p>
           <div class="exp__body lg-col-9">
             <div class="exp__head">
@@ -156,8 +160,11 @@ const dot = (t: string) => (/[.!?…]$/.test(t) ? t : t + '.');
     line-height: var(--lh-small);
   }
 
+  /* the tenure is a duration: dash-dot (обстоятельство, accents.css); the
+     mono face sits deeper below the baseline */
   .exp__duration {
     color: var(--muted);
+    --u-descent: 0.28em;
   }
 
   /* from 1080px the dates are a column: duration under the dates */

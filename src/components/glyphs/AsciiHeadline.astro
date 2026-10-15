@@ -1,0 +1,123 @@
+---
+// A phrase drawn as a field of glyphs that fill the letter shapes, with the
+// same lens as AsciiPortrait (decision 3 of 15.10, prototype B on /lab/;
+// the home h1 since decision 6 of 15.10, components/home/Hero.astro).
+// Nothing moves until the pointer or a finger is on it (the shimmer is
+// opt-in); static with reduced motion; under forced colours (Windows
+// contrast themes) the real text in the system colours, no canvas.
+//
+//   <AsciiHeadline text={headline} as="h1" id="hero-heading" size="var(--fs-huge)" width="10.5em" shimmer={false} />   (the home hero)
+//   <AsciiHeadline text={hero.headline} mode="inverse" size="clamp(3rem, 1rem + 8vw, 9rem)" width="60rem" />
+//
+// The text is real text in the DOM, in Inter Tight bold at `size`: search
+// engines and screen readers read it, it can be selected, and it sets the
+// height (no layout shift). When the canvas (aria-hidden) is drawn over it,
+// the text turns transparent. Without JS it is a plain headline.
+// The canvas is drawn in a few short tasks after the fonts are in (the text
+// shows meanwhile), and the swap happens in one frame.
+// Script: src/scripts/glyphs/ascii-headline.ts (bundled only where used).
+
+interface Props {
+  text: string;
+  /** Element of the text (default "p"; "h1" in a first screen). */
+  as?: 'h1' | 'h2' | 'h3' | 'p' | 'div';
+  /** Max width: a CSS length or px. Default: the column's width. */
+  width?: string | number;
+  /** "ink": black glyphs on white (default); "inverse": white on black. */
+  mode?: 'ink' | 'inverse';
+  /** Font size of the letters (CSS). Default: a size between --fs-huge and 9rem. */
+  size?: string;
+  /** "clip" (default): crisp letter edges, filled with glyphs; "grid": pure ASCII, one glyph per cell. */
+  letters?: 'clip' | 'grid';
+  /** Font size in glyph rows: more is finer (default 11). */
+  density?: number;
+  /** Faint dots around the letters: "auto" (default) only where the glyph rows are at least 6.5 CSS px (not on phones) and on screens of at least 1.5 device px per CSS px (not on 1× and 1.25× monitors). */
+  halo?: boolean | 'auto';
+  /** The slow shimmer at rest: content that changes by itself, 7 times a second (default false; never with reduced motion). */
+  shimmer?: boolean;
+  id?: string;
+  class?: string;
+}
+
+const {
+  text,
+  as: Tag = 'p',
+  width,
+  mode = 'ink',
+  size,
+  letters = 'clip',
+  density = 11,
+  halo = 'auto',
+  shimmer = false,
+  id,
+  class: className,
+} = Astro.props;
+
+const w = typeof width === 'number' ? `${width}px` : width;
+const style = [w && `--ascii-w: ${w}`, size && `--ascii-size: ${size}`].filter(Boolean).join('; ') || undefined;
+---
+
+<Tag
+  class:list={['ascii-headline', className]}
+  id={id}
+  style={style}
+  data-ascii-headline
+  data-mode={mode}
+  data-letters={letters}
+  data-density={density}
+  data-halo={halo === 'auto' ? 'auto' : halo ? 'on' : 'off'}
+  data-shimmer={shimmer ? 'on' : undefined}
+>
+  <span class="ascii-headline__text" data-ascii-text>{text}</span>
+  <canvas aria-hidden="true"></canvas>
+</Tag>
+
+<style>
+  .ascii-headline {
+    position: relative;
+    display: block;
+    width: min(100%, var(--ascii-w, 100%));
+    margin: 0;
+    /* room for descenders and the lens around the letters */
+    padding: 0.12em 0 0.2em;
+    font-family: var(--font-sans);
+    font-weight: var(--bold);
+    font-size: var(--ascii-size, clamp(2.75rem, 0.9rem + 8.2vw, 9rem));
+    line-height: 0.98;
+    letter-spacing: -0.035em;
+    text-wrap: balance;
+    background: var(--paper);
+    color: var(--ink);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .ascii-headline[data-mode='inverse'] {
+    padding-inline: 0.12em;
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .ascii-headline canvas {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+  .ascii-headline[data-state='ready'] .ascii-headline__text {
+    color: transparent;
+  }
+  /* forced colours: the tokens' ink and paper would stay (a white block on a
+     dark contrast theme); the real text shows in the system colours */
+  @media (forced-colors: active) {
+    .ascii-headline canvas {
+      display: none;
+    }
+    .ascii-headline[data-state='ready'] .ascii-headline__text {
+      color: CanvasText;
+    }
+  }
+</style>
+
+<script>
+  import '../../scripts/glyphs/ascii-headline.ts';
+</script>

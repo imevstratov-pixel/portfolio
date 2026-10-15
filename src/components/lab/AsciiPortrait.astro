@@ -1,0 +1,127 @@
+---
+// A photo drawn with glyphs (IBM Plex Mono) on a canvas, with a soft lens
+// under the cursor or finger (decision 3 of 15.10, prototype A on /lab/).
+// Nothing moves until the pointer or a finger is on it (the shimmer is
+// opt-in); static with reduced motion; under forced colours the photo.
+//
+//   <AsciiPortrait src={photo.src} alt={photo.alt} width="30rem" />
+//   <AsciiPortrait src={photo.src} alt={photo.alt} mode="inverse" cols={64} crop={[0.3, 0.12, 0.5, 0.5]} loading="eager" />
+//
+// The box has the photo's (or the crop's) aspect ratio before any script
+// runs, so nothing moves. The <img> is the pixel source and the fallback
+// without JS; it stays in the DOM, the box is role="img" with the alt.
+// Script: src/scripts/lab/ascii-portrait.ts (bundled only where used).
+import { url } from '../../lib/url';
+import { imageSize } from '../../lib/media';
+
+interface Props {
+  /** Content path of the photo ("/media/about/daniil.jpg"). Same origin only (the canvas reads its pixels). */
+  src: string;
+  alt: string;
+  /** Max width: a CSS length or px. Default: the column's width. */
+  width?: string | number;
+  /** "ink": black glyphs on white (default); "inverse": white on black. */
+  mode?: 'ink' | 'inverse';
+  /** Glyphs per row (default 80); the glyph size follows the width. */
+  cols?: number;
+  /** Part of the photo: [x, y, w, h] as fractions. */
+  crop?: [number, number, number, number];
+  /** Threshold of the stroke glyphs «/ \ | -» on contours (default 1.3; 0 turns them off). */
+  edges?: number;
+  /** The slow shimmer at rest: content that changes by itself, 7 times a second (default false; never with reduced motion). */
+  shimmer?: boolean;
+  /** "eager" in the first screen. */
+  loading?: 'lazy' | 'eager';
+  id?: string;
+  class?: string;
+}
+
+const {
+  src,
+  alt,
+  width,
+  mode = 'ink',
+  cols = 80,
+  crop,
+  edges,
+  shimmer = false,
+  loading = 'lazy',
+  id,
+  class: className,
+} = Astro.props;
+
+const size = imageSize(src);
+if (!size) throw new Error(`AsciiPortrait: no image size for ${src} (a file in public/ is required)`);
+const [cx, cy, cw, ch] = crop ?? [0, 0, 1, 1];
+const ratio = `${Math.round(size.width * cw)} / ${Math.round(size.height * ch)}`;
+const w = typeof width === 'number' ? `${width}px` : width;
+const style = [`--ascii-ratio: ${ratio}`, w && `--ascii-w: ${w}`, crop && `--ascii-pos: ${(cx + cw / 2) * 100}% ${(cy + ch / 2) * 100}%`]
+  .filter(Boolean)
+  .join('; ');
+---
+
+<div
+  class:list={['ascii-portrait', className]}
+  id={id}
+  role="img"
+  aria-label={alt}
+  style={style}
+  data-ascii-portrait
+  data-mode={mode}
+  data-cols={cols}
+  data-crop={crop?.join(' ')}
+  data-edges={edges}
+  data-shimmer={shimmer ? 'on' : undefined}
+>
+  <img src={url(src)} alt="" width={size.width} height={size.height} loading={loading} decoding="async" />
+  <canvas aria-hidden="true"></canvas>
+</div>
+
+<style>
+  .ascii-portrait {
+    position: relative;
+    width: min(100%, var(--ascii-w, 100%));
+    aspect-ratio: var(--ascii-ratio);
+    background: var(--paper);
+    overflow: clip;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .ascii-portrait[data-mode='inverse'] {
+    background: var(--ink);
+  }
+  .ascii-portrait img,
+  .ascii-portrait canvas {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+  .ascii-portrait img {
+    object-fit: cover;
+    object-position: var(--ascii-pos, 50% 50%);
+  }
+  .ascii-portrait canvas {
+    pointer-events: none;
+  }
+  /* with scripts on, the photo never flashes before the glyphs */
+  @media (scripting: enabled) {
+    .ascii-portrait:not([data-state='failed']) img {
+      opacity: 0;
+    }
+  }
+  /* forced colours: the canvas would keep the tokens' ink and paper; the
+     photo shows instead (the script draws nothing) */
+  @media (forced-colors: active) {
+    .ascii-portrait canvas {
+      display: none;
+    }
+    .ascii-portrait:not([data-state='failed']) img {
+      opacity: 1;
+    }
+  }
+</style>
+
+<script>
+  import '../../scripts/lab/ascii-portrait.ts';
+</script>

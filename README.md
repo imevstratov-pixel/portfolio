@@ -25,6 +25,56 @@ node tools/build-guide-pdf.mjs <guide draft .md>   # by hand: the free guide PDF
 Content in `src/content` is a sanitized export and is not edited by hand.
 Components, content fields, CSS classes and tools: [docs/components.md](docs/components.md).
 
+## Режим комментариев (только песочница)
+
+На песочнице https://imevstratov-pixel.github.io/portfolio-v2/ (и в `npm run dev`)
+в правом нижнем углу каждой страницы есть кнопка «Комментировать». На основном
+сайте её нет: сборка с `PREVIEW=0` её не содержит, а проверка перед публикацией
+(`prodcheck`) падает, если она туда попадёт.
+
+Один раз перед первой правкой:
+- войдите в GitHub в том браузере, где смотрите сайт (аккаунт imevstratov-pixel);
+- в репозитории `imevstratov-pixel/portfolio-v2` создайте метку «правка»
+  (Issues, Labels, New label) или попросите об этом Claude. Без неё задачи
+  открываются без метки.
+
+Как оставить правку:
+1. Нажмите «Комментировать» (или Alt+Shift+C). Пока режим включён, ссылки и
+   кнопки сайта не срабатывают: клик только выбирает элемент.
+2. Наведите курсор: элемент обводится рамкой. Кликните его, на телефоне
+   коснитесь. Выбралось слово внутри кнопки, а нужен весь блок: «Шире»; назад:
+   «Уже».
+3. Напишите, что поправить.
+4. «Отправить»: в новой вкладке откроется готовая задача на GitHub. В ней адрес
+   страницы, размер экрана, элемент, его текст, ближайший заголовок и файлы
+   кода, где он сделан. Нажмите там кнопку создания задачи (Create).
+5. Или «В список»: правки копятся, и потом «Список», «Отправить всё» создаёт
+   одну задачу со всеми. Список хранится в этом браузере и не пропадает при
+   переходе на другую страницу (выйдите из режима, перейдите по ссылке,
+   включите снова). Когда задача создана, нажмите «Очистить».
+6. Esc закрывает форму (текст вернётся, если снова выбрать тот же элемент),
+   второй Esc выключает режим.
+
+С клавиатуры: Alt+Shift+C, Tab до ссылки или кнопки, стрелки вверх и вниз
+расширяют и сужают выбор, влево и вправо переходят к соседнему блоку, Enter
+выбирает.
+
+Дальше напишите Claude: «Посмотри правки». Он читает открытые задачи с меткой
+«правка», вносит изменения в песочницу и закрывает задачи со ссылкой на
+коммит.
+
+Если вкладка не открылась (браузер блокирует новые окна), в окне режима
+появится ссылка «Открыть задачу на GitHub». Очень длинный список не помещается
+в адрес задачи: тогда текст копируется в буфер обмена, а задача открывается с
+просьбой вставить его.
+
+For developers: `tools/comment-mode.mjs` (Astro integration, preview builds and
+dev only), `src/scripts/comment-mode.ts` (the button, on every page) and
+`src/scripts/comment-mode-ui.ts` (the mode, loaded at the first press); see
+docs/components.md, «Staging comment mode». Under Playwright
+(`navigator.webdriver`, e.g. `npm run shots`) the button is left out of the
+screenshots unless the address has `?comment`.
+
 ## Moving the live site to this code (decision 20)
 
 `imevstratov-pixel/portfolio` still holds the old site and has no workflow,

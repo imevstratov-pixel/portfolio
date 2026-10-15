@@ -4,11 +4,17 @@ Everything a page needs is described here: commands, the content each page reads
 the helpers, the shared components and the CSS classes. Build pages only from
 these pieces; add a new shared piece here when two pages need it.
 
-Stack: Astro 7.3.8 (static output), no UI framework, TypeScript in components,
-fonts from @fontsource (Inter Tight 400/700 and 400 italic, IBM Plex Mono 400,
-Latin and Cyrillic subsets). Three small client scripts: Telegram copy and
-analytics goals on every page, the carousel buttons on pages with a Carousel,
-the second «Свернуть» of the long disclosures on /services/.
+Stack: Astro 7.3.8 (static output), TypeScript in components, fonts from
+@fontsource (Inter Tight 400/700 and 400 italic, IBM Plex Mono 400, Latin and
+Cyrillic subsets). Static HTML first, no UI framework; motion (decision 2 of
+15.10) from proven libraries: Motion (its WAAPI animate and springs, about
+6 KB gzip), Embla Carousel (the shadcn/ui carousel engine), and the browser's
+own modal `<dialog>` for the image lightbox. Client scripts: Telegram copy
+and analytics goals on every page, the carousel on pages with a Carousel,
+the accordions (FAQ, the long disclosures on /services/), the lightbox on
+/services/ and /products/ (its code loads at the first use), the glyph
+headline and the one-bit portrait on the home page (Canvas 2D, no library;
+section 7, docs/lab.md).
 
 ## 1. Rules that every page follows
 
@@ -26,9 +32,26 @@ the second «Свернуть» of the long disclosures on /services/.
   themselves, so pass content paths as they are (`/services/#audit`,
   `assets/portrait.jpg`). `url()` is idempotent.
 - **Black and white.** Use only the tokens (`--ink`, `--paper`, `--muted`,
-  `--rule`). No other colours, no rounded corners, shadows, gradients,
-  transitions, animations or hover effects beyond underline and button
-  inversion. Colour exists only inside media.
+  `--rule`). No other colours, no rounded corners, shadows or gradients.
+  Colour exists only inside media. Emphasis is typographic: the five
+  underlines of the school sentence parse (section 6, «Accents», decision 1
+  of 15.10), never a colour.
+- **Motion (decision 2 of 15.10).** Smooth and native, nothing for show:
+  every transition answers an action (hover, press, open, close, swipe,
+  page change); nothing loops or moves by itself. Timings and springs live
+  in `styles/motion.css` (CSS) and `scripts/accordion.ts` / Motion (JS).
+  Everything that moves sits behind `prefers-reduced-motion: no-preference`:
+  with «reduce» every change is instant, as before. Hover effects stay
+  underline and button inversion (now over a short fade). Underlines and
+  their motion belong to the accents (`accents.css`: the wave comes in with
+  `u-wave-in` and goes back over `--dur-hover`); `motion.css` never sets
+  `text-decoration`, and a component that moves a line of its own (FAQ,
+  CaseFull) uses the accents tokens and `u-wave-in`. The canvas islands
+  (the glyph h1 of the home hero and the one-bit photo of «Обо мне»,
+  decision 6 of 15.10; the prototypes of the preview-only /lab/) follow the
+  pointer or a finger and stand still otherwise, still with reduced motion;
+  their shimmer at rest stays off (an opt-in for comparison on /lab/ only,
+  docs/lab.md).
 - **No arrows and no middle dots** anywhere (buttons, labels, lists): use a dash,
   «и», a comma or a step number.
 - **The output must pass `npm run leakcheck`.** It greps the built site for
@@ -58,8 +81,8 @@ the second «Свернуть» of the long disclosures on /services/.
   fold, alt text from the content. Video: native player, `preload="none"`,
   poster, no autoplay, no loop. The `loop` fields in the content are not used.
 - **Less text, more pictures (decisions 10 and 17 of 14.10).** The services'
-  long texts fold into `Disclosure` («Подробнее», a native `<details>`: no
-  animation; while open its «Свернуть» sticks under the header and a second
+  long texts fold into `Disclosure` («Подробнее», a native `<details>` that
+  opens on a spring; while open its «Свернуть» sticks under the header and a second
   «Свернуть», framed like it, closes it from the end). A case does not fold: /cases/ shows
   cards, the full case is its own page /cases/<slug>/. Rows of people or
   screenshots are a `Carousel`.
@@ -88,8 +111,8 @@ the second «Свернуть» of the long disclosures on /services/.
 | `npm run preview` | Serves `dist/` (Astro 7 may start it in the background; stop with `npx astro preview stop`) |
 | `npm run check` | `astro check`: TypeScript and template types (0 errors expected) |
 | `npm run check-links` | Every internal href/src/poster in `dist/` resolves, every `#anchor` exists on its page, no link leaves the base, no `/portfolio-v2/` literal in `src/`. Absolute URLs count as internal only for the page's own canonical, og:url and og:image; other links to the same host (sibling sites like `/skrizhal/`) are external. Expected pages: every route (/free/ included) and one /cases/<slug>/ per published case in `src/content/cases` must be built, /cases/ must link to each and keep each case anchor, and no other page may sit under /cases/. `DIST=<dir>` checks a build made with `--outDir` |
-| `npm run leakcheck` | Greps `dist/` for internal markers (see rules). Legacy files copied from the old site are reported, not failed, for `hidden`/`_note`; `--strict` fails on them too. Fails on any file under `dist/media/` that no generated page references (a screenshot waiting for Daniil's OK must stay outside `public/`). Then runs `tools/prodcheck.mjs` (below) |
-| `node tools/prodcheck.mjs [dist]` | Deploy-mode check, run by `leakcheck` with the same `PREVIEW`, `BASE`, `SITE`. Preview: no `mc.yandex.ru` or `data-metrika` anywhere, a robots `noindex` meta on every HTML page (search-engine verification files `google*.html`, `yandex_*.html` from `public/` excepted), robots.txt `Disallow: /` without a sitemap, no sitemap.xml. Production: the Metrika counter and `data-metrika` on every generated page (the work.html redirect excepted), no robots meta except on 404, legacy files byte-identical to `public/`, robots.txt `Allow: /` with `Sitemap: <site><base>sitemap.xml`, sitemap.xml with every indexable generated page and en/ under `<site><base>`, nothing 404, noindex or redirect. Both: every `public/` file is built (old URLs), canonical and og:url are `<site><base><path>`, og:image is absolute and exists, the old home anchors lead to built pages and existing sections |
+| `npm run leakcheck` | Greps `dist/` for internal markers (see rules). Legacy files copied from the old site are reported, not failed, for `hidden`/`_note`; `--strict` fails on them too. The client bundles `_astro/*.js` are compiled library code (Motion and Embla use `hidden` as code: `document.hidden`, `overflow: hidden`): in them `hidden` fails only as a content status (`status: "hidden"`), every other marker as anywhere. Fails on any file under `dist/media/` that no generated page references (a screenshot waiting for Daniil's OK must stay outside `public/`). Then runs `tools/prodcheck.mjs` (below) |
+| `node tools/prodcheck.mjs [dist]` | Deploy-mode check, run by `leakcheck` with the same `PREVIEW`, `BASE`, `SITE`. Preview: no `mc.yandex.ru` or `data-metrika` anywhere, a robots `noindex` meta on every HTML page (search-engine verification files `google*.html`, `yandex_*.html` from `public/` excepted), robots.txt `Disallow: /` without a sitemap, no sitemap.xml. Production: the Metrika counter and `data-metrika` on every generated page (the work.html redirect excepted), no robots meta except on 404, legacy files byte-identical to `public/`, robots.txt `Allow: /` with `Sitemap: <site><base>sitemap.xml`, sitemap.xml with every indexable generated page and en/ under `<site><base>`, nothing 404, noindex or redirect, no file carrying the staging comment mode (its marker `comment-mode:v1`, `data-comment-mode`, its chunks, `/issues/new`), and no preview-only /lab/ (no `lab/` page, no `_astro` chunk named after a file of `src/components/lab/` or `src/scripts/lab/`, which hold only what /lab/ alone uses; the home page's canvas islands live in `glyphs/`). Preview also, while `astro.config.mjs` registers `commentMode()`: every generated page (redirects excepted) loads the comment mode, and the chunks it loads later exist. Both: every `public/` file is built (old URLs), canonical and og:url are `<site><base><path>`, og:image is absolute and exists, the old home anchors lead to built pages and existing sections |
 | `npm run shots -- --out shots/x / /services/` | Full-page screenshots at 375, 768, 1280 (`--widths 360,375` to change), reports horizontal overflow. Without routes: every page, the built case pages too. Uses `/opt/pw-browsers/chromium` (override with `CHROMIUM_PATH`) and its own static server under the base path |
 | `npm run verify` | build, check-links, leakcheck |
 | `npm run content` | Re-run the content export (needs `SITE_CONTENT`) |
@@ -290,6 +313,12 @@ head (title, description, canonical, OG with absolute image URL and size,
 robots in preview and for `seo.noindex`, fonts, Metrika in production; on
 the home page first of all the old-anchor script `LegacyAnchors`),
 `Header`, `<main id="main">`, `Footer`, the client script.
+Font preloads: Inter Tight 400 and 700, Cyrillic and Latin, on every page
+(the Latin subset holds the space, digits and punctuation, so Russian text
+needs it too; without it the hero lead re-wrapped when it came, a layout
+shift of 0.008 at 390 px), plus IBM Plex Mono 400 Latin on the home page
+(the glyphs of the h1 and the big numbers). Layout shift of the home page
+on load: 0 at 360 to 1440.
 /hire/ passes its page and gets its own header automatically (`pages/hire.md
 header`). The 404 page passes `ctaHref="/#contact"`. If `seo.ogImage` does not
 exist in `public/` (guide's `assets/og-guide.jpg` today), the site image is
@@ -495,17 +524,36 @@ of 12 columns, quote 6 of 12; on phones a 7.5rem video column. Props:
 A horizontal row of slides (decision 11 of 14.10): «Что говорят коллеги» on
 the home page, /hire/ and the case pages, and the product galleries. Pass the
 items and a function child that renders one slide (`Astro.slots.render` with
-the item and its index). The row scrolls with scroll snap (swipe on phones)
-and always shows part of the next slide; under it «1 из 5» / «1–2 из 5» (the
-slides fully in view, a polite live region, so the new position is
-announced) and the buttons «Назад» and «Дальше», which move by one slide at
-once (no smooth scrolling, no autoplay, they pause the row's videos). The
-row is a focusable region named by `label` (`aria-roledescription`
+the item and its index). Markup: the track (the scrolling region) holds a
+rail (`.carousel__rail`) that holds the slides. Static HTML first: the track
+scrolls with scroll snap (swipe on phones) and always shows part of the next
+slide; under it «1 из 5» / «1–2 из 5» (the slides fully in view, a polite
+live region, so the new position is announced once the row comes to rest)
+and the buttons «Назад» and «Дальше» (they pause the row's videos, no
+autoplay). With motion allowed (decision 2 of 15.10) the script loads Embla
+Carousel (with the wheel-gestures plugin) when the row comes within half a
+screen: `data-embla` on the root, the track clips and the rail moves (the
+root is a single `minmax(0, 1fr)` column, so a clipping track never widens
+the page past its edge, e.g. a bleed media row on a phone): drag
+with the mouse, swipe, trackpad, momentum and snap (`cards`: one slide per
+swipe; `media`: a flick may pass several), the buttons and the arrow keys
+glide to the next slide, Tab into a slide brings it into view, a drag never
+starts on a video that has been played. With `prefers-reduced-motion` Embla
+is not loaded: the native row stays and the buttons move by one slide at
+once (no smooth scrolling); the mode follows the setting when it changes,
+and the row stays on the slide it showed (Embla starts from the native
+scroll position; going back, the native track scrolls to Embla's slide).
+The row keeps its height in both modes: where scrollbars are classic (not
+overlay) the native track shows one under the slides, so the script
+measures it before Embla clips the track and keeps that room
+(`--carousel-sb`); nothing below the row moves when Embla takes over.
+The row is a focusable region named by `label` (`aria-roledescription`
 «карусель», the arrow keys move by one slide), each slide a group «2 из 5»;
 every slide stays in the DOM. The bar shows only after the script ran
 (`data-ready`): without JS the row still scrolls and no counter can be
 wrong; when every slide fits the script sets `data-static` and the bar goes;
-one slide renders no bar.
+one slide renders no bar. With `bleed` the last slide stops at the gutter in
+both modes.
 Props: `items`, `label`, `id` (unique prefix), `kind` (`cards` default:
 85% of the row on phones, 60% on tablets, 5 of 12 columns from 1080px;
 `media`: one row height, 25rem phones, 26rem tablets, `height` or 30rem from
@@ -638,7 +686,8 @@ the 3-column grid of the «Почему со мной предсказуемо»
 starting on its column line; one height for all (the widest-ratio image
 fills its column, the others are as wide as that height allows); on phones
 one under the other, at most 24rem high; the caption under each in small
-mono, a click opens the full image in a new tab (a plain link, no lightbox).
+mono. Each is a plain link to the full image (new tab); with JS a click
+zooms the image out of the page instead (`Lightbox`).
 
 ### LinkedText, LeadMagnet
 
@@ -659,6 +708,47 @@ mouse only, `tabindex="-1" aria-hidden="true"`) in column 1 of 4 on phones
 and 1–2 of 12 from 720px, beside it the heading (h2, medium), the line and the
 framed small link (`link { label, href }`, to /free/). Without `image` the
 text takes the row.
+
+### Parsed (`components/Parsed.astro`, `lib/parse.ts`, decision 1 of 15.10)
+
+```astro
+<Parsed text={f.legend} inline where="site/global.md footer.legend" />                          <!-- the footer legend -->
+<Parsed text={b.headlineParse} plain={b.headline} where="pages/home.md hero.headlineParse" />   <!-- a parsed line with its plain text -->
+```
+
+A content line with inline tokens `[слова|член предложения]` (подлежащее,
+сказуемое, дополнение, определение, обстоятельство), rendered with the
+member's underline (`.u-subj` … `.u-circ`). The words inside a token never
+break apart, and between the tokens a one- or two-letter Cyrillic word stays
+with the word after it («и» on the line of «не скамит», «в» with «жизни»;
+non-breaking spaces, typography only; the build check and the screen-reader
+copy use the text before them). `plain`: the approved
+text; the parse must read exactly as it without the tokens, or the build
+fails (`parseSentence`). Default: a visually hidden plain copy for screen
+readers (not selectable) and the underlined copy `aria-hidden`, so the line
+is read in one piece; `inline`: the spans stay in the text (the legend,
+whose underlined words are its own words). An unknown member or a broken
+token fails the build. The home h1 was parsed this way until it went to
+glyphs (decision 6 of 15.10): it is not underlined now, and `headlineParse`
+is not drawn. Footer: `site.footer.legend`, one small grey line under a
+hairline, the samples in ink.
+
+### AsciiHeadline, DitherPortrait (`components/glyphs/`, decision 6 of 15.10)
+
+```astro
+<AsciiHeadline text={headline} as="h1" id="hero-heading" size="var(--fs-huge)" width="10.5em" shimmer={false} />   <!-- home hero -->
+<DitherPortrait src={photo.src} alt={photo.alt} />                                                                  <!-- home «Обо мне» -->
+```
+
+Prototypes B and C of /lab/, now on the home page with the lab's default
+settings: the phrase drawn in glyphs over its real text (the h1 stays the
+text for search engines and screen readers and sets the box), and the photo
+in one bit in a box of the photo's ratio (the `<img>` stays the fallback and
+the box carries the alt). A lens under the pointer or a finger, nothing
+moves by itself, static with reduced motion, the plain text or photo under
+forced colours and without JS, no layout shift, no frames off screen or in
+a background tab, the canvas built in short tasks. Props, behaviour, costs
+and the switch to the drawn portrait: docs/lab.md.
 
 ### Free materials on /free/ (`components/free/`, decision 18)
 
@@ -740,6 +830,61 @@ header after closing; closing it where it opened moves nothing. The end button s
 once `src/scripts/disclose.ts` ran (`data-ready` on the details), so without
 JS there is no dead button. Props: `more`, `less`, `context`, `sticky`,
 `class` (style it from the parent with `:global()`). Used by `ServiceCard`.
+Motion (decision 2 of 15.10, `src/scripts/accordion.ts`): with motion
+allowed the details opens and closes on a critically damped spring (Motion,
+height of the details, the content fading in); only the part on screen
+animates (a long text grows to the bottom of the screen, the rest is added
+below the fold in one step); a click during the animation turns it around.
+While it closes, the summary already shows «Подробнее +» (`data-closing`,
+`motion.css`). The end button and the stuck summary jump first, with the text
+still open, then fold it up on the spring under the summary; closing in
+place folds without a jump. With `prefers-reduced-motion` and without JS
+everything is instant, as described above.
+
+### Lightbox (`components/motion/Lightbox.astro`, decision 2 of 15.10)
+
+```astro
+---
+import Lightbox from '../motion/Lightbox.astro';
+---
+<Lightbox />   <!-- once per page, anywhere: it renders nothing -->
+<a href={url(src)} target="_blank" rel="noopener" data-lightbox><Media src={src} alt={alt} /></a>
+```
+
+Static HTML first: a thumbnail is a plain link to the full file with
+`data-lightbox` (new tab, `cursor: zoom-in`). The component adds
+`Lightbox.css` and `src/scripts/lightbox.ts` (under 1 KB): at the first
+pointer over a thumbnail, touch on one or keyboard focus on one it loads
+`src/scripts/lightbox-ui.ts` (about 6 KB, 2.5 KB gzip) and, with motion
+allowed, Motion (`src/scripts/motion-lite.ts`, the chunk the accordions
+share; never under reduced motion). A click then opens the image in place
+(a click before the code has arrived waits for it; if it cannot load, the
+file opens in a new tab); with a modifier key or the middle button the tab
+opens as before. Nothing of the lightbox loads for a visitor who does not
+touch a screenshot. (Until 15.10 it was a React island with Radix UI
+Dialog: 356 KB, 116 KB gzip, and on /products/ it loaded with the page.)
+The browser's modal `<dialog>` (`showModal`): the page behind is inert for
+the mouse, the keyboard and screen readers (unlike `aria-hidden`, which
+left the scripts and live regions of `main` exposed), it is modal for
+assistive technology, Esc closes, focus starts on «Закрыть» and returns to
+the thumbnail. Its name is the thumbnail's `alt`, its description the
+caption (the figure's `figcaption`); the zoomed image has `alt=""`, so the
+text is read once. While open the page does not scroll (`overflow: clip` on
+`<html>`, `scrollbar-gutter: stable` where scrollbars are classic, so
+nothing behind moves). Open: the image grows from its thumbnail (which steps
+aside) to the largest size that fits the screen, never above its own
+pixels, on a spring with a little bounce; the page fades to paper; the
+caption and the bar fade in: «Открыть файл» (a framed `.btn` link to the
+full file, new tab) and «Закрыть» (the small framed button, no lines).
+Close: Esc, «Закрыть», a click or tap anywhere, or a swipe up or down on the
+image (the paper thins as it goes): the image goes back into its thumbnail.
+Phones: the image keeps the browser's pinch-zoom (`touch-action:
+pinch-zoom`; a second finger ends a swipe at once and a multi-touch never
+closes); zoomed in (`visualViewport.scale` above 1), one finger pans the
+image (`data-zoomed`, `touch-action: auto`) and a tap does not close. With
+`prefers-reduced-motion` it opens and closes at once and there is no swipe.
+Used by `Formats` (/services/, the work screenshots) and the products page
+(every image of the galleries and the single screenshots).
 
 ### Cases (`components/cases/`, decision 17 of 14.10)
 
@@ -809,17 +954,21 @@ caption under each), then the text in columns 1–7 and `ProductFacts` in
 9–12. One picture (the gallery's only item, or `media` when there is no
 gallery): the screenshot with its caption in the side column, the facts under
 the body. The first gallery item is also `media` in the content; it is shown
-once. Every screenshot is a plain link to the full file (new tab, no
-lightbox). Only the first picture of the first product loads eagerly
+once. Every screenshot is a plain link to the full file (new tab) that the
+page's `Lightbox` (one, at the top of the list) opens in place; a drag
+of a gallery is never a click. Only the first picture of the first product loads eagerly
 (`first`), the rest lazily. Status labels, the action button, secondary links
 and the quiet Telegram link are as before.
 
 ### Home «Обо мне» and /hire/ «Опыт»
 
-`home/About`: `photo { src, alt }` (decision 9 of 14.10) replaces the drawn
-`portrait` in the same column when it is visible (a 4:5 frame, half the width
-on phones); hidden now, so the drawn portrait shows. Tested locally with a
-placeholder photo. `hire/Experience`: the staff cases (`show: full`) are rows
+`home/About`: the picture is a `DitherPortrait` (decision 6 of 15.10):
+`photo { src, alt }` (decision 9 of 14.10, Daniil's selfie) in one bit in
+its 4:5 box, 4 of 12 columns (half the width on phones); while the photo is
+hidden in the content, the drawn `portrait` (1:1). `ONE_BIT = 'portrait'` in
+the component switches to the drawn portrait cropped to the face, as /lab/
+shows it (the selfie reads poorly in one bit: the face is behind the phone
+and its flash). `hire/Experience`: the staff cases (`show: full`) are rows
 of the place's grid in columns 4–12; a case with `scheme: true` gets the
 `AgentsScheme` (heading at the base size, h5) under it across all 12 columns.
 `hire/StaffCase` no longer draws a scheme. `hire/HireTestimonials` and
@@ -831,8 +980,14 @@ of the place's grid in columns 4–12; a case with `scheme: true` gets the
 <Section id={faq.anchor} heading={faq.heading}><FAQ items={faq.items} /></Section>
 ```
 
-`<details>/<summary>` per item, «+»/«−» marker, hairlines, no animation, no
-script. Props: `items` (`{ q, a }`, hidden and empty ones are skipped), `open`,
+`<details>/<summary>` per item, «+»/«−» marker, hairlines. Under the
+pointer (`hover: hover` only) the question gets the wave of a link
+(определение, accents), on the question's own span (`.faq__q-text`): the
+summary is a flex row whose marker is an in-flow item, so a line on the
+summary would run under «+»/«−» too. With motion allowed an answer opens and closes on a
+spring (`scripts/accordion.ts`) and the wave comes in like a link's
+(`u-wave-in`) and fades out over `--dur-hover`; without JS or with reduced
+motion it toggles at once and the wave appears at once. Props: `items` (`{ q, a }`, hidden and empty ones are skipped), `open`,
 `class`.
 
 ## 5. Content structure
@@ -846,7 +1001,7 @@ Every page: `seo { title, description, ogImage?, noindex? }`, `blocks[]`
 (`{ id, type, anchor?, … }`), optional `header`. Blocks per page:
 
 **home**
-- `hero` (hero): `name`, `role`, `headline` (the h1), `lead`, `button { label, href }` (plain chat link), `email`, `availability`, `numbers[{ value, label, source }]`, `numbersNote`
+- `hero` (hero): `name`, `role`, `headline` (the h1, drawn in glyphs: `AsciiHeadline`), `headlineParse?` (not drawn since decision 6 of 15.10; the export drops it), `lead`, `button { label, href }` (plain chat link), `email`, `availability`, `numbers[{ value, label, source }]`, `numbersNote`
 - `clients` (names): `lines[{ label, names[], note? }]`, `link { label, case }` (to `caseHref`)
 - `services` (services): `heading`, `lead`, `showDuration`, `main[{ service, line }]`, `moreHeading`, `more[{ service, line, href? }]`, `linkLabel` (each row also shows the price line and the service's verb `button`)
 - `reels` (reels): `heading`, `hint`, `linkLabel`, `items[{ case, video, loop, poster, hook }]` (use `video` + `poster`; `.scroll-row`)
@@ -902,7 +1057,7 @@ Every page: `seo { title, description, ogImage?, noindex? }`, `blocks[]`
 ### 5.2 site (`site`)
 
 `site { name, lang, ogImage }`, `contacts { telegram { handle, url, text }, email }`,
-`header { name, links[], cta }` (links: Услуги, Кейсы, Мои продукты, Бесплатно), `footer { contacts { telegramLabel, telegramText, emailLabel, emailText }, links[], madeWith, copyright }`,
+`header { name, links[], cta }` (links: Услуги, Кейсы, Мои продукты, Бесплатно), `footer { contacts { telegramLabel, telegramText, emailLabel, emailText }, links[], legend?, madeWith, copyright }` (`legend`: the line «Подчёркнуто как в школе: …» with `[слова|член]` tokens, `Parsed inline`),
 `telegram { plainButton, copiedLabel, copiedMs, singleHint, gridHint, buttons[{ codeword, caption, template, service? }], productTemplate }`,
 `email { line, short, mailto { subject, body }, defaultSubject }`,
 `work { howWeStart { heading, steps[{ title, text }], consultationNote, prepare, workload { text } }, price, payment, languages }`.
@@ -975,8 +1130,15 @@ Product names use the huge size.
 ## 6. CSS (`src/styles`)
 
 `tokens.css` (custom properties) and `global.css` (reset, type, links, focus,
-buttons, rules, grid, utilities) load in `BaseLayout`. Components keep their
-own scoped styles.
+buttons, rules, grid, utilities) load in `BaseLayout`, then `accents.css`
+(the underlines, below); `global.css` imports `motion.css` (decision 2 of
+15.10: the hover fade and press scale of every button, the page-to-page view
+transition, the closing state of the disclosures, no coloured tap highlight;
+tokens `--dur-hover`, `--ease-out`, `--spring-release`, `--press-scale`,
+`--dur-page`; everything that moves behind `prefers-reduced-motion:
+no-preference`; it never sets `text-decoration`: the line of a link, its
+style and its motion are `accents.css`). Components keep their own scoped
+styles.
 
 **Tokens.** Colour `--ink #000`, `--paper #fff`, `--muted #5e5e5e` (secondary
 text), `--rule #c4c4c4` (hairlines). Fonts `--font-sans` (Inter Tight),
@@ -988,14 +1150,55 @@ text), `--rule #c4c4c4` (hairlines). Fonts `--font-sans` (Inter Tight),
 `--gap` 16/24px, `--cols` 4/12, `--header-h`. Lines `--hair` (1px grey),
 `--line` (1px ink).
 
+**Accents (`accents.css`, decision 1 of 15.10).** Loaded by `BaseLayout`
+right after `global.css` (it replaces the link underline there). No colour
+accents: one underline style per member of the sentence, in currentColor,
+sized in em (1px in body text, 4–5px at the huge size), never moving
+layout.
+
+| Member | Line | Class | Where |
+| --- | --- | --- | --- |
+| подлежащее | one solid line | `.u-subj` | the current page: `a[aria-current="page"]` and `.link-quiet[aria-current]` |
+| сказуемое | two lines (double) | `.u-pred` | every `.btn` label (a plain button carries it itself; with a caption only `.btn__label` or `.tg-btn__word`), the action links `.tg-link` |
+| дополнение | dashed | `.u-obj` | every `a` (the default link line) |
+| определение | wavy | `.u-attr` | a link under the pointer (`hover: hover` only) or the keyboard focus; the FAQ question under the pointer; the title of a case step link (CaseFull) |
+| обстоятельство | dash-dot | `.u-circ` | durations and prices: «Срок» (`ServiceTerms`), the price figure (`PriceBlock`), «Сколько длится», the case duration label (`CaseLabels`), the tenure on /hire/ |
+
+Tokens: `--u-t` thickness `max(1px, 0.05em)`, `--u-t2` each double line
+`max(1px, 0.035em)`, `--u-tw` wavy `max(1px, 0.04em)`, offsets `--u-o`
+0.2em, `--u-o2` 0.16em, `--u-ow` 0.17em, dash-dot `--u-dash` 0.5em,
+`--u-gap` 0.17em, `--u-descent` (0.24em Inter Tight, 0.28em on `.mono`,
+`.label`, `.t-small`; set it on other mono text that carries `.u-circ`),
+`--u-dur` 200ms and `--u-ease` (the wave's entrance). Override them on a
+parent to tune a context. `.u-circ` is a background (a
+repeating gradient in currentColor, not a native style): put it on an
+inline span around the words, never on a block (and without side padding:
+each line is its own box, `box-decoration-break: clone`); the period
+stretches a fraction of a pixel so every line ends on a whole dash-dot
+(`background-repeat: round`), never on a stub; forced colours and print
+show a dotted line instead. Motion (only under `prefers-reduced-motion:
+no-preference`): the wave fades in and settles (`u-wave-in`, offset and
+colour), and colour, thickness and offset go back over `--dur-hover` /
+`--ease-out` (the hover fade of `motion.css`) when the pointer or the focus
+leaves; a `.btn` keeps the fill transition of `motion.css` (its lines never
+change). The small framed controls that are not `.btn` («Подробнее» of a
+disclosure, «Назад»/«Дальше» of a carousel, «Закрыть» of the lightbox) have
+no lines: they toggle or move, they are not actions. Fallbacks: a browser
+without `text-decoration-style` draws one solid line; without `:has()`
+(Safari < 15.4, Firefox < 121) plain buttons have no double line.
+
 **Type classes.** `h1`/`.t-huge`, `h2`/`.t-large`, `h3`/`.t-medium`,
 `h4`/`.t-base`, `.t-small` (mono 13px), `.label` (mono small grey), `.mono`,
 `.sans`, `.muted`, `.bold`, `.regular`, `.lead` (medium text, 34em),
-`.measure`, `.nowrap`. Links are underlined; `.link-quiet` underlines only on
-hover and `aria-current="page"`.
+`.measure`, `.nowrap`. Links are underlined dashed, wavy under the pointer
+and the focus, solid on the current page; `.link-quiet` has no line at rest
+(wavy on hover, solid with `aria-current="page"`).
 
 **Buttons.** `.btn` (frame), `.btn--primary` (ink fill), `.btn--small`,
-`.btn--block`, `.btn__caption` (mono second line). Hover inverts colours.
+`.btn--block`, `.btn__caption` (mono second line), `.btn__label` (the label
+beside a caption, for its double line). The label has two lines (accents).
+Hover inverts colours (over a 160 ms fade); a press scales the frame to 0.97 and lets it go on a
+spring (`motion.css`).
 Focus: 2px ink outline, offset 3px, on everything.
 
 **Rules and lists.** `hr`/`.rule` (hairline), `.rule--ink`, `.top-hair`,
@@ -1032,15 +1235,25 @@ instead of shrinking), an even row of `--row-items` (default 6) from 1080px
 
 ## 7. Behaviour and analytics
 
-Three client scripts. `src/scripts/carousel.ts` (bundled by `Carousel` only
-on pages with a carousel: home, /products/, /hire/ and the case pages with
-testimonials) wires «Назад» and «Дальше», the arrow keys and the counter
-(section 4, Carousel). `src/scripts/disclose.ts` (bundled by `Disclosure`,
-/services/) shows the second «Свернуть» at the end of a long disclosure and
-makes it close the details, focus the summary and jump to the card's top
-(keeping the summary on screen); closing from the stuck summary jumps back
-too, only when the summary's own place is above the header after closing
-(section 4, Disclosure).
+Client scripts (each bundled only by the component that needs it; with
+`prefers-reduced-motion` nothing in them animates). `src/scripts/carousel.ts`
+(bundled by `Carousel` only on pages with a carousel: home, /products/, /hire/
+and the case pages with testimonials) wires «Назад» and «Дальше», the arrow
+keys and the counter, and loads Embla Carousel near the row when motion is
+allowed (section 4, Carousel). `src/scripts/disclose.ts` (bundled by
+`Disclosure`, /services/) shows the second «Свернуть» at the end of a long
+disclosure and makes it close the details, focus the summary and jump to the
+card's top (keeping the summary on screen); closing from the stuck summary
+jumps back too (section 4, Disclosure). `src/scripts/accordion.ts` (used by
+`disclose.ts` and by `FAQ`, /services/ and /guide/) opens and closes a
+`<details>` on a spring (Motion's `motion/mini` animate and spring,
+`src/scripts/motion-lite.ts`, loaded right after the page and only when
+motion is allowed; until it has arrived, and with reduced motion, a click
+toggles at once).
+`src/scripts/lightbox.ts` (bundled by `components/motion/Lightbox.astro`,
+/services/ and /products/) loads `lightbox-ui.ts` at the first pointer,
+touch or focus on an `a[data-lightbox]` thumbnail and opens it in a native
+modal `<dialog>` (section 4, Lightbox).
 `src/scripts/telegram.ts` is bundled into every page by `BaseLayout`. It copies `data-tg-template` on click and swaps the
 label for `data-tg-copied` during `data-tg-ms`, and, when `<html
 data-metrika>` is set (production), sends `reachGoal` for elements with
@@ -1057,17 +1270,114 @@ legacy files and have no counter (production keeps them byte-identical to
 the only record of demo visits from the site; a demo opened straight from a
 link elsewhere is not counted. The goals exist in Metrika only after they are
 added there as JavaScript events with these identifiers (README, the move
-checklist). No other scripts: no `/#hire` redirect, no autoplay, no
-lightbox (the work screenshots open as plain links), the disclosures are
-native `<details>` that work without the script.
+checklist). The home page: `src/scripts/glyphs/ascii-headline.ts` and
+`dither-portrait.ts` (with `ascii-field.ts` and `core.ts`), bundled by
+`AsciiHeadline` and `DitherPortrait` (section 4, docs/lab.md). Preview
+builds only: the prototype A of /lab/ (`src/scripts/lab/`) and the comment
+mode (below, injected by `tools/comment-mode.mjs`). No other scripts: no `/#hire` redirect, no autoplay; the
+disclosures are native `<details>` that work without the scripts, the
+screenshots are plain links without JS.
+
+Page to page: cross-document view transitions (`@view-transition` in
+`motion.css`, CSS only, motion allowed only): the header keeps its place,
+the content cross-fades in 200 ms; browsers without support navigate as
+before. Every navigation stays a real page load, so the Telegram script,
+the Metrika counter (a page view per page) and the old home anchors work as
+they are. Astro's `<ClientRouter />` was tried (15.10) and not taken: after
+a soft navigation the module scripts of a page seen before do not run again
+(the carousel and the disclosures stay dead), the Telegram script's live
+region goes with the old `<body>`, and Metrika gets no page view; fixing it
+means re-initialising every script on `astro:page-load` and sending
+`ym(…, 'hit')` by hand.
+
+### JS per page (measured 15.10, production build)
+
+Raw/gzip KB at 375 px, external and inline scripts, Metrika's own tag.js
+not counted; «scroll» is what loads while scrolling to the end, «lightbox»
+what the first open of a screenshot adds. Staging adds the comment mode's
+button, 3.0–4.7/1.5–2.3 KB per page; /lab/ (staging only) loads
+29.5/13.9. Home measured again 15.10 evening, with the glyph h1 and the
+one-bit portrait (21.5/9.8 of the 30.8/14.1; it loads with reduced motion
+too, the pictures are static then).
+
+| Page | Motion allowed: load + scroll | + lightbox | Reduced motion: load | + lightbox |
+| --- | --- | --- | --- | --- |
+| / | 30.8/14.1 + Embla 25.0/9.9 | | 30.8/14.1 | |
+| /services/ | 19.3/8.8 | 5.8/2.6 | 7.7/4.1 | 5.8/2.6 |
+| /products/ | 34.1/14.3 (Embla included: the galleries are in the first screen) | 17.5/7.3 | 9.1/4.4 | 5.8/2.6 |
+| /guide/ | 17.5/7.8 | | 5.8/3.1 | |
+| /hire/, /cases/staff-c3/ | 8.3/3.9 + Embla 25.0/9.9 | | 8.3/3.9 | |
+| /cases/, /free/ | 2.0/1.1 | | 2.0/1.1 | |
+
+Before the lightbox moved off React (same build otherwise): /products/
+385.7/128.8 at load (360.6/118.8 with reduced motion), /services/
+337.6/109.3 more near the screenshots; total blocking time on /products/
+at 375 with 4× CPU slowdown, median of 5: 222 ms before, 88 ms after.
+
+### Staging comment mode (decision 4 of 15.10, preview only)
+
+`tools/comment-mode.mjs` is an Astro integration (in `astro.config.mjs`). In
+preview builds and `npm run dev` it injects one bundled script into every
+Astro page (`injectScript('page')`); with `PREVIEW=0` it does nothing, so the
+production build has no trace of it (prodcheck checks both ways). No page,
+layout or component includes it.
+
+- `src/scripts/comment-mode.ts` (every page, about 5 KB, 2.4 KB gzip): the
+  floating «Комментировать» button bottom right and «Список N» when comments
+  wait, in a shadow root (`<div data-comment-mode>` at the end of `body`), and
+  the shortcut Alt+Shift+C. It adds 84px under the footer
+  (`body::after`) and `scroll-padding-bottom`, so the buttons never cover the
+  end of a page or a focused element. Nothing else listens on the page outside
+  the mode. Under automation (`navigator.webdriver`: `npm run shots`, other
+  Playwright runs) it does nothing unless the address has `?comment`.
+- `src/scripts/comment-mode-ui.ts` (loaded at the first press, about 20 KB,
+  7.7 KB gzip) and `virtual:comment-mode-map` (8 KB, 2.7 KB gzip): the mode.
+  While it is on, clicks, taps, Enter and Space select an element instead of
+  acting (capture listeners on `document`, `preventDefault` and
+  `stopImmediatePropagation`; a drag or a swipe longer than 10px selects
+  nothing), the element under the pointer or the focus gets an outline
+  (`[data-box]`), a click inside a link or a button selects the link or the
+  button; arrows up and down widen and narrow, left and right go to siblings.
+  The form: «Шире», «Уже», «Что поправить», «Отправить» (opens
+  `https://github.com/imevstratov-pixel/portfolio-v2/issues/new` with title,
+  body and `labels=правка` in a new tab), «В список», «Отмена». The list
+  (localStorage `comment-mode:v1`, in memory when storage is blocked) shows
+  numbered pins on its elements, «Отправить всё» (one issue), «Скопировать»
+  (the issue text), «Очистить». An address over 7500 characters opens the
+  issue with a short body and puts the full text in the clipboard. Esc closes
+  the form, then the list, then the mode. No transitions or animations.
+- The issue body, per comment: the comment as a quote, then «Страница» (the
+  full address), «Экран» (viewport, DPR, mouse or touch, scroll, reduced
+  motion), «Элемент», «Селектор» (unique: the id, else the shortest path to
+  the nearest id), «Текст», «Ближайший заголовок», «Якорь», «Ссылка»,
+  «Файл» (img, video), «data-*», «Код» and «Файл страницы». «Код» is exact:
+  the integration maps each `.astro` file's scoped-style id (the
+  `data-astro-cid-*` attribute Astro puts on every element a component
+  renders, computed with `@astrojs/compiler-rs`, Astro's own compiler) to the
+  file, and the classes the `<style>` blocks and `src/styles/*.css` define to
+  their files; the element and its ancestors give the chain of components,
+  innermost first («`src/components/TelegramButton.astro (.tg-btn)`,
+  `src/components/services/ServiceCard.astro (.svc__cta)`, …»). The body ends
+  with `<!-- comment-mode:v1 -->` and the build's commit (`GITHUB_SHA` in the
+  workflow).
+- Reading the comments: the open issues with the label «правка» in
+  `imevstratov-pixel/portfolio-v2` (GitHub MCP `list_issues` with
+  `labels: ["правка"]`). Content edits go to the annotated source and the
+  export, never into `src/content` by hand.
+- The label «правка» must exist in the repository (GitHub drops an unknown
+  label from a new-issue link).
 
 ## 8. Routes
 
 `src/pages/index.astro` (/), `services/`, `cases/`, `products/`, `free/`,
 `hire/`, `guide/` (`index.astro` each), `cases/[slug].astro` (one page per published
 case, /cases/<slug>/, slug = file name: `CaseFull` and `ContactShort`),
-`404.astro`, and `work.html.ts` (redirect to `/services/#formats` with meta
-refresh, canonical and a link). Every page
+`404.astro`, `work.html.ts` (redirect to `/services/#formats` with meta
+refresh, canonical and a link), and `lab/[...lab].astro` (/lab/, preview
+builds only, linked from nowhere, noindex: the «cherry» prototypes of
+decision 3 of 15.10, B and C of them on the home page since decision 6, see docs/lab.md; `getStaticPaths` returns nothing with
+`PREVIEW=0`, `tools/lab-prune.mjs` drops its unreferenced JS from the
+production `_astro/`, and prodcheck fails if either comes back). Every page
 renders its content blocks in the content order, as the texts renderer does.
 
 ## 9. Static files (`public/`)

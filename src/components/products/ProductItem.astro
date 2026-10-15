@@ -17,9 +17,12 @@
 // - Nothing: the facts in the side column.
 // Phones: one column; the gallery or the screenshot comes first, under the name.
 // The gallery's first shot is also `media` in the content: it is shown once.
-// Every screenshot of the gallery is a plain link to the full file (new tab,
-// no lightbox), as the work screenshots on /services/: on phones the slides
-// are about 290px wide and their interface text is too small to read.
+// Every screenshot of the gallery is a plain link to the full file (new tab),
+// as the work screenshots on /services/: on phones the slides are about
+// 290px wide and their interface text is too small to read. With the
+// page's Lightbox (/products/, decision 2 of 15.10) a click zooms the
+// screenshot out of the row instead (pinch-zoom works there, and «Открыть
+// файл» opens the file); a drag of the row is not a click (Embla stops it).
 // Loading: only the first slide of the first product (`first`) is eager, the
 // rest lazy (the brief: lazy below the fold).
 import Prose from '../Prose.astro';
@@ -88,7 +91,7 @@ const secondary = visible(d.secondaryLinks);
                 <figure class="shot">
                   <div class:list={['shot__frame', g.type === 'image' && 'shot__frame--image']}>
                     {g.type === 'image' ? (
-                      <a class="shot__link" href={url(g.src)} target="_blank" rel="noopener">
+                      <a class="shot__link" href={url(g.src)} target="_blank" rel="noopener" data-lightbox>
                         <Media
                           type="image"
                           src={g.src}
@@ -168,7 +171,7 @@ const secondary = visible(d.secondaryLinks);
               <figure class="product__media shot">
                 <div class:list={['shot__frame', single.type === 'image' && 'shot__frame--image']}>
                   {single.type === 'image' ? (
-                    <a class="shot__link" href={url(single.src)} target="_blank" rel="noopener">
+                    <a class="shot__link" href={url(single.src)} target="_blank" rel="noopener" data-lightbox>
                       <Media type="image" src={single.src} alt={single.alt} loading={first ? 'eager' : 'lazy'} />
                     </a>
                   ) : (

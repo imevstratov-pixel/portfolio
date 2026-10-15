@@ -11,6 +11,8 @@
 //
 // «Срок» and «Цена» are the texts renderer's labels (it writes «Срок: …» and
 // «Цена: …»); the duration is shown as written in the content.
+// The duration and the price figure carry the dash-dot line (обстоятельство,
+// src/styles/accents.css .u-circ).
 import PriceBlock from './PriceBlock.astro';
 import { getService, type ServiceEntry } from '../lib/content';
 
@@ -39,7 +41,9 @@ const durationText = d ? d.replace(/[.]$/, '') : '';
       {duration && durationText && (
         <div class="terms__row">
           <dt class="terms__name label">Срок</dt>
-          <dd class="terms__value">{durationText}</dd>
+          <dd class="terms__value">
+            <span class="u-circ">{durationText}</span>
+          </dd>
         </div>
       )}
       {price && (

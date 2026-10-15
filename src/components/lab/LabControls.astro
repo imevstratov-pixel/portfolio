@@ -1,0 +1,88 @@
+---
+// Option buttons of a /lab/ prototype: each group sets one data attribute
+// on the element with id `target` (the island redraws itself when its
+// attributes change). An option may set more attributes at once (its third
+// item, full attribute names: the «Фото» group sets the picture, its crop
+// and its alt text). Buttons are toggle buttons (aria-pressed), in a named
+// group, keyboard reachable, with the site's focus ring.
+//
+// They are framed controls that switch something, not actions, so they
+// carry no lines (docs/components.md, Accents: «Подробнее», «Назад»/«Дальше»,
+// «Закрыть» have none either); `.btn` gives them the frame and the hover.
+export type LabOption = [value: string, label: string, set?: Record<string, string>];
+export type LabGroup = { attr: string; label: string; value: string; options: LabOption[] };
+
+interface Props {
+  target: string;
+  groups: LabGroup[];
+}
+
+const { target, groups } = Astro.props;
+---
+
+<div class="lab-ctls">
+  {
+    groups.map((g) => (
+      <div class="lab-ctl" role="group" aria-label={g.label}>
+        <span class="label" aria-hidden="true">
+          {g.label}
+        </span>
+        {g.options.map(([v, l, set]) => (
+          <button
+            type="button"
+            class="btn btn--small"
+            data-lab-target={target}
+            data-lab-attr={g.attr}
+            data-lab-value={v}
+            data-lab-set={set ? JSON.stringify(set) : undefined}
+            aria-pressed={v === g.value ? 'true' : 'false'}
+          >
+            {l}
+          </button>
+        ))}
+      </div>
+    ))
+  }
+</div>
+
+<style>
+  .lab-ctls {
+    display: grid;
+    gap: var(--s2);
+  }
+  .lab-ctl {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--s1);
+  }
+  .lab-ctl .label {
+    flex: 0 0 100%;
+  }
+  .lab-ctl .btn {
+    min-height: 2.75rem;
+    /* toggles, not actions: no сказуемое double line (accents.css gives
+       every plain .btn one; this scoped rule is more specific) */
+    -webkit-text-decoration-line: none;
+    text-decoration-line: none;
+  }
+  .lab-ctl .btn[aria-pressed='true'] {
+    background: var(--ink);
+    color: var(--paper);
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('[data-lab-attr]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const { labTarget, labAttr, labValue, labSet } = btn.dataset;
+      const el = labTarget ? document.getElementById(labTarget) : null;
+      if (!el || !labAttr || labValue === undefined) return;
+      if (labSet) {
+        for (const [k, v] of Object.entries(JSON.parse(labSet) as Record<string, string>)) el.setAttribute(k, v);
+      }
+      el.setAttribute(`data-${labAttr}`, labValue);
+      btn.parentElement?.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
+    });
+  });
+</script>

@@ -23,6 +23,8 @@
 // figure is shown as a plain line.
 // The figure never breaks inside a number (the content uses non-breaking
 // spaces); a range may break after its dash on narrow columns.
+// The figure carries the dash-dot line (обстоятельство: durations and prices,
+// src/styles/accents.css .u-circ); the note and the sub-prices stay plain.
 import { globalPriceLine, servicePrice, splitLeadingPrice, type Price, type ServiceEntry } from '../lib/content';
 
 interface Props {
@@ -45,7 +47,7 @@ const line = !price && !split ? (text ?? (fallback ? globalPriceLine() : '')) : 
 const full = show === 'full';
 const withNote = show !== 'main';
 // Typography only, the words stay as approved: a dash stays on the line of
-// the word before it («Три сессии — 40 000 ₽»), and «от», «до», «около» stay
+// the word before it («Простая игра в браузере — от 30 000 ₽»), and «от», «до», «около» stay
 // with the figure after them («от 140 000 ₽»).
 const bind = (t: string) => t.replace(/ ([—–]) /g, '\u00a0$1 ').replace(/(^|\s)(от|до|около) (?=\d)/giu, '$1$2\u00a0');
 ---
@@ -53,7 +55,9 @@ const bind = (t: string) => t.replace(/ ([—–]) /g, '\u00a0$1 ').replace(/(^|
 {
   price ? (
     <div class:list={['price', `price--${size}`, className]}>
-      <p class="price__main">{bind(price.main)}</p>
+      <p class="price__main">
+        <span class="u-circ">{bind(price.main)}</span>
+      </p>
       {withNote && price.note && <p class="price__covers">{bind(price.note)}</p>}
       {full && price.more.length > 0 && (
         <ul class="price__more" role="list">
@@ -66,7 +70,7 @@ const bind = (t: string) => t.replace(/ ([—–]) /g, '\u00a0$1 ').replace(/(^|
   ) : split ? (
     <div class:list={['price', `price--${size}`, className]}>
       <p class="price__text">
-        <span class="price__main">{split.main}</span> {split.rest && <span class="price__covers">{bind(split.rest)}</span>}
+        <span class="price__main"><span class="u-circ">{split.main}</span></span> {split.rest && <span class="price__covers">{bind(split.rest)}</span>}
       </p>
     </div>
   ) : (

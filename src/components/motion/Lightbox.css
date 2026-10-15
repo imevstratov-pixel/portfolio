@@ -1,0 +1,106 @@
+/* Lightbox (src/scripts/lightbox-ui.ts, a native modal <dialog>). Paper and
+   ink only; the image keeps the hairline frame of the thumbnails. Global
+   (the dialog is made by the script), bundled into the CSS of the pages that
+   render Lightbox.astro. */
+
+/* a thumbnail that opens in the lightbox */
+[data-lightbox] {
+  cursor: zoom-in;
+}
+
+/* the dialog covers the screen; the paper is its own layer (.lightbox__veil),
+   so a swipe can thin it */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  overflow: clip;
+  outline: none;
+}
+
+.lightbox::backdrop {
+  background: transparent;
+}
+
+.lightbox__veil {
+  position: absolute;
+  inset: 0;
+  background: var(--paper);
+}
+
+/* pinch-zoom stays the browser's on the image (a one-finger vertical drag is
+   the swipe); zoomed in, one finger pans too */
+.lightbox__img {
+  position: fixed;
+  max-width: none;
+  transform-origin: 0 0;
+  object-fit: contain;
+  outline: var(--hair);
+  outline-offset: -1px;
+  cursor: zoom-out;
+  touch-action: pinch-zoom;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.lightbox[data-zoomed] .lightbox__img {
+  touch-action: auto;
+  cursor: auto;
+}
+
+.lightbox__caption {
+  position: fixed;
+  left: 50%;
+  translate: -50% 0;
+  width: min(44ch, calc(100vw - 2 * var(--gutter)));
+  font-family: var(--font-mono);
+  font-size: var(--fs-small);
+  line-height: var(--lh-small);
+  color: var(--ink);
+  cursor: zoom-out;
+}
+
+/* top right: «Открыть файл» (a framed link, .btn: an action, its two lines)
+   and «Закрыть» (the small framed button of the site, no lines: it closes) */
+.lightbox__bar {
+  position: fixed;
+  top: 0.625rem;
+  right: var(--gutter);
+  display: flex;
+  gap: var(--s1);
+}
+
+.lightbox__bar > .btn {
+  min-height: 2.75rem;
+}
+
+.lightbox__close {
+  min-height: 2.75rem;
+  padding: 0.35rem 0.9rem;
+  border: 1px solid var(--ink);
+  border-radius: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 0.9375rem;
+  font-weight: var(--bold);
+  line-height: 1.2;
+}
+
+.lightbox__close:hover {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+/* closing: nothing to hit while the image goes back */
+.lightbox[data-closing] {
+  pointer-events: none;
+}

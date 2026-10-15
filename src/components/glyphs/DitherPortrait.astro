@@ -1,0 +1,130 @@
+---
+// The photo in one bit (ink or paper per pixel), dithered like the
+// glagstone reference, with a lens that changes the pattern under the cursor
+// or finger (decision 3 of 15.10, prototype C on /lab/; the home «Обо мне»
+// since decision 6 of 15.10, components/home/About.astro). Static with reduced
+// motion; under forced colours the (greyscale) photo.
+//
+//   <DitherPortrait src={photo.src} alt={photo.alt} width="30rem" />
+//   <DitherPortrait src={photo.src} alt={photo.alt} pixel={3} algo="bayer" lens="grey" />
+//
+// Fixed aspect ratio before any script runs (no layout shift); the <img> is
+// the pixel source and the fallback without JS, the box is role="img".
+// Script: src/scripts/glyphs/dither-portrait.ts (bundled only where used).
+import { url } from '../../lib/url';
+import { imageSize } from '../../lib/media';
+
+interface Props {
+  /** Content path of the photo. Same origin only (the canvas reads its pixels). */
+  src: string;
+  alt: string;
+  /** Max width: a CSS length or px. Default: the column's width. */
+  width?: string | number;
+  /** "ink" (default) or "inverse" (a negative: paper lines on ink). */
+  mode?: 'ink' | 'inverse';
+  /** Dither pixel in CSS px, snapped to whole device pixels (default 2). */
+  pixel?: number;
+  /** "atkinson" error diffusion (default) or "bayer" ordered 8×8. */
+  algo?: 'atkinson' | 'bayer';
+  /** What the lens shows: a 3× finer dither (default), 2× coarser, the other algorithm, the greyscale photo, or nothing. */
+  lens?: 'fine' | 'coarse' | 'swap' | 'grey' | 'off';
+  /** Tone gamma (default 1.15: a little darker). */
+  gamma?: number;
+  /** Part of the photo: [x, y, w, h] as fractions. */
+  crop?: [number, number, number, number];
+  loading?: 'lazy' | 'eager';
+  id?: string;
+  class?: string;
+}
+
+const {
+  src,
+  alt,
+  width,
+  mode = 'ink',
+  pixel = 2,
+  algo = 'atkinson',
+  lens = 'fine',
+  gamma,
+  crop,
+  loading = 'lazy',
+  id,
+  class: className,
+} = Astro.props;
+
+const size = imageSize(src);
+if (!size) throw new Error(`DitherPortrait: no image size for ${src} (a file in public/ is required)`);
+const [cx, cy, cw, ch] = crop ?? [0, 0, 1, 1];
+const ratio = `${Math.round(size.width * cw)} / ${Math.round(size.height * ch)}`;
+const w = typeof width === 'number' ? `${width}px` : width;
+const style = [`--dither-ratio: ${ratio}`, w && `--dither-w: ${w}`, crop && `--dither-pos: ${(cx + cw / 2) * 100}% ${(cy + ch / 2) * 100}%`]
+  .filter(Boolean)
+  .join('; ');
+---
+
+<div
+  class:list={['dither-portrait', className]}
+  id={id}
+  role="img"
+  aria-label={alt}
+  style={style}
+  data-dither-portrait
+  data-mode={mode}
+  data-pixel={pixel}
+  data-algo={algo}
+  data-lens={lens}
+  data-gamma={gamma}
+  data-crop={crop?.join(' ')}
+>
+  <img src={url(src)} alt="" width={size.width} height={size.height} loading={loading} decoding="async" />
+  <canvas aria-hidden="true"></canvas>
+</div>
+
+<style>
+  .dither-portrait {
+    position: relative;
+    width: min(100%, var(--dither-w, 100%));
+    aspect-ratio: var(--dither-ratio);
+    background: var(--paper);
+    overflow: clip;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .dither-portrait[data-mode='inverse'] {
+    background: var(--ink);
+  }
+  .dither-portrait img,
+  .dither-portrait canvas {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+  .dither-portrait img {
+    object-fit: cover;
+    object-position: var(--dither-pos, 50% 50%);
+    filter: grayscale(1);
+  }
+  .dither-portrait canvas {
+    pointer-events: none;
+  }
+  @media (scripting: enabled) {
+    .dither-portrait:not([data-state='failed']) img {
+      opacity: 0;
+    }
+  }
+  /* forced colours: the canvas would keep the tokens' ink and paper; the
+     photo shows instead (the script draws nothing) */
+  @media (forced-colors: active) {
+    .dither-portrait canvas {
+      display: none;
+    }
+    .dither-portrait:not([data-state='failed']) img {
+      opacity: 1;
+    }
+  }
+</style>
+
+<script>
+  import '../../scripts/glyphs/dither-portrait.ts';
+</script>
