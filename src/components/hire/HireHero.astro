@@ -5,7 +5,7 @@
 // name on phones). Under the text the two lead paragraphs, then «Обсудить
 // роль» in Telegram and the email as a framed button, then the PDF résumés
 // (the same pair and links as in the contact block at the end).
-import Media from '../Media.astro';
+import SelfPortrait from '../glyphs/SelfPortrait.astro';
 import TelegramEmailButtons from '../TelegramEmailButtons.astro';
 import Resumes from '../Resumes.astro';
 import { visible, type Block } from '../../lib/content';
@@ -50,7 +50,7 @@ const lead = visible<string>(b.lead).filter(Boolean);
     {
       b.portrait && (
         <div class="hh__portrait col-4 lg-col-3 lg-start-10 m-col-2">
-          <Media src={b.portrait} alt={b.portraitAlt} ratio="1 / 1" loading="eager" />
+          <SelfPortrait alt={b.portraitAlt} loading="eager" />
         </div>
       )
     }

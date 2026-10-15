@@ -15,6 +15,7 @@
 // with «Мои продукты», aligned with the text column.
 import Section from '../Section.astro';
 import DitherPortrait from '../glyphs/DitherPortrait.astro';
+import SelfPortrait from '../glyphs/SelfPortrait.astro';
 import { isHidden, visible, type Block } from '../../lib/content';
 import { url } from '../../lib/url';
 
@@ -44,7 +45,7 @@ const picture: Picture | null =
     {
       picture && (
         <div class="about__portrait col-4 m-col-2">
-          <DitherPortrait src={picture.src} alt={picture.alt} crop={picture.crop} algo="bayer" pixel={2} lens="fine" />
+          {ONE_BIT === 'photo' && photo ? <SelfPortrait alt={picture.alt} /> : <DitherPortrait src={picture.src} alt={picture.alt} crop={picture.crop} algo="bayer" pixel={2} lens="fine" />}
         </div>
       )
     }

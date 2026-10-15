@@ -1,9 +1,9 @@
 ---
-// «Кто я» on /guide/ (block type "about"): portrait on the left, the text
+// «Кто я» on /guide/ (block type "about"): the one-bit portrait (SelfPortrait) on the left, the text
 // lines and the «Чем ещё занимаюсь» link on the right. Phones: a small
 // square portrait (2 of 4 columns) above the text.
 import Section from '../Section.astro';
-import Media from '../Media.astro';
+import SelfPortrait from '../glyphs/SelfPortrait.astro';
 import type { Block } from '../../lib/content';
 import { url } from '../../lib/url';
 
@@ -20,7 +20,7 @@ const text: string[] = block.text ?? [];
     {
       block.portrait && (
         <div class="about__portrait m-col-2 col-4 lg-col-3">
-          <Media src={block.portrait} alt={block.portraitAlt} ratio="1 / 1" />
+          <SelfPortrait alt={block.portraitAlt} />
         </div>
       )
     }

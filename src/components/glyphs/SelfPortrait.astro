@@ -1,0 +1,24 @@
+---
+// Daniil's portrait in one bit, the same everywhere it appears (home «Обо мне»,
+// /guide/ «Кто я», the /hire/ first screen): his selfie, cropped as «Селфи»
+// on /lab/, Bayer dither, 2 px, the finer pattern under the lens (decision 9
+// of 15.10). Change it here and every page follows.
+import DitherPortrait from './DitherPortrait.astro';
+
+interface Props {
+  alt?: string;
+  loading?: 'lazy' | 'eager';
+}
+
+const { alt = 'Даниил Евстратов', loading = 'lazy' } = Astro.props;
+---
+
+<DitherPortrait
+  src="/media/about/daniil.jpg"
+  alt={alt}
+  crop={[0.1, 0.12, 0.72, 0.62]}
+  algo="bayer"
+  pixel={2}
+  lens="fine"
+  loading={loading}
+/>
