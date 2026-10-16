@@ -1,0 +1,171 @@
+---
+// /lab/og/<card>/: the social preview cards (og:image), 1200×630, drawn with
+// the site's own glyph components; tools/og.mjs screenshots them into
+// public/assets/. Staging only, like /lab/ (getStaticPaths is empty when
+// PREVIEW=0), so the production build has no /lab/og/ and ships only the
+// rendered image. In BaseLayout without header and footer (`bare`): the same
+// fonts, styles and head as every page, so the checks need no exception and
+// the production CSS is not split by a page production never builds.
+//
+// Cards (16.10.2026): Daniil chose a, the site image (site/global.md
+// ogImage: assets/og-portrait.png). b and c stay here as the alternatives.
+//   a  the 1-bit portrait and the name;
+//   b  the first-screen phrase in glyphs, the name under it;
+//   c  the phrase in glyphs and the portrait.
+// Static: no shimmer, no lens, no halo dots (a picture, not a page).
+// Safe area: the text stays inside y 60–570 (VK crops a 1.91:1 image to
+// about 2.24:1 from the middle). Card a keeps the head inside the centre
+// square (x 285–915), which WhatsApp and Telegram «smaller media» show.
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import AsciiHeadline from '../../../components/glyphs/AsciiHeadline.astro';
+import DitherPortrait from '../../../components/glyphs/DitherPortrait.astro';
+import { getBlock, getPage } from '../../../lib/content';
+import { PREVIEW } from '../../../lib/env';
+
+export function getStaticPaths() {
+  return PREVIEW ? ['a', 'b', 'c'].map((card) => ({ params: { card } })) : [];
+}
+
+const { card } = Astro.params;
+const home = getPage('home');
+const hero = getBlock(home, 'hero');
+const about = getBlock(home, 'about');
+const name: string = hero.name;
+// the first sentence of the hero role, without its full stop
+const role = String(hero.role ?? '').split(/(?<=\.)\s+/)[0].replace(/\.$/, '');
+// a one- or two-letter word keeps the word after it on its line (as in Hero.astro)
+const headline = String(hero.headline ?? '').replace(/(?<![А-Яа-яЁёA-Za-z0-9])([А-Яа-яЁё]{1,2}) /g, '$1\u00a0');
+const photo = { src: about.photo.src as string, alt: name };
+// the selfie as on the site (SelfPortrait), a coarser pixel: the card is seen
+// scaled down to a third or less, where 2 px dots turn into grey.
+// The portrait column must be at least 630 px tall: at 586 px wide this crop
+// gives 631 px (a: 586 × 744/691); c's narrower crop gives 630 at 520 px.
+const portrait = { crop: [0.1, 0.12, 0.72, 0.62] as [number, number, number, number], algo: 'bayer' as const, lens: 'off' as const };
+// card c: the same face in a narrower column (520×630), the crop keeps its centre
+const narrow: [number, number, number, number] = [0.14, 0.12, 0.64, 0.62];
+---
+
+<BaseLayout title={`Превью для соцсетей: ${card}`} noindex bare>
+  <div class:list={['og', `og--${card}`]} data-og-card={card}>
+      {
+        card === 'a' && (
+          <>
+            <div class="og__portrait">
+              <DitherPortrait src={photo.src} alt={photo.alt} {...portrait} pixel={4} loading="eager" width="100%" />
+            </div>
+            <div class="og__text">
+              <p class="og__name">{name}</p>
+              <p class="og__role">{role}</p>
+              <p class="og__meta">Консультации, AI-агенты, курсы под&nbsp;ключ</p>
+            </div>
+          </>
+        )
+      }
+      {
+        card === 'b' && (
+          <>
+            <AsciiHeadline text={headline} size="104px" width="1090px" density={19} halo={false} />
+            <p class="og__meta">
+              {name}, {role.toLowerCase()}
+            </p>
+          </>
+        )
+      }
+      {
+        card === 'c' && (
+          <>
+            <div class="og__text">
+              <AsciiHeadline text={headline} size="66px" width="640px" density={15} halo={false} />
+              <p class="og__meta">{name}</p>
+            </div>
+            <div class="og__portrait">
+              <DitherPortrait src={photo.src} alt={photo.alt} {...portrait} crop={narrow} pixel={4} loading="eager" width="100%" />
+            </div>
+          </>
+        )
+      }
+  </div>
+</BaseLayout>
+
+<style>
+  /* the page is the card: nothing around it, no scrollbar (BaseLayout's body and main are outside this file's scope) */
+  :global(html),
+  :global(body) {
+    width: 1200px;
+    height: 630px;
+    min-height: 0;
+    overflow: clip;
+  }
+  .og {
+    position: relative;
+    width: 1200px;
+    height: 630px;
+    overflow: clip;
+    background: var(--paper);
+    color: var(--ink);
+  }
+  .og__name {
+    font-weight: var(--bold);
+    font-size: 88px;
+    line-height: 0.96;
+    letter-spacing: -0.032em;
+  }
+  .og__role {
+    font-size: 40px;
+    line-height: 1.12;
+    letter-spacing: -0.01em;
+  }
+  .og__meta {
+    font-family: var(--font-mono);
+    font-size: 24px;
+    line-height: 1.3;
+  }
+
+  /* a: the portrait bleeds off the left edge, full height; the text on the right */
+  .og--a {
+    display: grid;
+    grid-template-columns: 586px 1fr;
+  }
+  .og--a .og__portrait {
+    height: 630px;
+    overflow: clip;
+  }
+  .og--a .og__text {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 28px;
+    padding: 60px 56px;
+  }
+  .og--a .og__meta {
+    margin-top: 28px;
+  }
+
+  /* b: the phrase across the card, the name below. Glyph rows of 5.5 px
+     (density 19 at 104 px): the hero's 7 px rows break big letters into
+     stripes at one device pixel per CSS pixel */
+  .og--b {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 36px;
+    padding: 60px 56px;
+  }
+
+  /* c: the phrase on the left, the portrait bleeding off the right edge */
+  .og--c {
+    display: grid;
+    grid-template-columns: 1fr 520px;
+  }
+  .og--c .og__text {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 32px;
+    padding: 60px 40px 60px 56px;
+  }
+  .og--c .og__portrait {
+    height: 630px;
+    overflow: clip;
+  }
+</style>

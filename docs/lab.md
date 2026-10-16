@@ -217,3 +217,37 @@ Chromium): 299 ms at 375 and 255 ms at 1280, against 377 and 213 before
 (before the slicing above B's build alone was one 250–350 ms task). C
 builds when it comes near: three tasks of about 70 ms at 1280 with 4×, none
 over 50 ms at 375. Lens frames: see «Frame cost».
+
+## Social preview cards: /lab/og/<card>/ (16.10.2026)
+
+`src/pages/lab/og/[card].astro`, preview builds only (`getStaticPaths` is
+empty with `PREVIEW=0`), noindex, linked from nowhere. Each card is one
+1200×630 box in `BaseLayout bare` (no header and footer; the same fonts,
+styles and head as every page, so prodcheck and leakcheck need no exception
+and production CSS is not split by a page production never builds), drawn
+with the glyph components and static: no shimmer, no lens, no halo dots.
+
+- **a** (the site image, Daniil's choice of 16.10): the selfie in one bit on
+  the left, full height (586 px column; the crop of SelfPortrait gives 631 px
+  there), Bayer, 4 px dots instead of the site's 2 (the card is seen at a
+  third of its size or less, where 2 px dots turn grey); name 88 px bold,
+  the first sentence of the hero role at 40 px, «Консультации, AI-агенты,
+  курсы под ключ» in mono.
+- **b**: the hero phrase in glyphs across the card (104 px, density 19:
+  the hero's density 15 gives 7 px glyph rows, which break big letters into
+  stripes at one device pixel), the name and role in mono below.
+- **c**: the phrase in glyphs (66 px) on the left, the portrait on the right
+  (520 px column, a narrower crop around the same centre).
+
+Safe area: text inside y 60–570 (VK crops 1.91:1 to about 2.24:1 from the
+middle, X to 2:1). Card a keeps the head inside the centre square
+x 285–915 (WhatsApp and Telegram «smaller media» show a square from the
+middle); b and c do not. The phrase cards have the hero's non-breaking space
+after one- and two-letter words.
+
+`tools/og.mjs` renders them (docs/components.md, §2). The site image is
+`public/assets/og-portrait.png`, named in `site/global.md` with its alt
+text (`ogImageAlt`); `assets/og.jpg` stays for the old `en/` page. After a
+release that changes it, refresh the cached previews by hand: Telegram,
+send the page URL to @WebpageBot; VK, `pages.clearCache` with the URL on
+dev.vk.com; Facebook, the Sharing Debugger.

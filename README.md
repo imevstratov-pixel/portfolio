@@ -20,6 +20,7 @@ npm run verify     # build + link check + internal-notes and deploy-mode check
 BASE=/portfolio/ PREVIEW=0 npm run verify   # the same for the live site
 npm run shots -- --out shots/now   # screenshots at 375, 768, 1280
 node tools/build-guide-pdf.mjs <guide draft .md>   # by hand: the free guide PDF and its cover in public/free/
+node tools/og.mjs a --to public/assets/og-portrait.png   # by hand, after a preview build: the social preview image
 ```
 
 Content in `src/content` is a sanitized export and is not edited by hand.

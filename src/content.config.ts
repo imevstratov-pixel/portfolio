@@ -40,6 +40,7 @@ const pages = defineCollection({
       title: str,
       description: str,
       ogImage: optStr,
+      ogImageAlt: optStr,
       noindex: z.boolean().optional(),
     }),
     header: z.looseObject({}).optional(),
@@ -63,7 +64,7 @@ const telegramButton = z.looseObject({
 const site = defineCollection({
   loader: loader('site'),
   schema: z.looseObject({
-    site: z.looseObject({ name: str, lang: str, ogImage: str }),
+    site: z.looseObject({ name: str, lang: str, ogImage: str, ogImageAlt: optStr }),
     contacts: z.looseObject({
       telegram: z.looseObject({ handle: str, url: str, text: str }),
       email: str,

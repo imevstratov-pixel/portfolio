@@ -56,9 +56,11 @@ interface Props {
   current?: string;
   /** Where «Написать» points. Default: page.header.ctaTarget or "#contact". */
   ctaHref?: string;
+  /** No header and footer: a page that is a picture (the og:image cards of /lab/og/). */
+  bare?: boolean;
 }
 
-const { page, current } = Astro.props;
+const { page, current, bare = false } = Astro.props;
 const seo: Record<string, any> = page?.seo ?? {};
 const title: string = Astro.props.title ?? seo.title ?? site.site.name;
 const description: string | undefined = Astro.props.description ?? seo.description;
@@ -69,6 +71,9 @@ const ogPath = [Astro.props.ogImage, seo.ogImage, site.site.ogImage].find(
 );
 const ogSize = ogPath ? imageSize(ogPath) : null;
 const ogImage = ogPath ? absoluteUrl(ogPath, Astro.site) : undefined;
+// the alt text belongs to the image: the page's own (seo.ogImageAlt) only with the page's own image
+const ogAlt: string | undefined =
+  ogPath && ogPath === seo.ogImage ? seo.ogImageAlt : ogPath && ogPath === site.site.ogImage ? site.site.ogImageAlt : undefined;
 // no canonical for pages that must never be indexed (404)
 const canonical = seo.noindex === true ? undefined : new URL(Astro.url.pathname, Astro.site).href;
 const isHome = Astro.url.pathname === url('/');
@@ -115,7 +120,9 @@ const header: HeaderData = Astro.props.header ?? {
     {ogImage && <meta property="og:image" content={ogImage} />}
     {ogSize && <meta property="og:image:width" content={String(ogSize.width)} />}
     {ogSize && <meta property="og:image:height" content={String(ogSize.height)} />}
+    {ogImage && ogAlt && <meta property="og:image:alt" content={ogAlt} />}
     <meta name="twitter:card" content="summary_large_image" />
+    {ogImage && ogAlt && <meta name="twitter:image:alt" content={ogAlt} />}
 
     {
       !PREVIEW && (
@@ -137,11 +144,11 @@ const header: HeaderData = Astro.props.header ?? {
     <slot name="head" />
   </head>
   <body>
-    <Header header={header} current={current} />
+    {!bare && <Header header={header} current={current} />}
     <main id="main">
       <slot />
     </main>
-    <Footer current={current} />
+    {!bare && <Footer current={current} />}
     <script>
       import '../scripts/telegram.ts';
     </script>

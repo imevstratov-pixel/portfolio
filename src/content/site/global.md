@@ -2,7 +2,8 @@
 site:
   name: Даниил Евстратов
   lang: ru
-  ogImage: assets/og.jpg
+  ogImage: assets/og-portrait.png
+  ogImageAlt: 'Однобитный портрет Даниила Евстратова и подпись: Даниил Евстратов, методолог образовательных продуктов. Консультации, AI-агенты, курсы под ключ'
 contacts:
   telegram:
     handle: evstratovdanil

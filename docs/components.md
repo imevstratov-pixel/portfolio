@@ -117,6 +117,7 @@ section 7, docs/lab.md).
 | `npm run verify` | build, check-links, leakcheck |
 | `npm run content` | Re-run the content export (needs `SITE_CONTENT`) |
 | `node tools/build-guide-pdf.mjs <guide draft .md>` | Run by hand, not part of the build. Builds the free guide «Как разработать онлайн-курс» for /free/: `public/free/kak-razrabotat-onlajn-kurs.pdf` (A4, black and white, Inter Tight and IBM Plex Mono embedded, colours and font stacks from `tokens.css`; cover, contents with page numbers from a second pass, page numbers in the footer, bookmarks, clickable full-URL links, tables kept on one page, a line ending in «:» or «.» kept with the list or table it introduces, bold labels such as «**Логика программы:**» included, and no list leaving its last item alone at the top of a page; the step counts on the cover are counted from the draft: the numbered h3 steps of «Предпродакшн», the first numbered list of «Продакшн» and of «Постпродакшн», and the build stops unless they add up to `TOTAL_STEPS` (21, the «21 шаг» of pages home, services and free)) and `public/free/kak-razrabotat-onlajn-kurs-cover.jpg` (page 1). Reads only the text before «# Для Даниила» of the draft (kept outside the repository), fails on notes or placeholders left, puts the live address for «[адрес сайта]» and UTM tags (`utm_source=guide-pdf`) on links to the site. Prints pages, size, linked addresses and fonts. Needs `/opt/pw-browsers/chromium` (`CHROMIUM_PATH`) and poppler-utils (`pdfinfo`, `pdffonts`, `pdftoppm`). Commit both files; then check «PDF, N страниц» in `pages/free.md` (the build fails when it differs from the file) |
+| `node tools/og.mjs [card ...] [--out dir \| --to file.png]` | Run by hand, not part of the build. Renders the social preview cards of the preview-only page /lab/og/<card>/ (`src/pages/lab/og/[card].astro`) to 1200×630 PNG: serves a preview `dist/` (`DIST=<dir>` for an `--outDir` build) under `BASE`, Chromium from `/opt/pw-browsers` at one device pixel per CSS pixel with greyscale text antialiasing (`--disable-lcd-text`: no coloured pixels on letter edges), waits until every glyph canvas reports `data-state="ready"`, fails on `failed`, a timeout or a missing card. Default: cards a, b, c into `shots/og/`. The site image: `npm run build` (preview), `node tools/og.mjs a --to public/assets/og-portrait.png`, then `npm run verify` in both modes and commit the PNG with the change |
 
 Environment: `BASE` (default `/portfolio-v2/`), `SITE` (default
 `https://imevstratov-pixel.github.io`), `PREVIEW` (on unless `0`). In preview
@@ -308,8 +309,11 @@ Props: `page` (from `getPage`; gives title, description, OG image and an
 optional `header` override), `title`, `description`, `ogImage`, `noindex`
 (overrides), `header` (full override), `current` (site path for
 `aria-current` in header and footer), `ctaHref` (target of «Написать»;
-default `page.header.ctaTarget` or `#contact`). Renders `<html lang="ru">`,
+default `page.header.ctaTarget` or `#contact`), `bare` (no header and footer:
+the og:image cards of /lab/og/). Renders `<html lang="ru">`,
 head (title, description, canonical, OG with absolute image URL and size,
+`og:image:alt` and `twitter:image:alt` from `site.ogImageAlt`, or from
+`seo.ogImageAlt` when the page has its own image,
 robots in preview and for `seo.noindex`, fonts, Metrika in production; on
 the home page first of all the old-anchor script `LegacyAnchors`),
 `Header`, `<main id="main">`, `Footer`, the client script.
@@ -322,7 +326,8 @@ on load: 0 at 360 to 1440.
 /hire/ passes its page and gets its own header automatically (`pages/hire.md
 header`). The 404 page passes `ctaHref="/#contact"`. If `seo.ogImage` does not
 exist in `public/` (guide's `assets/og-guide.jpg` today), the site image is
-used.
+used: `assets/og-portrait.png` (card a of /lab/og/, rendered by `tools/og.mjs`).
+No og:image at all when neither file exists, and prodcheck fails then.
 
 ### Header, Footer
 
@@ -1056,7 +1061,7 @@ Every page: `seo { title, description, ogImage?, noindex? }`, `blocks[]`
 
 ### 5.2 site (`site`)
 
-`site { name, lang, ogImage }`, `contacts { telegram { handle, url, text }, email }`,
+`site { name, lang, ogImage, ogImageAlt? }`, `contacts { telegram { handle, url, text }, email }`,
 `header { name, links[], cta }` (links: Услуги, Кейсы, Мои продукты, Бесплатно), `footer { contacts { telegramLabel, telegramText, emailLabel, emailText }, links[], legend?, madeWith, copyright }` (`legend`: the line «Подчёркнуто как в школе: …» with `[слова|член]` tokens, `Parsed inline`),
 `telegram { plainButton, copiedLabel, copiedMs, singleHint, gridHint, buttons[{ codeword, caption, template, service? }], productTemplate }`,
 `email { line, short, mailto { subject, body }, defaultSubject }`,
@@ -1373,7 +1378,10 @@ layout or component includes it.
 `hire/`, `guide/` (`index.astro` each), `cases/[slug].astro` (one page per published
 case, /cases/<slug>/, slug = file name: `CaseFull` and `ContactShort`),
 `404.astro`, `work.html.ts` (redirect to `/services/#formats` with meta
-refresh, canonical and a link), and `lab/[...lab].astro` (/lab/, preview
+refresh, canonical and a link), `lab/og/[card].astro` (/lab/og/a|b|c/, preview
+builds only, noindex, in `BaseLayout bare`: the 1200×630 social preview
+cards that `tools/og.mjs` renders into `public/assets/`, see docs/lab.md),
+and `lab/[...lab].astro` (/lab/, preview
 builds only, linked from nowhere, noindex: the «cherry» prototypes of
 decision 3 of 15.10, B and C of them on the home page since decision 6, see docs/lab.md; `getStaticPaths` returns nothing with
 `PREVIEW=0`, `tools/lab-prune.mjs` drops its unreferenced JS from the
@@ -1388,6 +1396,8 @@ a frame without the burned-in subtitles that named the person in full):
 `assets/`
 (reels, posters, case images, testimonial videos and posters, approach
 images, portrait, og.jpg, both PDF résumés), `resume/`, `demo/`
+(og.jpg, the old drawn conveyor, is now only the preview image of the old
+`en/` page; the site's own is `assets/og-portrait.png`, rendered, see §2)
 (`/demo/ai-competencies/`, `/demo/chatgpt-praktikum/`, `/demo/wishlist/`),
 `en/` with the root `styles.css`, `script.js`, `game.js` it loads, and
 `.nojekyll`. Product screenshots: `/products/top-pick.jpg`,
