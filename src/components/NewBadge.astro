@@ -1,0 +1,75 @@
+---
+// «new»: a sticker on the top-left corner of a new free material or a new
+// service (Daniil's request of 18.10: the starburst of the sites of the
+// 2000s, drawn neatly). A paper star with fourteen slightly uneven rays in an
+// ink outline, the word in bold, the whole sticker turned a little to the
+// left. Set by `isNew: true` on a pages/free.md item or a service.
+//
+// The parent places it (position: absolute, top and left) and may set
+// --nb-size. Screen readers get one word, «Новинка», before the title; the
+// drawing and the English word are for the eye.
+//
+//   <NewBadge class="free__new" />
+interface Props {
+  class?: string;
+  /** what a screen reader says */
+  label?: string;
+}
+
+const { class: cls, label = 'Новинка' } = Astro.props;
+// generated once (14 rays, radii 49 and 35 of 100, a fixed seed), then fixed
+const STAR =
+  'M49.3 -0.4L57.6 14.3L71.4 6.8L71.1 23.6L89.2 17.1L79.9 34.7L98.6 38.9L86.4 49.3L97.1 60.7L79.6 65L86.8 81L71.7 78L70.9 94.1L56.8 84.1L50 97.4L42.4 85.4L29.7 94L28.2 75.9L12 78.9L19.3 64.9L1.8 59.9L14.6 50.2L4 40.6L19.5 36.2L13.1 19.6L27.7 23.3L28.3 7L41.1 15.4Z';
+---
+
+<span class:list={['nb', cls]} role="img" aria-label={label}>
+  <svg viewBox="0 0 100 100" aria-hidden="true" focusable="false"><path d={STAR}></path></svg>
+  <span class="nb__t" aria-hidden="true">new</span>
+</span>
+
+<style>
+  .nb {
+    --nb-size: 4.75rem;
+    width: var(--nb-size);
+    height: var(--nb-size);
+    display: grid;
+    place-items: center;
+    transform: rotate(-14deg);
+    pointer-events: none;
+  }
+
+  .nb svg {
+    grid-area: 1 / 1;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  .nb path {
+    fill: var(--paper);
+    stroke: var(--ink);
+    stroke-width: 2;
+    stroke-linejoin: round;
+  }
+
+  .nb__t {
+    grid-area: 1 / 1;
+    font-family: var(--font-sans);
+    font-weight: var(--bold);
+    font-size: calc(var(--nb-size) * 0.28);
+    line-height: 1;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+
+  @media (forced-colors: active) {
+    .nb path {
+      fill: Canvas;
+      stroke: CanvasText;
+    }
+
+    .nb__t {
+      color: CanvasText;
+    }
+  }
+</style>

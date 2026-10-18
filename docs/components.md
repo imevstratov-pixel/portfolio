@@ -116,7 +116,7 @@ section 7, docs/lab.md).
 | `npm run shots -- --out shots/x / /services/` | Full-page screenshots at 375, 768, 1280 (`--widths 360,375` to change), reports horizontal overflow. Without routes: every page, the built case pages too. Uses `/opt/pw-browsers/chromium` (override with `CHROMIUM_PATH`) and its own static server under the base path |
 | `npm run verify` | build, check-links, leakcheck |
 | `npm run content` | Re-run the content export (needs `SITE_CONTENT`) |
-| `node tools/build-guide-pdf.mjs <guide draft .md>` | Run by hand, not part of the build. Builds the free guide «Как разработать онлайн-курс» for /free/: `public/free/kak-razrabotat-onlajn-kurs.pdf` (A4, black and white, Inter Tight and IBM Plex Mono embedded, colours and font stacks from `tokens.css`; cover, contents with page numbers from a second pass, page numbers in the footer, bookmarks, clickable full-URL links, tables kept on one page, a line ending in «:» or «.» kept with the list or table it introduces, bold labels such as «**Логика программы:**» included, and no list leaving its last item alone at the top of a page; the step counts on the cover are counted from the draft: the numbered h3 steps of «Предпродакшн», the first numbered list of «Продакшн» and of «Постпродакшн», and the build stops unless they add up to `TOTAL_STEPS` (21, the «21 шаг» of pages home, services and free)) and `public/free/kak-razrabotat-onlajn-kurs-cover.jpg` (page 1). Reads only the text before «# Для Даниила» of the draft (kept outside the repository), fails on notes or placeholders left, puts the live address for «[адрес сайта]» and UTM tags (`utm_source=guide-pdf`) on links to the site. Prints pages, size, linked addresses and fonts. Needs `/opt/pw-browsers/chromium` (`CHROMIUM_PATH`) and poppler-utils (`pdfinfo`, `pdffonts`, `pdftoppm`). Commit both files; then check «PDF, N страниц» in `pages/free.md` (the build fails when it differs from the file) |
+| `node tools/build-guide-pdf.mjs [course\|ai] <guide draft .md>` | Run by hand, not part of the build. One engine (`tools/guide-pdf/engine.mjs`: Markdown to A4 PDF in the site's type system, fonts embedded, contents with page numbers from a second pass, page numbers in the footer, bookmarks, clickable full-URL links with UTM tags, tables kept on one page, cover JPEG of page 1, PDF Info) and one config per guide (`tools/guide-pdf/<guide>.mjs`: cover, checks, own blocks, CSS). Without a guide name it builds `course`, as before. **`ai`** — «AI строит быстро. Как сделать, чтобы он строил то, что нужно» (`public/free/ai-stroit-bystro.pdf` and `-cover.jpg`, UTM `utm_source=ai-guide-pdf`): the cover shows the numbers of techniques, errors and templates counted from the draft, and the build stops when «Что внутри» promises other numbers (techniques, errors, cases, templates, exercises); `**Label.**` paragraphs (Ситуация, Как делаю, Симптом, Задача…) become two-column rows with the label in mono; `#### N.` techniques and «Ошибка / Шаблон / Принцип / Упражнение N.» headings get the number or the tag in mono; ```` ```scheme ```` blocks (id, тип, заголовок, данные, подпись) become black-and-white HTML/CSS figures — плитки, столбики (value at the tip, the longest bar at 70% of the track, a range hatched), цикл (six steps as a loop), лестница, путь (a row up to four steps, a column for more), таблица — and a figure drops its title when it repeats the heading above; ```` ```text ```` blocks (templates) are framed mono boxes; arrows → ← ↑ ↓ ↔ are inline SVG (not in the site's font subsets). New page only before chapters 1, 4, 8 and «Что почитать». **`course`** — Run by hand, not part of the build. Builds the free guide «Как разработать онлайн-курс» for /free/: `public/free/kak-razrabotat-onlajn-kurs.pdf` (A4, black and white, Inter Tight and IBM Plex Mono embedded, colours and font stacks from `tokens.css`; cover, contents with page numbers from a second pass, page numbers in the footer, bookmarks, clickable full-URL links, tables kept on one page, a line ending in «:» or «.» kept with the list or table it introduces, bold labels such as «**Логика программы:**» included, and no list leaving its last item alone at the top of a page; the step counts on the cover are counted from the draft: the numbered h3 steps of «Предпродакшн», the first numbered list of «Продакшн» and of «Постпродакшн», and the build stops unless they add up to `TOTAL_STEPS` (21, the «21 шаг» of pages home, services and free)) and `public/free/kak-razrabotat-onlajn-kurs-cover.jpg` (page 1). Reads only the text before «# Для Даниила» of the draft (kept outside the repository), fails on notes or placeholders left, puts the live address for «[адрес сайта]» and UTM tags (`utm_source=guide-pdf`) on links to the site. Prints pages, size, linked addresses and fonts. Needs `/opt/pw-browsers/chromium` (`CHROMIUM_PATH`) and poppler-utils (`pdfinfo`, `pdffonts`, `pdftoppm`). Commit both files; then check «PDF, N страниц» in `pages/free.md` (the build fails when it differs from the file) |
 | `node tools/og.mjs [card ...] [--out dir \| --to file.png]` | Run by hand, not part of the build. Renders the social preview cards of the preview-only page /lab/og/<card>/ (`src/pages/lab/og/[card].astro`) to 1200×630 PNG: serves a preview `dist/` (`DIST=<dir>` for an `--outDir` build) under `BASE`, Chromium from `/opt/pw-browsers` at one device pixel per CSS pixel with greyscale text antialiasing (`--disable-lcd-text`: no coloured pixels on letter edges), waits until every glyph canvas reports `data-state="ready"`, fails on `failed`, a timeout or a missing card. Default: cards a, b, c into `shots/og/`. The site image: `npm run build` (preview), `node tools/og.mjs a --to public/assets/og-portrait.png`, then `npm run verify` in both modes and commit the PNG with the change |
 
 Environment: `BASE` (default `/portfolio-v2/`), `SITE` (default
@@ -681,7 +681,9 @@ facts for `scheme: "ai-agents"` (full width), «Для кого», «Что по
 1–3, text in 4–12 (4–10 from 1080px). `short` (group variant `short`, the
 guide): the same card with the `more` link («Подробнее о тренажёре», /guide/)
 beside the verb button; its «Подробнее» opens only «Для кого» and «Что
-получите на руки» (as the renderer). Phones: one column.
+получите на руки» (as the renderer). Phones: one column. `isNew: true` on
+a service puts the «new» sticker (`NewBadge`) on the card's top line beside
+the number.
 `ServiceGroup` renders a group (heading, lead, note with links through
 `LinkedText servicesPage`, its cards),
 `ServicesIntro` the h1, lead and table of contents, `Formats` #formats (see
@@ -770,8 +772,28 @@ the mouse only (`tabindex="-1" aria-hidden="true"`). Then `discuss`
 «аудит курса» lead to their cards on /services/). The build fails when the
 file is missing or when «PDF, N страниц» in `format` differs from the PDF's
 page count. The items are a list (`ul.free-list`, `--s5` apart): a new
-material is one more item in the content. The page ends with `ContactShort`
-(block `contact`, type `contact-short`).
+material is one more item in the content. `isNew: true` on an item puts the
+«new» sticker (`NewBadge`) on the top-left corner of the cover. The page ends
+with `ContactShort` (block `contact`, type `contact-short`).
+
+### NewBadge (`components/NewBadge.astro`)
+
+```astro
+{item.isNew && <NewBadge class="free__new" />}   <!-- the parent places it: position absolute, top, left -->
+```
+
+The «new» sticker for a new free material or a new service (Daniil's request
+of 18.10: the starburst of the sites of the 2000s, drawn neatly): a paper
+star with fourteen slightly uneven rays in an ink outline (inline SVG, the
+path generated once and fixed), «new» in bold sans at 0.28 of the size, the
+whole turned −14°. `--nb-size` sets the size (4.75rem; the free item uses
+4rem on phones, where the sticker keeps inside the 16px page margin).
+`role="img"` with `aria-label` «Новинка» (prop `label`), so a screen reader
+hears one Russian word before the title; the drawing and the English word
+are hidden from it. No pointer events, no motion; forced colours draw it in
+Canvas and CanvasText. The flag is `isNew: true` on a `pages/free.md` item
+(`FreeItem`) or a service (`ServiceCard`); remove the line when the thing is
+no longer new.
 
 ### PriceBlock, ServiceTerms
 
@@ -1054,7 +1076,7 @@ Every page: `seo { title, description, ogImage?, noindex? }`, `blocks[]`
 
 **free** (/free/, decision 18)
 - `intro`: `heading` (h1, «Бесплатно»), `lead` (one line)
-- `items` (free-items): `items[{ id, anchor, kind, title, text, insideLabel, inside[], format, file, cover { src, alt }, downloadLabel, discuss { text, links[{ label, service }] } }]` (`FreeItem`; `format` «PDF, 15 страниц» is checked against the file; the field is `downloadLabel`, not `button`, because `button` strings are Telegram codewords in the validation)
+- `items` (free-items): `items[{ id, anchor, isNew?, kind, title, text, insideLabel, inside[], format, file, cover { src, alt }, downloadLabel, discuss { text, links[{ label, service }] } }]` (`FreeItem`; `format` «PDF, 15 страниц» is checked against the file; the field is `downloadLabel`, not `button`, because `button` strings are Telegram codewords in the validation)
 - `contact` (contact-short, anchor `contact`): `heading`, `email`, `workload` (`ContactShort`, with the global price line)
 
 **404**: `not-found`: `code`, `heading` (h1), `text`, `button { label, href }`, `links[{ label, href }]`
@@ -1078,7 +1100,8 @@ points), `forWhom[]`, `youGet[]`, `duration`, `durationNote?`,
 `steps[]`, `fromYou?`, `ai?`, `notIncluded[]`, `proofCases[]`,
 `proofNotes? { caseSlug: note }`, `proofLinks?[{ label, url, note?, case?, product? }]`,
 `proofProducts?[]`, `testimonials?[]`, `more? { label, url }`,
-`related? { text, service?, case? }`, `price? { main, note?, more?[] }`
+`related? { text, service?, case? }`, `isNew?` (the «new» sticker on the
+card), `price? { main, note?, more?[] }`
 (decision 16 of 14.10; all seven services have one now: `main` the figure or
 range, «15 000 ₽», «от 250 000 ₽», «70 000–100 000 ₽», `note` what it covers
 in one short line, `more` sub-prices or variants as «что — цена»; the spaces
@@ -1405,8 +1428,8 @@ images, portrait, og.jpg, both PDF résumés), `resume/`, `demo/`
 `assets/reels/loops/c1.mp4`, `assets/posters/c1.jpg`) is not copied: it is
 hidden until re-recorded and nothing links to it.
 
-Made for this site: `free/` holds the free materials of /free/,
-`kak-razrabotat-onlajn-kurs.pdf` and its cover
-`kak-razrabotat-onlajn-kurs-cover.jpg`, both written by
-`tools/build-guide-pdf.mjs` (section 2) and committed; the PDF is not built
-with the site.
+Made for this site: `free/` holds the free materials of /free/, two guides
+as PDF with their covers: `kak-razrabotat-onlajn-kurs.pdf` and
+`kak-razrabotat-onlajn-kurs-cover.jpg`, `ai-stroit-bystro.pdf` and
+`ai-stroit-bystro-cover.jpg`, all written by `tools/build-guide-pdf.mjs`
+(section 2) and committed; the PDFs are not built with the site.

@@ -187,6 +187,8 @@ const services = defineCollection({
     proofProducts: z.array(str).optional(),
     testimonials: z.array(str).optional(),
     more: z.looseObject({ label: str, url: str }).optional(),
+    // the «new» sticker on the card (NewBadge)
+    isNew: z.boolean().optional(),
     related: z.looseObject({ text: str, service: optStr, case: optStr }).optional(),
     // price block of the card (decision 16 of 14.10): the figure or range
     // («15 000 ₽», «от 250 000 ₽», «70 000–100 000 ₽»), what it covers in one

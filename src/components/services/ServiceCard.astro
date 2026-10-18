@@ -3,7 +3,8 @@
 // 14.10), ported from render_card() and render_service() in the texts
 // renderer.
 //
-// Card: number, title, the italic one-line summary; the three `highlights`,
+// Card: number (`isNew`: the «new» sticker beside it, NewBadge), title, the
+// italic one-line summary; the three `highlights`,
 // «Срок» and «Цена» (ServiceTerms: the duration, then the PriceBlock with the
 // figure in the title's size, regular, the note and the sub-prices, or the global line when the
 // service has no price), the verb button (`button`, e.g. «Заказать аудит
@@ -35,6 +36,7 @@ import Prose from '../Prose.astro';
 import Quote from '../Quote.astro';
 import TelegramAction from '../TelegramAction.astro';
 import AgentsScheme from '../scheme/AgentsScheme.astro';
+import NewBadge from '../NewBadge.astro';
 import {
   bodyHtml,
   caseHref,
@@ -111,6 +113,7 @@ const less = labels.less || 'Свернуть';
   <div class="svc__card">
     <header class="svc__head">
       <p class="label svc__num">{num}</p>
+      {d.isNew && <NewBadge class="svc__new" />}
       <h3 id={titleId} class="svc__title">{d.title}</h3>
       <p class="svc__summary">{d.summary}</p>
     </header>
@@ -263,6 +266,7 @@ const less = labels.less || 'Свернуть';
 
 <style>
   .svc {
+    position: relative;
     padding-top: var(--s2);
     border-top: var(--line);
   }
@@ -286,6 +290,14 @@ const less = labels.less || 'Свернуть';
 
   .svc__title {
     max-width: 18em;
+  }
+
+  /* `isNew`: the sticker on the top edge of the card, beside the number */
+  .svc :global(.svc__new) {
+    --nb-size: 4rem;
+    position: absolute;
+    top: -1.25rem;
+    left: 2.5rem;
   }
 
   /* the one-line description in italic (as the texts ask), base size under

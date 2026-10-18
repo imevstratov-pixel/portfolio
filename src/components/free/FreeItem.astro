@@ -12,10 +12,14 @@
 // The cover link is for the mouse only (tabindex="-1" aria-hidden="true"):
 // keyboard and screen-reader users get one download link, the button.
 //
+// `isNew: true` puts the «new» sticker (NewBadge) on the top-left corner of
+// the item, over the corner of the cover.
+//
 // Layout: an ink line on top. Phones: the cover at half the width, then the
 // text. From 720px 12 columns: the cover in 1-4, the text in 6-12; from
 // 1080px the cover in 1-3, the text in 5-11.
 import Media from '../Media.astro';
+import NewBadge from '../NewBadge.astro';
 import LinkedText from '../LinkedText.astro';
 import { url } from '../../lib/url';
 import { fileSize, formatSize, pdfPageCount, publicFileExists } from '../../lib/media';
@@ -34,6 +38,7 @@ export type FreeItemData = {
   cover?: { src: string; alt: string };
   downloadLabel: string;
   discuss?: { text: string; links?: TextLink[] };
+  isNew?: boolean;
 };
 
 interface Props {
@@ -64,6 +69,7 @@ const cover = item.cover?.src ? item.cover : undefined;
 ---
 
 <article id={id} class:list={['free', cover && 'free--cover']} aria-labelledby={`${id}-title`}>
+  {item.isNew && <NewBadge class="free__new" />}
   {
     cover && (
       <a class="free__cover" href={url(item.file)} download={fileName} tabindex="-1" aria-hidden="true" data-goal="download">
@@ -108,6 +114,7 @@ const cover = item.cover?.src ? item.cover : undefined;
 
 <style>
   .free {
+    position: relative;
     border-top: var(--line);
     padding-top: var(--s3);
     display: grid;
@@ -127,6 +134,16 @@ const cover = item.cover?.src ? item.cover : undefined;
   .free__cover :global(.media) {
     outline: var(--hair);
     outline-offset: -1px;
+  }
+
+  /* the sticker's centre near the corner of the cover; on phones it keeps
+     inside the 16px margin of the page */
+  .free :global(.free__new) {
+    --nb-size: 4rem;
+    position: absolute;
+    z-index: 1;
+    top: calc(var(--s3) - 1.25rem);
+    left: -0.625rem;
   }
 
   .free__body {
@@ -187,6 +204,12 @@ const cover = item.cover?.src ? item.cover : undefined;
 
     .free:not(.free--cover) .free__body {
       grid-column: 1 / span 9;
+    }
+
+    .free :global(.free__new) {
+      --nb-size: 4.75rem;
+      top: calc(var(--s3) - 1.75rem);
+      left: -1.75rem;
     }
   }
 
