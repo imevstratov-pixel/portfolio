@@ -2,7 +2,7 @@
 // Link checker over the built site.
 //
 //   npm run build && npm run check-links
-//   DIST=/tmp/x BASE=/portfolio/ npm run check-links   (a build made with --outDir)
+//   DIST=/tmp/x SITE=https://danilevstratov.ru BASE=/ npm run check-links   (a build made with --outDir)
 //
 // For every HTML file in dist/ (Astro pages and the copied legacy pages):
 // - every internal href / src / poster / srcset resolves to a file in dist/

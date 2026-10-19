@@ -3,7 +3,7 @@
 // differ exactly where they should.
 //
 //   BASE=/portfolio-v2/ PREVIEW=1 npm run build && npm run leakcheck   (leakcheck runs this)
-//   BASE=/portfolio/    PREVIEW=0 npm run build && npm run leakcheck
+//   SITE=https://danilevstratov.ru BASE=/ PREVIEW=0 npm run build && npm run leakcheck
 //   node tools/prodcheck.mjs [path/to/dist]                            (DIST env works too)
 //
 // Mode, base and site come from the same env as the build: PREVIEW (on unless

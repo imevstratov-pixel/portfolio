@@ -15,13 +15,17 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  # One code base, two repositories. The "Deploy target" step derives the
-  # rest from the repository this runs in:
-  #   BASE    = /<repository name>/ (the project path on github.io)
-  #   PREVIEW = 0 only in imevstratov-pixel/portfolio (the live site: Yandex
-  #             Metrika, indexing, sitemap.xml); 1 everywhere else, e.g.
-  #             imevstratov-pixel/portfolio-v2 (noindex, no analytics).
-  SITE: https://imevstratov-pixel.github.io
+  # One code base, two repositories. The address comes from the repository's
+  # own Pages settings (actions/configure-pages): with a custom domain saved
+  # there, SITE is https://<domain> and BASE is / (imevstratov-pixel/portfolio
+  # on danilevstratov.ru, decision 22 of 15.10); without one, SITE is
+  # https://imevstratov-pixel.github.io and BASE /<repository name>/. So a
+  # release never builds for a domain that is not set yet, and switching the
+  # domain on or off only needs a new run (Actions → Run workflow). The mode
+  # comes from the repository name: PREVIEW 0 only in
+  # imevstratov-pixel/portfolio (Yandex Metrika, indexing, sitemap.xml), 1
+  # everywhere else, e.g. imevstratov-pixel/portfolio-v2 (noindex, no
+  # analytics).
   ASTRO_TELEMETRY_DISABLED: '1'
 
 jobs:
@@ -33,9 +37,19 @@ jobs:
         with:
           node-version: 22
           cache: npm
+      - id: pages
+        uses: actions/configure-pages@v5
       - name: Deploy target
+        # host: the custom domain or imevstratov-pixel.github.io; base_path:
+        # '' with a custom domain, '/<repository name>' without. https is
+        # written here: the API reports http:// until «Enforce HTTPS» is on.
+        env:
+          PAGES_HOST: ${{ steps.pages.outputs.host }}
+          PAGES_BASE: ${{ steps.pages.outputs.base_path }}
         run: |
-          echo "BASE=/${GITHUB_REPOSITORY#*/}/" >> "$GITHUB_ENV"
+          test -n "$PAGES_HOST" || { echo "configure-pages gave no host"; exit 1; }
+          echo "SITE=https://$PAGES_HOST" >> "$GITHUB_ENV"
+          echo "BASE=$PAGES_BASE/" >> "$GITHUB_ENV"
           if [ "$GITHUB_REPOSITORY" = "imevstratov-pixel/portfolio" ]; then
             echo "PREVIEW=0" >> "$GITHUB_ENV"
           else

@@ -135,28 +135,29 @@ in the sitemap by itself.
 Test another base with `BASE=/x/ npm run build && BASE=/x/ npm run check-links`.
 
 Deploy (`.github/workflows/deploy.yml`): one code base, two repositories. The
-workflow sets `BASE=/<repository name>/` and `PREVIEW=0` only in
-`imevstratov-pixel/portfolio` (the live site
-https://imevstratov-pixel.github.io/portfolio/), `PREVIEW=1` everywhere else
-(the sandbox `imevstratov-pixel/portfolio-v2`). Both run build, check-links and
-leakcheck (with prodcheck) before the upload. Check both locally without
+address comes from each repository's Pages settings (actions/configure-pages):
+with a custom domain saved, `SITE=https://<domain>` and `BASE=/` (the live
+`imevstratov-pixel/portfolio` on danilevstratov.ru, README «The domain
+danilevstratov.ru»), without one `SITE=https://imevstratov-pixel.github.io` and
+`BASE=/<repository name>/` (the sandbox `imevstratov-pixel/portfolio-v2`, and
+the live site before its domain is saved). `PREVIEW=0` only in
+`imevstratov-pixel/portfolio`, `PREVIEW=1` everywhere else. Both run build, check-links and leakcheck
+(with prodcheck) before the upload. Check the live build locally without
 touching `dist/`:
 
 ```sh
-BASE=/portfolio/ PREVIEW=0 npx astro build --outDir /tmp/prod
-DIST=/tmp/prod BASE=/portfolio/ PREVIEW=0 npm run check-links
-BASE=/portfolio/ PREVIEW=0 npm run leakcheck -- /tmp/prod
+SITE=https://danilevstratov.ru BASE=/ PREVIEW=0 npx astro build --outDir /tmp/prod
+DIST=/tmp/prod SITE=https://danilevstratov.ru BASE=/ PREVIEW=0 npm run check-links
+SITE=https://danilevstratov.ru BASE=/ PREVIEW=0 npm run leakcheck -- /tmp/prod
 ```
 
-robots.txt is served at `<site><base>robots.txt`, but crawlers read only the
-host root (`https://imevstratov-pixel.github.io/robots.txt`, another
-repository). What keeps the sandbox out of search is the robots meta of every
-page; the sitemap of the live site is submitted by hand in Yandex Webmaster
-and Google Search Console, after each has verified ownership. The route
-(README, «Moving the live site to this code», step 7): Google, a URL-prefix
-property for `<site>/portfolio/` verified by `google<token>.html` dropped
-into `public/` as is; Yandex, which adds sites by host, by `yandex_<token>.html`
-in the host-root repository `imevstratov-pixel.github.io`. Verification files
+robots.txt is served at `<site><base>robots.txt`; crawlers read only the host
+root, which is where the live site now is (`https://danilevstratov.ru/robots.txt`),
+so its rules and the sitemap line work as written. The sandbox is kept out of
+search by the robots meta of every page (its robots.txt is not at a host
+root). The sitemap is also submitted by hand in Yandex Webmaster and Google
+Search Console after each has verified ownership with an HTML file dropped
+into `public/` as is (`google<token>.html`, `yandex_<token>.html`). Verification files
 (`google*.html`, `yandex_*.html`) are not pages: `legacy-preview` leaves them
 untouched in preview, `prodcheck` does not ask them for a robots meta, and
 the sitemap leaves them out (no page links to them). There is no

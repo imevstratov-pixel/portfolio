@@ -8,9 +8,10 @@ import commentMode from './tools/comment-mode.mjs';
 
 // Deploy target comes from the environment so the same code builds the preview
 // (imevstratov-pixel.github.io/portfolio-v2/, PREVIEW=1) and the live site
-// (imevstratov-pixel.github.io/portfolio/, PREVIEW=0). The workflow derives
-// both from the repository name. This file is the only place where the
-// default base is written down.
+// (danilevstratov.ru, the root of the domain: SITE=https://danilevstratov.ru
+// BASE=/ PREVIEW=0). The workflow derives all three from the repository name.
+// This file is the only place where the default site and base are written
+// down (the preview's, for local builds).
 const SITE = process.env.SITE || 'https://imevstratov-pixel.github.io';
 const RAW_BASE = process.env.BASE || '/portfolio-v2/';
 const BASE = ('/' + RAW_BASE.replace(/^\/+|\/+$/g, '') + '/').replace(/\/+/g, '/');

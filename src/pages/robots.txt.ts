@@ -2,11 +2,11 @@
 // disallowed, no sitemap. Production: everything allowed and the sitemap
 // (written after the build by tools/sitemap.mjs, production only).
 //
-// On a GitHub Pages project site this file sits at <site>/<repo>/robots.txt,
-// and crawlers read only <site>/robots.txt (the user site repo). So the rules
-// that actually work are the robots meta of every page (BaseLayout) and the
-// sitemap submitted in Yandex Webmaster and Google Search Console. This file
-// starts working as it is if the site ever moves to a domain root.
+// The live site sits at the root of its domain (danilevstratov.ru), so
+// crawlers read this file and its sitemap line as they are. The staging site
+// is a GitHub Pages project site: there the file sits at <site>/<repo>/robots.txt,
+// which crawlers do not read, and what keeps it out of search is the robots
+// meta of every page (BaseLayout).
 import type { APIRoute } from 'astro';
 import { PREVIEW } from '../lib/env';
 import { absoluteUrl } from '../lib/url';
