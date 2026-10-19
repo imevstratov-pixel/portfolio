@@ -186,8 +186,8 @@ a:focus-visible {
   text-decoration-line: underline;
 }
 
-a[aria-current='page'],
-.link-quiet[aria-current='page'] {
+a[aria-current],
+.link-quiet[aria-current] {
   -webkit-text-decoration-line: underline;
   text-decoration-line: underline;
   -webkit-text-decoration-style: solid;
@@ -211,12 +211,12 @@ a[aria-current='page'],
   }
 
   @media (hover: hover) {
-    a:not(.btn, [aria-current='page']):hover {
+    a:not(.btn, [aria-current]):hover {
       animation: u-wave-in var(--u-dur) var(--u-ease);
     }
   }
 
-  a:not(.btn, [aria-current='page']):focus-visible {
+  a:not(.btn, [aria-current]):focus-visible {
     animation: u-wave-in var(--u-dur) var(--u-ease);
   }
 }

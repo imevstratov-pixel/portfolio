@@ -30,6 +30,12 @@ html {
   scroll-padding-top: calc(var(--header-h) + var(--s2));
 }
 
+/* text selection in grey, the site has no colour */
+::selection {
+  background: var(--rule);
+  color: var(--ink);
+}
+
 body {
   min-height: 100vh;
   display: flex;
@@ -210,7 +216,7 @@ a:hover {
 }
 
 .link-quiet:hover,
-.link-quiet[aria-current='page'] {
+.link-quiet[aria-current] {
   text-decoration-line: underline;
 }
 
@@ -595,6 +601,80 @@ hr,
 /* quoted texts keep their exact spacing (approved as is) */
 .prose blockquote p {
   white-space: pre-wrap;
+}
+
+/* a subsection inside a long text (the artifacts of /zadachki/): body size,
+   bold, under the medium h2 */
+.prose :is(h3, h4) {
+  font-size: var(--fs-base);
+  line-height: var(--lh-base);
+  letter-spacing: 0;
+}
+
+/* tables in long texts (the artifacts of /zadachki/): hairlines, small mono
+   heads, no colour; a wide table scrolls sideways in its own box on phones */
+.prose table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+  line-height: 1.45;
+}
+
+.prose :is(th, td) {
+  padding: 0.5rem 1rem 0.5rem 0;
+  border-top: var(--hair);
+  text-align: left;
+  vertical-align: top;
+}
+
+.prose :is(th, td):last-child {
+  padding-right: 0;
+}
+
+.prose thead th {
+  border-top: var(--line);
+  font-family: var(--font-mono);
+  font-size: var(--fs-small);
+  font-weight: var(--regular);
+  line-height: var(--lh-small);
+  color: var(--muted);
+}
+
+.prose tbody tr:last-child td {
+  border-bottom: var(--hair);
+}
+
+/* phones: smaller type; a table of four columns and more keeps readable
+   columns and scrolls sideways, with a mono cue that stays at the left */
+@media (max-width: 719.98px) {
+  .prose table {
+    font-size: 0.875rem;
+  }
+
+  .prose :is(th, td) {
+    padding-right: 0.625rem;
+  }
+
+  .prose table:has(tr > :nth-child(4)) :is(th, td) {
+    min-width: 7.5rem;
+  }
+
+  .prose table:has(tr > :nth-child(4)) :is(th, td):first-child {
+    min-width: 0;
+  }
+
+  .prose table:has(tr > :nth-child(4))::before {
+    content: 'Таблица листается вбок';
+    position: sticky;
+    left: 0;
+    display: block;
+    padding-bottom: var(--s1);
+    font-family: var(--font-mono);
+    font-size: var(--fs-small);
+    color: var(--muted);
+  }
 }
 
 /* ------------------------------------------------------------- layout */

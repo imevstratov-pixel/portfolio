@@ -23,6 +23,8 @@ header:
     href: /products/
   - label: Бесплатно
     href: /free/
+  - label: Задачки
+    href: /zadachki/
   cta:
     label: Написать
     href: '#contact'
@@ -43,6 +45,8 @@ footer:
     href: /products/
   - label: Бесплатно
     href: /free/
+  - label: Задачки
+    href: /zadachki/
   - label: Тренажёр для родственника
     href: /guide/
   - label: Работодателям

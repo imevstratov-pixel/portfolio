@@ -1,0 +1,212 @@
+---
+// The full template of one service (render_service() in the texts renderer):
+// body, the AgentsScheme for `scheme: "ai-agents"` (without heading and
+// facts), «Для кого», «Что получите на руки», «Сколько длится», «Как идёт
+// работа», «Что нужно от вас», «Что не входит», «Нейросеть и расходы», proof
+// («Что можно открыть» and «Что я написал сам» for app; otherwise «Чем
+// подтверждено» and «Мои продукты»), «Что говорят коллеги». The parts are
+// ServicePart rows. Used inside the card's «Подробнее» on /services/
+// (ServiceCard) and open on the service's own page /services/<slug>/.
+//
+//   <ServiceFull service={s} labels={labels} />
+import ServicePart from './ServicePart.astro';
+import Prose from '../Prose.astro';
+import Quote from '../Quote.astro';
+import AgentsScheme from '../scheme/AgentsScheme.astro';
+import {
+  bodyHtml,
+  caseHref,
+  contentHref,
+  getService,
+  getTestimonial,
+  productHref,
+  publishedCases,
+  testimonialSignature,
+  visibleProducts,
+  type ServiceEntry,
+} from '../../lib/content';
+
+interface Props {
+  service: string | ServiceEntry;
+  /** pages/services.md serviceTemplate.labels. */
+  labels: Record<string, string>;
+  /** Prefix of the scheme's ids: unique when the same service renders twice. */
+  idPrefix?: string;
+  /** Heading level of the part labels: 4 under the card's h3, 2 on the service's page. */
+  level?: 2 | 3 | 4;
+  class?: string;
+}
+
+const { service, labels, level = 4, class: cls } = Astro.props;
+const s = typeof service === 'string' ? getService(service) : service;
+const d = s.data;
+const idPrefix = Astro.props.idPrefix ?? `${d.anchor}-scheme`;
+const body = bodyHtml(s);
+
+type ProofItem = { title: string; href: string; aside?: string; note?: string };
+const ext = (href: string) => /^https?:/i.test(href);
+const notes: Record<string, string> = d.proofNotes ?? {};
+const caseItems: ProofItem[] = publishedCases(d.proofCases).map((c) => ({
+  title: c.data.shortTitle,
+  href: caseHref(c),
+  note: notes[c.id],
+}));
+const linkItems: ProofItem[] = (d.proofLinks ?? []).map((l) => ({
+  title: l.label,
+  href: contentHref(l.url),
+  aside: l.note,
+}));
+const productItems: ProofItem[] = visibleProducts(d.proofProducts).map((p) => ({
+  title: p.data.title,
+  href: productHref(p),
+  note: p.data.oneLiner,
+}));
+// renderer: slug "app" shows what can be opened first, then what I wrote
+const proofGroups: Array<{ label: string; items: ProofItem[] }> =
+  s.id === 'app'
+    ? [
+        { label: labels.proofLinks, items: linkItems },
+        { label: labels.proofCasesBuilt, items: caseItems },
+      ]
+    : [
+        { label: labels.proof, items: [...caseItems, ...linkItems] },
+        { label: labels.proofProducts, items: productItems },
+      ];
+const quotes = (d.testimonials ?? []).map(getTestimonial);
+// «Сколько длится»: the duration with the dash-dot line (обстоятельство), the
+// note after it plain; the text is exactly `duration + '. ' + durationNote`
+const durationRest = `.${d.durationNote ? ' ' + d.durationNote : ''}`;
+---
+
+<div class:list={['sf', cls]}>
+  {
+    body && (
+      <ServicePart level={level}>
+        <Prose html={body} />
+      </ServicePart>
+    )
+  }
+
+  {
+    d.scheme === 'ai-agents' && (
+      <div class="sf__scheme">
+        <AgentsScheme heading={false} facts={false} idPrefix={idPrefix} />
+      </div>
+    )
+  }
+
+  <ServicePart level={level} label={labels.forWhom}>
+    <ul class="list-dash" role="list">
+      {d.forWhom.map((x) => <li>{x}</li>)}
+    </ul>
+  </ServicePart>
+
+  <ServicePart level={level} label={labels.youGet}>
+    <ul class="list-dash" role="list">
+      {d.youGet.map((x) => <li>{x}</li>)}
+    </ul>
+  </ServicePart>
+
+  <ServicePart level={level} label={labels.duration}>
+    <p class="measure"><span class="u-circ">{d.duration}</span>{durationRest}</p>
+  </ServicePart>
+
+  <ServicePart level={level} label={labels.steps}>
+    <ol class="list-num" role="list">
+      {d.steps.map((x) => <li>{x}</li>)}
+    </ol>
+  </ServicePart>
+
+  {
+    d.fromYou && (
+      <ServicePart level={level} label={labels.fromYou}>
+        <p class="measure">{d.fromYou}</p>
+      </ServicePart>
+    )
+  }
+
+  <ServicePart level={level} label={labels.notIncluded}>
+    <ul class="list-dash" role="list">
+      {d.notIncluded.map((x) => <li>{x}</li>)}
+    </ul>
+  </ServicePart>
+
+  {
+    d.ai && (
+      <ServicePart level={level} label={labels.ai}>
+        <p class="measure">{d.ai}</p>
+      </ServicePart>
+    )
+  }
+
+  {
+    proofGroups
+      .filter((g) => g.items.length > 0)
+      .map((g) => (
+        <ServicePart level={level} label={g.label}>
+          <ul class="proof" role="list">
+            {g.items.map((it) => (
+              <li>
+                <p class="proof__title">
+                  <a href={it.href} target={ext(it.href) ? '_blank' : undefined} rel={ext(it.href) ? 'noopener' : undefined}>
+                    {it.title}
+                  </a>
+                  {it.aside && <span class="proof__aside"> ({it.aside})</span>}
+                </p>
+                {it.note && <p class="proof__line">{it.note}</p>}
+              </li>
+            ))}
+          </ul>
+        </ServicePart>
+      ))
+  }
+
+  {
+    quotes.length > 0 && (
+      <ServicePart level={level} label={labels.testimonials}>
+        <div class="quotes">
+          {quotes.map((t) => (
+            <Quote text={t.data.quote} cite={testimonialSignature(t)} size="medium" />
+          ))}
+        </div>
+      </ServicePart>
+    )
+  }
+</div>
+
+<style>
+  .sf {
+    display: grid;
+    align-content: start;
+    gap: var(--s3);
+  }
+
+  .sf__scheme {
+    min-width: 0;
+  }
+
+  /* the next part's hairline closes the drawing */
+  .sf__scheme :global(.agents-scheme__scroll) {
+    border-bottom: 0;
+  }
+
+  .proof {
+    display: grid;
+    gap: var(--s2);
+    max-width: var(--measure);
+  }
+
+  .proof__title {
+    font-weight: var(--bold);
+  }
+
+  .proof__aside {
+    font-weight: var(--regular);
+    color: var(--muted);
+  }
+
+  .quotes {
+    display: grid;
+    gap: var(--s3);
+  }
+</style>

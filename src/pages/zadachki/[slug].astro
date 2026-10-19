@@ -1,0 +1,534 @@
+---
+// /zadachki/<slug>/: one Задачка (SEO plan of 18.10). The frame comes from
+// the frontmatter and the labels of pages/zadachki.md `template`: «Все
+// задачки», the label «Задачка · <service short name>», the h1, the plate
+// «Пример задачи…» (one wording for the whole section), the date and the
+// author (link to /hire/), «Коротко» (the short answer), «Ситуация» and
+// «Допущения»; then the body, one row per h2 section (Daniil's solution):
+// the section title on the left (sticky from 1080px), its text on the right.
+// The artifact's section starts with the line «Пример заполнен на
+// придуманной ситуации…», and `artifact.widget: payback` puts the
+// PaybackCalculator where the body has the paragraph [[widget]]. The
+// first section, when its text is one numbered list («Что я спросил бы
+// первым»), is drawn as
+// numbered cards ending in an ink box with `firstGoal` under the label
+// `template.goal` (the build fails when `firstGoal` is set and the first
+// section is not such a list). A paragraph
+// opening with a bold «N. Title.» becomes a step (an h3 with its number,
+// a hairline above). A paragraph «Таблица: …» right before a table becomes
+// its caption. `figures` (ZFigure:
+// bars, flow) stand at the start of their section or under «Ситуация»;
+// `cover` (under the head) and `images` (at the end of their section) are
+// pictures in one bit, the same DitherPortrait as Daniil's portrait. Then
+// «Когда звать специалиста» (the service's title linked to its page, its
+// price line and verb button), the experience line (a real case, linked),
+// «Ещё задачки», the line «Как сделана эта страница» and the short contact
+// block. JSON-LD: Article with the author and BreadcrumbList. Layout: rows
+// on the 12-column grid from 1080px (title 1–3, text 4–12); stacked below.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ContactShort from '../../components/ContactShort.astro';
+import Prose from '../../components/Prose.astro';
+import ServiceTerms from '../../components/ServiceTerms.astro';
+import TelegramAction from '../../components/TelegramAction.astro';
+import PaybackCalculator from '../../components/zadachki/PaybackCalculator.astro';
+import ZFigure, { type FigureData } from '../../components/zadachki/ZFigure.astro';
+import DitherPortrait from '../../components/glyphs/DitherPortrait.astro';
+import {
+  bodySections,
+  caseHref,
+  findBlock,
+  getCase,
+  getPage,
+  getService,
+  servicePageHref,
+  site,
+  zadachkaHref,
+  zadachki,
+  type ZadachkaEntry,
+} from '../../lib/content';
+import { url } from '../../lib/url';
+
+export function getStaticPaths() {
+  return zadachki.map((z) => ({ params: { slug: z.id }, props: { entry: z } }));
+}
+
+interface Props {
+  entry: ZadachkaEntry;
+}
+
+const { entry } = Astro.props;
+const d = entry.data;
+const page = getPage('zadachki');
+const t: Record<string, string> = page.template ?? {};
+const contact = findBlock(page, 'contact');
+const service = getService(d.service);
+const experienceCase = d.experience?.case ? getCase(d.experience.case) : null;
+const others = zadachki.filter((z) => z.id !== entry.id);
+
+const MONTHS = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+const dateText = (iso: string) => {
+  const [y, m, day] = iso.split('-').map(Number);
+  return `${day} ${MONTHS[m - 1]} ${y}`;
+};
+
+// the body as rows: [{ title, html }] per h2 section (text before the first
+// h2, if any, has title '')
+const plain = (h: string) => h.replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'").trim();
+const slug = (title: string) =>
+  plain(title)
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s-]/gu, '')
+    .trim()
+    .replace(/\s+/g, '-');
+// «Таблица: …» right before a table becomes the table's caption
+const captions = (h: string) =>
+  h.replace(
+    /<p>Таблица:\s*((?:(?!<\/?p\b)[\s\S])*?)<\/p>\s*<table>([\s\S]*?)<\/table>/g,
+    (_, cap: string, table: string) =>
+      `<figure class="zd-table"><figcaption class="label zd-table__cap">${cap.charAt(0).toUpperCase()}${cap.slice(1)}</figcaption><table>${table}</table></figure>`,
+  );
+// a paragraph opening with «**2. Title.**» (the steps of the solution)
+// becomes a step: the title as an h3 with its number, the text under it, so
+// the long section can be scanned by its steps. Top-level paragraphs only
+// (not inside a list item or a quote), and the bold part must end with a
+// period, so «**3. Почему** так вышло» stays a paragraph
+const steps = (h: string) =>
+  h.replace(/(?<!<(?:li|blockquote)>\s*)<p><strong>(\d{1,2})\.\s+([^<]+?)\.<\/strong>\s*([\s\S]*?)<\/p>/g, (_, n: string, title: string, rest: string) =>
+    `<h3 class="zd-step"><span class="zd-step__n">${n}</span> ${title}</h3>${rest.trim() ? `<p>${rest.trim()}</p>` : ''}`,
+  );
+const sections = bodySections(entry).map((sec) => ({ ...sec, text: plain(sec.title), html: steps(captions(sec.html)) }));
+const artifact = sections.find((sec) => sec.text === d.artifact.title);
+if (!artifact) throw new Error(`zadachki/${entry.id}: the body has no h2 «${d.artifact.title}» (artifact.title)`);
+const widget = d.artifact.widget === 'payback';
+const markers = sections.reduce((n, sec) => n + (sec.html.match(/<p>\s*\[\[widget\]\]\s*<\/p>/g) ?? []).length, 0);
+if (widget && (markers !== 1 || !/<p>\s*\[\[widget\]\]\s*<\/p>/.test(artifact.html)))
+  throw new Error(`zadachki/${entry.id}: artifact.widget is set, its section needs exactly one [[widget]] paragraph (found ${markers})`);
+if (!widget && sections.some((sec) => /\[\[\s*widget/i.test(sec.html)))
+  throw new Error(`zadachki/${entry.id}: the body has a [[widget]] marker but artifact.widget is not "payback"`);
+// a section that is one numbered list (and maybe a lead paragraph): cards
+const isCards = (h: string) => /^\s*(?:<p>(?:(?!<\/p>)[\s\S])*<\/p>\s*)?<ol>(?:(?!<\/?ol\b)[\s\S])*<\/ol>\s*$/.test(h);
+const firstTitled = sections.find((sec) => sec.text);
+const firstIsCards = !!firstTitled && isCards(firstTitled.html);
+if (d.firstGoal && !firstIsCards)
+  throw new Error(`zadachki/${entry.id}: firstGoal is set, but the first section «${firstTitled?.text ?? ''}» is not one numbered list (the cards it ends)`);
+const figures = (d.figures ?? []) as Array<FigureData & { section: string }>;
+const figuresOf = (name: string) => figures.filter((f) => f.section === name);
+for (const f of figures) {
+  if (f.section !== 'situation' && !sections.some((sec) => sec.text === f.section))
+    throw new Error(`zadachki/${entry.id}: figure «${f.title}» is for section «${f.section}», which the body does not have`);
+}
+const images = d.images ?? [];
+const imagesOf = (name: string) => images.filter((im) => im.section === name);
+for (const im of images) {
+  if (!sections.some((sec) => sec.text === im.section))
+    throw new Error(`zadachki/${entry.id}: image ${im.src} is for section «${im.section}», which the body does not have`);
+}
+
+const abs = (path: string) => new URL(path, Astro.site).href;
+const pageUrl = abs(zadachkaHref(entry));
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: d.title,
+    description: d.description,
+    inLanguage: 'ru',
+    datePublished: d.date,
+    dateModified: d.updated ?? d.date,
+    url: pageUrl,
+    mainEntityOfPage: pageUrl,
+    author: { '@type': 'Person', name: site.site.name, url: abs(url('/hire/')) },
+    isPartOf: { '@type': 'CollectionPage', name: 'Задачки', url: abs(url('/zadachki/')) },
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Главная', item: abs(url('/')) },
+      { '@type': 'ListItem', position: 2, name: 'Задачки', item: abs(url('/zadachki/')) },
+      { '@type': 'ListItem', position: 3, name: d.title, item: pageUrl },
+    ],
+  },
+];
+const ld = JSON.stringify(jsonLd).replace(/</g, '\\u003c');
+---
+
+<BaseLayout page={page} title={d.title} description={d.description} current="/zadachki/">
+  <script is:inline type="application/ld+json" slot="head" set:html={ld} />
+  <article class="zd" aria-labelledby="zd-title">
+    <div class="wrap">
+      <p class="zd__back">
+        <a href={url('/zadachki/')}>{t.allLink ?? 'Все задачки'}</a>
+      </p>
+
+      <header class="zd__head">
+        <p class="label">{t.label ?? 'Задачка'} · {service.data.short}</p>
+        <h1 id="zd-title" class="zd__title t-large">{d.title}</h1>
+        {t.plate && <p class="zd__plate">{t.plate}</p>}
+        <p class="zd__meta label">
+          <time datetime={d.date}>{dateText(d.date)}</time> · <a href={url('/hire/')}>{site.site.name}</a>
+        </p>
+      </header>
+
+      {
+        d.cover?.src && (
+          <figure class="zd__cover">
+            <DitherPortrait src={d.cover.src} alt={d.cover.alt} algo="bayer" pixel={2} lens="fine" crop={d.cover.crop} loading="eager" />
+          </figure>
+        )
+      }
+
+      <section class="zd-row" aria-labelledby="zd-short">
+        <h2 id="zd-short" class="label zd-row__title">{t.short ?? 'Коротко'}</h2>
+        <div class="zd-row__body">
+          <p class="zd__short-text">{d.short}</p>
+        </div>
+      </section>
+
+      <section class="zd-row" aria-labelledby="zd-situation">
+        <h2 id="zd-situation" class="label zd-row__title">{t.situation ?? 'Ситуация'}</h2>
+        <div class="zd-row__body">
+          <p class="measure">{d.situation}</p>
+          {figuresOf('situation').map((f) => <ZFigure figure={f} />)}
+          {
+            d.constraints.length > 0 && (
+              <div class="zd__constraints">
+                <h3 class="label">{t.constraints ?? 'Допущения'}</h3>
+                <ul class="list-dash" role="list">
+                  {d.constraints.map((c) => (
+                    <li>{c}</li>
+                  ))}
+                </ul>
+              </div>
+            )
+          }
+        </div>
+      </section>
+
+      {
+        sections.map((sec, i) => {
+          const id = sec.text ? slug(sec.title) : undefined;
+          // only the first section («Что я спросил бы первым») becomes cards
+          const cards = sec === firstTitled && firstIsCards;
+          const isArtifact = sec === artifact;
+          const [before, after] = isArtifact && widget ? sec.html.split(/<p>\s*\[\[widget\]\]\s*<\/p>/) : [sec.html, undefined];
+          return (
+            <section class:list={['zd-row', 'zd-sec', cards && 'zd-sec--cards']} aria-labelledby={id}>
+              {sec.text && (
+                <h2 id={id} class="zd-row__title zd-sec__title t-medium">
+                  {sec.text}
+                </h2>
+              )}
+              <div class="zd-row__body">
+                {figuresOf(sec.text).map((f) => <ZFigure figure={f} />)}
+                {isArtifact && t.artifactNote && <p class="zd-note">{t.artifactNote}</p>}
+                <Prose html={before} measure={false} class="zd__prose" />
+                {cards && d.firstGoal && (
+                  <p class="zd-goal">
+                    <span class="label zd-goal__label">{t.goal ?? 'Цель первых вопросов'}</span>
+                    {d.firstGoal}
+                  </p>
+                )}
+                {isArtifact && widget && <PaybackCalculator />}
+                {after && <Prose html={after} measure={false} class="zd__prose" />}
+                {imagesOf(sec.text).map((im) => (
+                  <figure class="zd__image">
+                    <DitherPortrait src={im.src} alt={im.alt} algo="bayer" pixel={2} lens="fine" crop={im.crop} />
+                    {im.caption && <figcaption class="zd__image-cap">{im.caption}</figcaption>}
+                  </figure>
+                ))}
+              </div>
+            </section>
+          );
+        })
+      }
+
+      <section class="zd__cta" aria-labelledby="zd-cta">
+        <h2 id="zd-cta" class="t-medium">{t.ctaHeading ?? 'Когда звать специалиста'}</h2>
+        {t.ctaText && <p class="measure">{t.ctaText}</p>}
+        <p class="zd__service">
+          <a href={servicePageHref(service)}>{service.data.seo?.h1 ?? service.data.title}</a>
+        </p>
+        <ServiceTerms service={service} show="note" />
+        <TelegramAction codeword={service.data.codeword} label={service.data.button} caption={false} hint={false} email={false} />
+      </section>
+
+      {
+        d.experience?.text && (
+          <section class="zd__exp" aria-labelledby="zd-exp">
+            <h2 id="zd-exp" class="label">{t.experience ?? 'Похожее в моей работе'}</h2>
+            <p class="measure">
+              {d.experience.text}
+              {experienceCase && (
+                <>
+                  {' '}
+                  <a href={caseHref(experienceCase)}>{experienceCase.data.shortTitle ?? experienceCase.data.title}</a>
+                </>
+              )}
+            </p>
+          </section>
+        )
+      }
+
+      {
+        others.length > 0 && (
+          <nav class="zd__more" aria-labelledby="zd-more">
+            <h2 id="zd-more" class="label">{t.related ?? 'Ещё задачки'}</h2>
+            <ul class="list-dash" role="list">
+              {others.map((z) => (
+                <li>
+                  <a href={zadachkaHref(z)}>{z.data.title}</a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        )
+      }
+
+      {t.madeBy && <p class="zd__made">{t.madeBy}</p>}
+    </div>
+  </article>
+  {contact && <ContactShort block={contact} />}
+</BaseLayout>
+
+<style>
+  /* a wider measure than the site's 66ch: the long texts here sit in a
+     wide column and read faster with fewer lines (still under 75 characters) */
+  .zd {
+    --measure: 72ch;
+    padding-top: var(--s3);
+  }
+
+  .zd__back {
+    font-size: 0.9375rem;
+  }
+
+  .zd__head {
+    margin-top: var(--s3);
+    display: grid;
+    gap: var(--s2);
+  }
+
+  .zd__title {
+    max-width: 22em;
+  }
+
+  /* the honest plate: an ink frame, small mono, one wording for the section */
+  .zd__plate {
+    max-width: 44rem;
+    padding: var(--s1) var(--s2);
+    border: var(--line);
+    font-family: var(--font-mono);
+    font-size: var(--fs-small);
+    line-height: var(--lh-small);
+  }
+
+  .zd__cover {
+    margin-top: var(--s4);
+  }
+
+  /* rows: the title above the text on phones and tablets; from 1080px the
+     title in columns 1–3 (sticky under the header), the text in 4–12 */
+  .zd-row {
+    margin-top: var(--s4);
+    padding-top: var(--s2);
+    border-top: var(--hair);
+    display: grid;
+    gap: var(--s2);
+  }
+
+  .zd-row__body {
+    display: grid;
+    gap: var(--s3);
+    align-content: start;
+    min-width: 0;
+  }
+
+  /* a wide table scrolls in its own box: grid items must be allowed to
+     shrink below the table's width */
+  .zd-row__body > :global(*) {
+    min-width: 0;
+  }
+
+  .zd-sec {
+    border-top: var(--line);
+  }
+
+  .zd__short-text {
+    max-width: 36em;
+    font-size: var(--fs-medium);
+    line-height: 1.4;
+    letter-spacing: var(--track-medium);
+  }
+
+  .zd__constraints {
+    display: grid;
+    gap: var(--s1);
+  }
+
+  /* paragraphs and lists keep the reading measure; tables may be wider */
+  .zd-row__body :global(.zd__prose :is(p, ul, ol, blockquote, h3)) {
+    max-width: var(--measure);
+  }
+
+  /* the steps of the solution: a hairline, the number in mono, the title
+     a little larger than the text */
+  .zd-row__body :global(.zd__prose h3.zd-step) {
+    display: flex;
+    gap: 0.75rem;
+    align-items: baseline;
+    margin-top: var(--s3);
+    padding-top: var(--s2);
+    border-top: var(--hair);
+    font-size: 1.1875rem;
+    line-height: 1.3;
+  }
+
+  .zd-row__body :global(.zd__prose h3.zd-step:first-child) {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 0;
+  }
+
+  .zd-row__body :global(.zd__prose h3.zd-step + p) {
+    margin-top: 0.6em;
+  }
+
+  .zd-row__body :global(.zd-step__n) {
+    flex: none;
+    min-width: 1.5rem;
+    font-family: var(--font-mono);
+    font-size: var(--fs-small);
+    font-weight: var(--regular);
+    color: var(--muted);
+  }
+
+  .zd-row__body :global(.zd-note),
+  .zd__image-cap {
+    font-family: var(--font-mono);
+    font-size: var(--fs-small);
+    line-height: var(--lh-small);
+    color: var(--muted);
+  }
+
+  /* a table with its caption (the paragraph «Таблица: …» before it) */
+  .zd-row__body :global(.zd-table) {
+    display: grid;
+    gap: var(--s1);
+  }
+
+  .zd-row__body :global(.zd-table__cap) {
+    color: var(--ink);
+  }
+
+  /* «Что я спросил бы первым»: the numbered list as cards, then the goal */
+  .zd-sec--cards :global(.zd__prose ol) {
+    max-width: none;
+    display: grid;
+    gap: var(--s2);
+  }
+
+  .zd-sec--cards :global(.zd__prose ol > li) {
+    margin: 0;
+    padding: var(--s1) var(--s2) var(--s2);
+    padding-left: var(--s2);
+    border-top: var(--line);
+    background: var(--paper);
+  }
+
+  .zd-sec--cards :global(.zd__prose ol > li::before) {
+    display: block;
+    width: auto;
+    margin: 0 0 0.35rem;
+    /* Inter Tight: only the regular weight of the mono is loaded */
+    font-family: var(--font-sans);
+    font-size: var(--fs-medium);
+    font-weight: var(--bold);
+    color: var(--ink);
+  }
+
+  .zd-goal {
+    display: grid;
+    gap: 0.35rem;
+    padding: var(--s2);
+    background: var(--ink);
+    color: var(--paper);
+    font-weight: var(--bold);
+    line-height: 1.35;
+  }
+
+  .zd-goal__label {
+    color: var(--paper);
+    font-weight: var(--regular);
+  }
+
+  .zd__image {
+    display: grid;
+    gap: var(--s1);
+  }
+
+  .zd__cta {
+    margin-top: var(--s5);
+    padding-top: var(--s3);
+    border-top: var(--line);
+    display: grid;
+    gap: var(--s2);
+    justify-items: start;
+  }
+
+  .zd__service {
+    font-size: var(--fs-medium);
+    font-weight: var(--bold);
+    line-height: var(--lh-medium);
+  }
+
+  .zd__exp,
+  .zd__more {
+    margin-top: var(--s4);
+    padding-top: var(--s2);
+    border-top: var(--hair);
+    display: grid;
+    gap: var(--s1);
+  }
+
+  .zd__made {
+    margin-top: var(--s4);
+    max-width: var(--measure);
+    font-family: var(--font-mono);
+    font-size: var(--fs-small);
+    line-height: var(--lh-small);
+    color: var(--muted);
+  }
+
+  @media (min-width: 720px) {
+    .zd-sec--cards :global(.zd__prose ol) {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 1080px) {
+    .zd-row {
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      column-gap: var(--gap);
+    }
+
+    .zd-row__title {
+      grid-column: 1 / span 3;
+      align-self: start;
+      position: sticky;
+      top: calc(var(--header-h) + var(--s2));
+      padding-right: var(--s2);
+    }
+
+    .zd-row__body {
+      grid-column: 4 / span 9;
+    }
+
+    .zd__cta,
+    .zd__exp,
+    .zd__more,
+    .zd__made {
+      margin-left: calc((100% - 11 * var(--gap)) / 12 * 3 + 3 * var(--gap));
+    }
+  }
+</style>

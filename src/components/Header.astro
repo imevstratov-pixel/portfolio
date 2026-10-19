@@ -12,7 +12,10 @@ interface Props {
 }
 
 const { header, current } = Astro.props;
-const isCurrent = (href: string) => (current && href === current ? 'page' : undefined);
+// 'page' on the page itself, 'true' on the section of a subpage (a case or a
+// service page under «Кейсы» and «Услуги»)
+const isCurrent = (href: string) =>
+  current && href === current ? (url(href) === Astro.url.pathname ? 'page' : 'true') : undefined;
 ---
 
 <header class="site-header">
@@ -107,7 +110,34 @@ const isCurrent = (href: string) => (current && href === current ? 'page' : unde
     padding-block: 0.6rem;
   }
 
-  @media (min-width: 720px) {
+  /* five sections in one row from 360px: narrower gaps under 420px, 14px
+     type under 388px, 8px gaps under 375px; a 320px screen still wraps */
+  @media (max-width: 419.98px) {
+    .site-subnav__links {
+      gap: 0 0.625rem;
+    }
+  }
+
+  @media (max-width: 387.98px) {
+    .site-subnav__links {
+      font-size: 0.875rem;
+    }
+
+    .site-subnav__links a {
+      padding-block: 0.65rem;
+    }
+  }
+
+  @media (max-width: 374.98px) {
+    .site-subnav__links {
+      gap: 0 0.5rem;
+    }
+  }
+
+  /* the five header links, the name and «Написать» fit one row from about
+     830px with Inter Tight (860px with the Arial fallback); below 880px the
+     links stay in the subnav row */
+  @media (min-width: 880px) {
     .site-header__nav {
       display: block;
     }

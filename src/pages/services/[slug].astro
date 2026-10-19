@@ -1,0 +1,149 @@
+---
+// /services/<slug>/: one page per service (SEO plan of 18.10), for search
+// queries such as «аудит онлайн-курса» or «разработка онлайн-курса под
+// ключ». The list on /services/ stays as it is (its card titles link here);
+// the guide's page is /guide/. «Все услуги» back to the service's card, then
+// ServiceCard page: the h1 (`seo.h1`, otherwise the title), the summary, the
+// offer and the full template open; «Задачки по теме» (the Задачки whose
+// service this is, one more ServicePart row); then the free-guide block and the contact block of
+// pages/services.md. Search title and description come
+// from the service's `seo` (fallback: «<title> — <name>» and the summary).
+// JSON-LD: Service (provider Person, the price figure as an Offer: a price,
+// a minimum or a range, with price.note as its description) and
+// BreadcrumbList.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ServiceCard from '../../components/services/ServiceCard.astro';
+import ServicePart from '../../components/services/ServicePart.astro';
+import LeadMagnet from '../../components/LeadMagnet.astro';
+import ContactBlock from '../../components/ContactBlock.astro';
+import { findBlock, getPage, pagedServices, serviceHref, site, zadachkaHref, zadachkiOfService, type ServiceEntry } from '../../lib/content';
+import { url } from '../../lib/url';
+
+export function getStaticPaths() {
+  return pagedServices.map((s) => ({ params: { slug: s.id }, props: { entry: s } }));
+}
+
+interface Props {
+  entry: ServiceEntry;
+}
+
+const { entry } = Astro.props;
+const d = entry.data;
+const page = getPage('services');
+const labels: Record<string, string> = page.serviceTemplate?.labels ?? {};
+const leadMagnet = findBlock(page, 'free-guide');
+const contact = findBlock(page, 'contact');
+const back: string = page.serviceTemplate?.allLink ?? 'Все услуги';
+// the Задачки that lead to this service (their «Когда звать специалиста»)
+const tasks = zadachkiOfService(entry);
+
+const title: string = d.seo?.title?.trim() || `${d.title} — ${site.site.name}`;
+const description: string = d.seo?.description?.trim() || d.summary;
+const h1: string = d.seo?.h1?.trim() || d.title;
+
+// structured data: what the page offers and where it sits
+const abs = (path: string) => new URL(path, Astro.site).href;
+const pageUrl = abs(url(`/services/${entry.id}/`));
+// the price figure: «10 000 ₽» (a price), «от 80 000 ₽» (a minimum),
+// «70 000–100 000 ₽» (a range); price.note says what the figure covers
+const num = (t: string) => t.replace(/[\s\u00a0]/g, '');
+const main: string = d.price?.main?.trim() ?? '';
+const single = main.match(/^(от\s+)?(\d[\d\s\u00a0]*?)\s*₽$/);
+const range = main.match(/^(\d[\d\s\u00a0]*?)\s*[–-]\s*(\d[\d\s\u00a0]*?)\s*₽$/);
+const spec = (extra: Record<string, string>) => ({ priceSpecification: { '@type': 'PriceSpecification', priceCurrency: 'RUB', ...extra } });
+const priceFields = range
+  ? spec({ minPrice: num(range[1]), maxPrice: num(range[2]) })
+  : single
+    ? single[1]
+      ? spec({ minPrice: num(single[2]) })
+      : { price: num(single[2]) }
+    : null;
+const offer = priceFields
+  ? {
+      '@type': 'Offer',
+      priceCurrency: 'RUB',
+      ...priceFields,
+      ...(d.price?.note?.trim() ? { description: d.price.note.trim() } : {}),
+    }
+  : null;
+const person = {
+  '@type': 'Person',
+  name: site.site.name,
+  url: abs(url('/')),
+  jobTitle: 'Методолог образовательных продуктов',
+};
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Service',
+    name: h1,
+    serviceType: d.title,
+    description,
+    url: pageUrl,
+    provider: person,
+    areaServed: { '@type': 'Country', name: 'Россия' },
+    availableChannel: { '@type': 'ServiceChannel', serviceUrl: pageUrl },
+    ...(offer ? { offers: offer } : {}),
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Главная', item: abs(url('/')) },
+      { '@type': 'ListItem', position: 2, name: 'Услуги', item: abs(url('/services/')) },
+      { '@type': 'ListItem', position: 3, name: h1, item: pageUrl },
+    ],
+  },
+];
+const ld = JSON.stringify(jsonLd).replace(/</g, '\\u003c');
+---
+
+<BaseLayout page={page} title={title} description={description} current="/services/">
+  <script is:inline type="application/ld+json" slot="head" set:html={ld} />
+  <div class="sp">
+    <div class="wrap">
+      <p class="sp__back">
+        <a href={serviceHref(entry)}>{back}</a>
+      </p>
+      <div class="sp__card">
+        <ServiceCard service={entry} labels={labels} page />
+      </div>
+      {
+        tasks.length > 0 && (
+          <nav class="sp__tasks" aria-label="Задачки по теме">
+            <ServicePart label="Задачки по теме" level={2}>
+              <ul class="list-dash" role="list">
+                {tasks.map((z) => (
+                  <li>
+                    <a href={zadachkaHref(z)}>{z.data.title}</a>
+                  </li>
+                ))}
+              </ul>
+            </ServicePart>
+          </nav>
+        )
+      }
+    </div>
+  </div>
+  {leadMagnet && <LeadMagnet block={leadMagnet} />}
+  {contact && <ContactBlock block={contact} />}
+</BaseLayout>
+
+<style>
+  .sp {
+    padding-top: var(--s3);
+  }
+
+  .sp__back {
+    font-size: 0.9375rem;
+  }
+
+  .sp__card {
+    margin-top: var(--s3);
+  }
+
+  /* one more row of the template (ServicePart: label left, list right) */
+  .sp__tasks {
+    margin-top: var(--s3);
+  }
+</style>

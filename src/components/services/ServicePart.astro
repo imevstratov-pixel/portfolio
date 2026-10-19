@@ -5,16 +5,20 @@
 // from 720px label in columns 1-3 and content in 4-12; from 1080px content
 // in 4-10 (the same rows as the case sections on /cases/).
 // Without a label the content sits in the content column (the body text).
+// The label is an h4 under a card's h3 on /services/; `level` 2 on the
+// service's own page, where the parts follow the h1.
 interface Props {
   label?: string;
+  level?: 2 | 3 | 4;
   class?: string;
 }
 
-const { label, class: className } = Astro.props;
+const { label, level = 4, class: className } = Astro.props;
+const Tag = `h${level}` as 'h2' | 'h3' | 'h4';
 ---
 
 <div class:list={['part', !label && 'part--bare', className]}>
-  {label && <h4 class="part__label label">{label}</h4>}
+  {label && <Tag class="part__label label">{label}</Tag>}
   <div class="part__body"><slot /></div>
 </div>
 

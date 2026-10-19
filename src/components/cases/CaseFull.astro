@@ -41,7 +41,7 @@ import {
   findBlock,
   getPage,
   getTestimonial,
-  serviceHref,
+  servicePageHref,
   type CaseEntry,
 } from '../../lib/content';
 import { publicFileExists } from '../../lib/media';
@@ -64,7 +64,7 @@ const id = d.anchor;
 const words = caseWords();
 
 const service = caseService(c);
-const serviceUrl = serviceHref(service);
+const serviceUrl = servicePageHref(service);
 const all = bodySections(c, sections);
 const story = all.filter((s) => s.title !== serviceLinkLabel);
 const offer = all.find((s) => s.title === serviceLinkLabel);

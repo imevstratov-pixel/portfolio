@@ -1,0 +1,225 @@
+---
+// A scheme or a small infographic of a Задачка, drawn in HTML and CSS (no
+// image files, black and white): `figures` in the frontmatter, each placed
+// at the start of a section of the body (or under «Ситуация»).
+//   bars: a label, a bar and the value per row; the longest bar is the
+//         largest value (or `max`). For shares, drop-off, hours before/after.
+//   flow: boxes in reading order joined by a short ink line (in a row from
+//         720px, one under another on phones). No arrows and no numbers:
+//         the site has no arrow glyphs, and numbers would clash with the
+//         numbered steps under the figure. `note` is the side branch under
+//         the flow («Если автор не уверен — …»); five boxes and more get
+//         smaller type in the row, so long words fit.
+//
+//   <ZFigure figure={{ type: 'bars', title: 'Сколько учеников остаётся', unit: '%',
+//     items: [{ label: 'Купили курс', value: 100 }, { label: 'После модуля 3', value: 30 }] }} />
+export type FigureData = {
+  type: 'bars' | 'flow';
+  title: string;
+  caption?: string;
+  unit?: string;
+  max?: number;
+  note?: string;
+  items: Array<{ label: string; value?: number; text?: string }>;
+};
+
+interface Props {
+  figure: FigureData;
+  class?: string;
+}
+
+const { figure: f, class: cls } = Astro.props;
+if (f.type === 'bars' && f.items.some((it) => typeof it.value !== 'number'))
+  throw new Error(`ZFigure «${f.title}»: every bar needs a value`);
+const max = f.max ?? Math.max(...f.items.map((it) => it.value ?? 0), 1);
+// 9.6 → «9,6», 1000 → «1 000» (a no-break space between groups)
+const fmt = (v: number) => new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 2 }).format(v).replace(/[\s\u202f]/g, '\u00a0');
+---
+
+<figure class:list={['zf', `zf--${f.type}`, f.type === 'flow' && f.items.length >= 5 && 'zf--many', cls]}>
+  <figcaption class="label zf__title">{f.title}</figcaption>
+  {
+    f.type === 'bars' ? (
+      <ul class="zf__bars" role="list">
+        {f.items.map((it) => (
+          <li class="zf__row">
+            <span class="zf__label">{it.label}</span>
+            <span class="zf__track" aria-hidden="true">
+              <span class="zf__bar" style={`--w: ${Math.max(0, Math.min(1, (it.value ?? 0) / max)) * 100}%`} />
+            </span>
+            <span class="zf__value">
+              {fmt(it.value ?? 0)}
+              {f.unit && <span class="zf__unit">{f.unit === '%' ? '%' : ` ${f.unit}`}</span>}
+            </span>
+          </li>
+        ))}
+      </ul>
+    ) : (
+      <ol class="zf__flow" role="list">
+        {f.items.map((it) => (
+          <li class="zf__step">
+            <span class="zf__step-label">{it.label}</span>
+            {it.text && <span class="zf__step-text">{it.text}</span>}
+          </li>
+        ))}
+      </ol>
+    )
+  }
+  {f.note && <p class="zf__aside">{f.note}</p>}
+  {f.caption && <p class="zf__caption">{f.caption}</p>}
+</figure>
+
+<style>
+  .zf {
+    display: grid;
+    gap: var(--s2);
+    padding-block: var(--s2);
+    border-top: var(--line);
+    border-bottom: var(--hair);
+  }
+
+  /* bars: label, bar, value; the bar is ink on a hairline track */
+  .zf__bars {
+    display: grid;
+    gap: var(--s1);
+  }
+
+  .zf__row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: 'label value' 'track track';
+    gap: 0.3rem var(--s2);
+    align-items: baseline;
+  }
+
+  .zf__label {
+    grid-area: label;
+  }
+
+  .zf__value {
+    grid-area: value;
+    font-size: var(--fs-medium);
+    font-weight: var(--bold);
+    line-height: 1;
+    letter-spacing: var(--track-medium);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .zf__unit {
+    font-size: var(--fs-base);
+    font-weight: var(--regular);
+  }
+
+  .zf__track {
+    grid-area: track;
+    display: block;
+    height: 0.75rem;
+    border-bottom: var(--hair);
+  }
+
+  .zf__bar {
+    display: block;
+    width: var(--w);
+    height: 100%;
+    background: var(--ink);
+  }
+
+  /* flow: boxes with arrows between them */
+  .zf__flow {
+    display: grid;
+    gap: var(--s3);
+    list-style: none;
+    padding: 0;
+  }
+
+  .zf__step {
+    position: relative;
+    display: grid;
+    gap: 0.25rem;
+    align-content: start;
+    padding: var(--s1) var(--s2);
+    border: var(--line);
+  }
+
+  .zf__step-label {
+    font-weight: var(--bold);
+    line-height: 1.3;
+  }
+
+  .zf__step-label,
+  .zf__step-text {
+    hyphens: auto;
+    overflow-wrap: break-word;
+  }
+
+  .zf__step-text {
+    font-size: 0.9375rem;
+    line-height: 1.4;
+  }
+
+  /* the line to the next box: down on phones (drawn, not a glyph) */
+  .zf__step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: var(--s2);
+    top: 100%;
+    width: 0;
+    height: var(--s3);
+    border-left: var(--line);
+  }
+
+  .zf__aside,
+  .zf__caption {
+    font-family: var(--font-mono);
+    font-size: var(--fs-small);
+    line-height: var(--lh-small);
+  }
+
+  .zf__caption {
+    color: var(--muted);
+  }
+
+  @media (min-width: 720px) {
+    .zf__flow {
+      grid-auto-flow: column;
+      grid-auto-columns: minmax(0, 1fr);
+      gap: var(--s3);
+    }
+
+    /* across in the row: from the box's middle to the next box */
+    .zf__step:not(:last-child)::after {
+      left: 100%;
+      top: 50%;
+      width: var(--s3);
+      height: 0;
+      border-left: 0;
+      border-top: var(--line);
+    }
+
+    .zf--many .zf__step {
+      padding: 0.75rem;
+    }
+
+    .zf--many .zf__step-label {
+      font-size: 1rem;
+    }
+
+    .zf--many .zf__step-text {
+      font-size: 0.8125rem;
+    }
+
+    .zf__row {
+      grid-template-columns: minmax(8rem, 14rem) minmax(0, 1fr) 6rem;
+      grid-template-areas: 'label track value';
+      align-items: center;
+    }
+
+    .zf__track {
+      height: 1.25rem;
+    }
+
+    .zf__value {
+      text-align: right;
+    }
+  }
+</style>

@@ -1,7 +1,7 @@
 // Content collections. The files in src/content are produced by the export
 // script (see docs/components.md) and are never edited by hand.
 //
-// Typed collections (cases, services, products, testimonials) describe the
+// Typed collections (cases, services, products, testimonials, zadachki) describe the
 // fields the components read; unknown extra fields are kept (loose objects),
 // so a new field in the content does not silently disappear.
 // pages and site vary per page, so only their common skeleton is typed.
@@ -189,6 +189,9 @@ const services = defineCollection({
     more: z.looseObject({ label: str, url: str }).optional(),
     // the «new» sticker on the card (NewBadge)
     isNew: z.boolean().optional(),
+    // the service's own page /services/<slug>/: search title, description,
+    // and an h1 when it differs from `title` (the list keeps `title`)
+    seo: z.looseObject({ title: optStr, description: optStr, h1: optStr }).optional(),
     related: z.looseObject({ text: str, service: optStr, case: optStr }).optional(),
     // price block of the card (decision 16 of 14.10): the figure or range
     // («15 000 ₽», «от 250 000 ₽», «70 000–100 000 ₽»), what it covers in one
@@ -254,4 +257,57 @@ const testimonials = defineCollection({
   }),
 });
 
-export const collections = { pages, site, cases, services, products, testimonials };
+// «Задачки» (SEO plan of 18.10): a made-up buyer task, Daniil's dictated
+// solution in the body (h2 sections), the artifact; the page frame (plate,
+// short answer, situation, the service, the experience line) comes from here
+const zadachki = defineCollection({
+  loader: loader('zadachki'),
+  schema: z.looseObject({
+    title: str, // h1 and <title>
+    description: str,
+    order: z.number(),
+    date: str, // "2026-10-19"
+    updated: optStr,
+    service: str, // service slug
+    short: str, // the short answer under the h1
+    situation: str,
+    constraints: z.array(str).default([]),
+    artifact: z.looseObject({ title: str, widget: z.enum(['', 'payback']).optional() }),
+    experience: z.looseObject({ text: str, case: optStr }).optional(),
+    // the ink box under the «Что я спросил бы первым» cards: what the questions are for
+    firstGoal: optStr,
+    // schemes and small infographics drawn in HTML (ZFigure), placed at the
+    // start of a body section («situation» = under «Ситуация»)
+    figures: z
+      .array(
+        z.looseObject({
+          section: str,
+          type: z.enum(['bars', 'flow']),
+          title: str,
+          caption: optStr,
+          unit: optStr,
+          max: z.number().optional(),
+          note: optStr,
+          items: z.array(z.looseObject({ label: str, value: z.number().optional(), text: optStr })).min(2),
+        }),
+      )
+      .default([]),
+    // pictures in one bit (DitherPortrait): the cover under the head, images
+    // at the end of their body section; files in public/
+    cover: z.looseObject({ src: str, alt: str, crop: z.tuple([z.number(), z.number(), z.number(), z.number()]).optional() }).optional(),
+    images: z
+      .array(
+        z.looseObject({
+          section: str,
+          src: str,
+          alt: str,
+          caption: optStr,
+          crop: z.tuple([z.number(), z.number(), z.number(), z.number()]).optional(),
+        }),
+      )
+      .default([]),
+    visible: z.boolean().default(true),
+  }),
+});
+
+export const collections = { pages, site, cases, services, products, testimonials, zadachki };

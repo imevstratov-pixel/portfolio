@@ -1,0 +1,117 @@
+---
+// /zadachki/ «Задачки» (SEO plan of 18.10): the blocks of pages/zadachki.md
+// in content order: intro (h1 and one line; `isNew: true` puts the «new»
+// sticker on the end of the heading), the list of Задачки (each: the
+// service as a small label, the title as a link to its page, the short
+// answer, «Читать решение»), the short contact block (anchor contact, the
+// target of «Написать»). A new Задачка is one more file in
+// src/content/zadachki.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Section from '../../components/Section.astro';
+import ContactShort from '../../components/ContactShort.astro';
+import NewBadge from '../../components/NewBadge.astro';
+import { getPage, getService, pageBlocks, zadachkaHref, zadachki } from '../../lib/content';
+
+const page = getPage('zadachki');
+const blocks = pageBlocks(page);
+const known = new Set(['intro', 'zadachki-list', 'contact-short']);
+for (const b of blocks) {
+  if (!known.has(b.type)) throw new Error(`/zadachki/: block "${b.id}" has unknown type "${b.type}"`);
+}
+---
+
+<BaseLayout page={page} current="/zadachki/">
+  {
+    blocks.map((b) =>
+      b.type === 'intro' ? (
+        <Section rule="none" pad="s4">
+          <h1 class="zl-h1">
+            {b.heading}
+            {b.isNew && <NewBadge class="zl-h1__new" />}
+          </h1>
+          {b.lead && <p class="lead zl-lead">{b.lead}</p>}
+        </Section>
+      ) : b.type === 'zadachki-list' ? (
+        <div class="wrap zl-wrap">
+          <ul class="zl" role="list">
+            {zadachki.map((z) => (
+              <li class="zl__item">
+                <article class="zl__card" aria-labelledby={`zl-${z.id}`}>
+                  <p class="label">{getService(z.data.service).data.short}</p>
+                  <h2 id={`zl-${z.id}`} class="zl__title t-medium">
+                    <a href={zadachkaHref(z)}>{z.data.title}</a>
+                  </h2>
+                  <p class="zl__short">{z.data.short}</p>
+                  {b.readLabel && (
+                    <p class="zl__read">
+                      <a href={zadachkaHref(z)} aria-label={`${b.readLabel}: ${z.data.title}`}>
+                        {b.readLabel}
+                      </a>
+                    </p>
+                  )}
+                </article>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : (
+        <ContactShort block={b} />
+      ),
+    )
+  }
+</BaseLayout>
+
+<style>
+  /* the «new» sticker on the end of the heading, as if stuck on it */
+  .zl-h1 {
+    position: relative;
+    display: inline-block;
+    padding-right: 3.25rem;
+  }
+
+  .zl-h1 :global(.zl-h1__new) {
+    --nb-size: 4.75rem;
+    position: absolute;
+    top: -1.5rem;
+    right: -1.5rem;
+  }
+
+  .zl-lead {
+    margin-top: var(--s3);
+  }
+
+  .zl-wrap {
+    margin-top: var(--s4);
+  }
+
+  .zl {
+    display: grid;
+    gap: var(--s4);
+  }
+
+  .zl__card {
+    display: grid;
+    gap: var(--s1);
+    padding-top: var(--s2);
+    border-top: var(--line);
+  }
+
+  .zl__title {
+    max-width: 24em;
+  }
+
+  .zl__short {
+    max-width: var(--measure);
+  }
+
+  .zl__read {
+    margin-top: var(--s1);
+  }
+
+  @media (min-width: 720px) {
+    .zl {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: var(--gap);
+    }
+  }
+</style>

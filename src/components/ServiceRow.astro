@@ -16,14 +16,14 @@
 // Put rows in <ul class="list-rules" role="list"> for the thin rules between.
 import TelegramButton from './TelegramButton.astro';
 import ServiceTerms from './ServiceTerms.astro';
-import { getService, serviceHref, type ServiceEntry } from '../lib/content';
+import { getService, servicePageHref, type ServiceEntry } from '../lib/content';
 import { url } from '../lib/url';
 
 interface Props {
   service: string | ServiceEntry;
   line?: string;
   linkLabel?: string;
-  /** Link target override (content `href`, e.g. "/guide/"); default /services/#anchor. */
+  /** Link target override (content `href`, e.g. "/guide/"); default the service's page (servicePageHref). */
   href?: string;
   /** Show «Срок: …» from the service duration. */
   duration?: boolean;
@@ -52,7 +52,7 @@ const {
 const s = typeof service === 'string' ? getService(service) : service;
 const verb = action && s.data.button ? s.data.button : undefined;
 const Tag = `h${level}` as 'h3' | 'h4';
-const link = href ? url(href) : serviceHref(s);
+const link = href ? url(href) : servicePageHref(s);
 const titleId = `${s.data.anchor}-row`;
 ---
 

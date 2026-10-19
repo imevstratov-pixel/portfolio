@@ -41,7 +41,7 @@ const legend = typeof legendRaw === 'string' ? legendRaw.replace(/ ([—–]) /g
         {
           f.links.map((l) => (
             <li>
-              <a href={url(l.href)} aria-current={current === l.href ? 'page' : undefined} data-goal={goalFor(l.href)}>
+              <a href={url(l.href)} aria-current={current === l.href ? (url(l.href) === Astro.url.pathname ? 'page' : 'true') : undefined} data-goal={goalFor(l.href)}>
                 {l.label}
               </a>
             </li>

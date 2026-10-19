@@ -1,0 +1,353 @@
+---
+// The payback calculator of the Задачка about AI agents (artifact.widget
+// "payback"; src/lib/payback.ts holds the arithmetic). Left: the school's
+// numbers and the six pipeline stages (size S/M/L, «агент» when the agents
+// take the stage); right: the result. The server renders the worked example
+// (the defaults), so without JS the page shows it as it is; the script
+// recounts on every change. Black and white: hairlines, mono labels, the
+// key figures in the medium size; «не окупится» and «не проходит» in bold.
+// Inputs are text fields with a decimal keyboard (a number field would drop
+// a typed comma: «37,5» became 375); the script reads a comma or a point.
+// Screen readers hear one short summary after typing stops (role=status),
+// not every figure; without JS a line says that the example does not
+// recount.
+import { DEFAULT_INPUT, payback, num, rub } from '../../lib/payback';
+
+const i = DEFAULT_INPUT;
+const r = payback(i);
+const fields: Array<{ key: string; label: string; value: number; unit?: string }> = [
+  { key: 'people', label: 'Методистов', value: i.people },
+  { key: 'lessons', label: 'Уроков в месяц', value: i.lessons },
+  { key: 'hours', label: 'Рабочих часов в месяц', value: i.hours },
+  { key: 'share', label: 'Доля времени на уроки', value: Math.round(i.share * 100), unit: '%' },
+  { key: 'salary', label: 'Оклад методиста', value: i.salary, unit: '₽' },
+  { key: 'contributions', label: 'Взносы сверх оклада', value: Math.round(i.contributions * 100), unit: '%' },
+  { key: 'humanLeft', label: 'Остаётся человеку на этапах агентов', value: Math.round(i.humanLeft * 100), unit: '%' },
+  { key: 'support', label: 'Поддержка агентов, часов в месяц', value: i.support },
+  { key: 'spendPerLesson', label: 'Нейросеть на урок', value: i.spendPerLesson, unit: '₽' },
+  { key: 'setup', label: 'Настройка агентов, один раз', value: i.setup, unit: '₽' },
+  { key: 'courseLessons', label: 'Уроков в курсе', value: i.courseLessons },
+  { key: 'courseBudget', label: 'Бюджет курса без ФОТ', value: i.courseBudget, unit: '₽' },
+  { key: 'ceiling', label: 'Потолок бюджета курса без ФОТ', value: i.ceiling, unit: '₽' },
+];
+const months = r.paybackMonths;
+---
+
+<section class="pb" aria-labelledby="pb-title" data-payback>
+  <h3 id="pb-title" class="label pb__title">Калькулятор</h3>
+  <p class="pb__hint pb__nojs">Пересчёт работает с включённым JavaScript, ниже расчёт примера.</p>
+  <form class="pb__form" novalidate>
+    <fieldset class="pb__fields">
+      <legend class="label">Школа</legend>
+      {
+        fields.map((f) => (
+          <label class="pb__field">
+            <span class="pb__name">{f.label}</span>
+            <span class="pb__input">
+              <input type="text" inputmode="decimal" autocomplete="off" name={f.key} value={f.value} />
+              <span class="pb__unit" aria-hidden={f.unit ? undefined : 'true'}>{f.unit ?? ''}</span>
+            </span>
+          </label>
+        ))
+      }
+    </fieldset>
+    <fieldset class="pb__stages">
+      <legend class="label">Этапы: размер и кто ведёт после внедрения</legend>
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Этап</th>
+            <th scope="col">Размер</th>
+            <th scope="col">Агент</th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            i.stages.map((st, k) => (
+              <tr>
+                <th scope="row">{st.name}</th>
+                <td>
+                  <select name={`size-${k}`} aria-label={`${st.name}: размер`}>
+                    {(['S', 'M', 'L'] as const).map((s) => (
+                      <option value={s} selected={s === st.size}>
+                        {s}
+                      </option>
+                    ))}
+                  </select>
+                </td>
+                <td>
+                  <input type="checkbox" name={`agent-${k}`} checked={st.agent} aria-label={`${st.name}: ведёт агент`} />
+                </td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+      <p class="pb__hint">S — от нескольких часов до пары дней, M — около недели, L — две недели и больше. Размер ставят на месячную пачку уроков; веса 1, 5 и 10 делят часы между этапами.</p>
+    </fieldset>
+  </form>
+
+  <div class="pb__result">
+    <dl class="pb__out">
+      <div>
+        <dt class="label">Часов на урок</dt>
+        <dd>с <span data-out="perLessonBefore">{num(r.perLessonBefore, 1)}</span> до <strong data-out="perLessonAfter">{num(r.perLessonAfter, 1)}</strong></dd>
+      </div>
+      <div>
+        <dt class="label">Освобождается в месяц</dt>
+        <dd><strong data-out="freed">{num(r.freed)}</strong> ч, <span data-out="freedShare">{num(r.freedShare * 100)}</span>%</dd>
+      </div>
+      <div>
+        <dt class="label">Урок стоит</dt>
+        <dd>с <span data-out="lessonBefore">{rub(r.lessonBefore)}</span> до <strong data-out="lessonAfter">{rub(r.lessonAfter)}</strong></dd>
+      </div>
+      <div>
+        <dt class="label">Экономия в месяц</dt>
+        <dd><strong data-out="saving">{rub(r.saving)}</strong></dd>
+      </div>
+      <div>
+        <dt class="label">Настройка окупается</dt>
+        <dd><strong data-out="payback">{months === null ? 'не окупится' : `за ${num(months, 1)} мес.`}</strong></dd>
+      </div>
+      <div>
+        <dt class="label">Первый курс без ФОТ после внедрения</dt>
+        <dd><span data-out="courseCost">{rub(r.courseCost)}</span>, <strong data-out="ceiling">{r.fitsCeiling ? `в потолке, запас ${rub(r.ceilingLeft)}` : 'не проходит потолок'}</strong></dd>
+      </div>
+      <div>
+        <dt class="label">Потолок расходов на нейросеть в месяц</dt>
+        <dd><strong data-out="monthCap">{rub(r.monthCap)}</strong></dd>
+      </div>
+    </dl>
+  </div>
+  <p class="sr-only" role="status" data-out="status"></p>
+</section>
+
+<script>
+  import { DEFAULT_STAGES, payback, num, rub, type PaybackInput, type Size } from '../../lib/payback';
+
+  for (const root of document.querySelectorAll<HTMLElement>('[data-payback]')) {
+    root.dataset.ready = '';
+    const form = root.querySelector('form')!;
+    let timer: number | undefined;
+    const val = (name: string) => {
+      const el = form.elements.namedItem(name) as HTMLInputElement | null;
+      const n = el ? parseFloat(el.value.replace(/[\s\u00a0]/g, '').replace(',', '.')) : NaN;
+      return Number.isFinite(n) && n >= 0 ? n : 0;
+    };
+    const out = (key: string, text: string) => {
+      const el = root.querySelector(`[data-out="${key}"]`);
+      if (el && el.textContent !== text) el.textContent = text;
+    };
+    const recount = () => {
+      const input: PaybackInput = {
+        people: val('people'),
+        lessons: val('lessons'),
+        hours: val('hours'),
+        share: val('share') / 100,
+        salary: val('salary'),
+        contributions: val('contributions') / 100,
+        humanLeft: val('humanLeft') / 100,
+        support: val('support'),
+        spendPerLesson: val('spendPerLesson'),
+        setup: val('setup'),
+        courseLessons: val('courseLessons'),
+        courseBudget: val('courseBudget'),
+        ceiling: val('ceiling'),
+        stages: DEFAULT_STAGES.map((st, k) => ({
+          name: st.name,
+          size: ((form.elements.namedItem(`size-${k}`) as HTMLSelectElement | null)?.value ?? st.size) as Size,
+          agent: (form.elements.namedItem(`agent-${k}`) as HTMLInputElement | null)?.checked ?? st.agent,
+        })),
+      };
+      const r = payback(input);
+      out('perLessonBefore', num(r.perLessonBefore, 1));
+      out('perLessonAfter', num(r.perLessonAfter, 1));
+      out('freed', num(r.freed));
+      out('freedShare', num(r.freedShare * 100));
+      out('lessonBefore', rub(r.lessonBefore));
+      out('lessonAfter', rub(r.lessonAfter));
+      out('saving', rub(r.saving));
+      out('payback', r.paybackMonths === null ? 'не окупится' : `за ${num(r.paybackMonths, 1)} мес.`);
+      out('courseCost', rub(r.courseCost));
+      out('ceiling', r.fitsCeiling ? `в потолке, запас ${rub(r.ceilingLeft)}` : 'не проходит потолок');
+      out('monthCap', rub(r.monthCap));
+      // one short line for screen readers, once typing stops
+      window.clearTimeout(timer);
+      timer = window.setTimeout(
+        () =>
+          out(
+            'status',
+            `Экономия в месяц ${rub(r.saving)}, настройка ${r.paybackMonths === null ? 'не окупится' : `окупится за ${num(r.paybackMonths, 1)} мес.`}, первый курс ${r.fitsCeiling ? 'в потолке' : 'не проходит потолок'}.`,
+          ),
+        600,
+      );
+    };
+    form.addEventListener('input', recount);
+    form.addEventListener('change', recount);
+    form.addEventListener('submit', (e) => e.preventDefault());
+  }
+</script>
+
+<style>
+  .pb {
+    display: grid;
+    gap: var(--s3);
+    padding: var(--s3) 0;
+    border-top: var(--line);
+    border-bottom: var(--line);
+  }
+
+  .pb__form {
+    display: grid;
+    gap: var(--s3);
+  }
+
+  .pb__fields,
+  .pb__stages {
+    display: grid;
+    gap: var(--s1);
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .pb__fields legend,
+  .pb__stages legend {
+    padding: 0;
+    margin-bottom: var(--s1);
+  }
+
+  .pb__field {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 9.5rem;
+    gap: var(--s2);
+    align-items: center;
+    padding-top: var(--s1);
+    border-top: var(--hair);
+  }
+
+  .pb__name {
+    font-size: 0.9375rem;
+    line-height: 1.35;
+  }
+
+  /* the unit always keeps its slot, so every input has the same width */
+  .pb__input {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 1rem;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .pb input[type='text'],
+  .pb select {
+    width: 100%;
+    min-width: 0;
+    padding: 0.35rem 0.5rem;
+    border: var(--line);
+    border-radius: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font: inherit;
+    font-family: var(--font-mono);
+    font-size: 0.9375rem;
+  }
+
+  .pb__unit {
+    font-family: var(--font-mono);
+    font-size: var(--fs-small);
+    color: var(--muted);
+  }
+
+  /* a square box of its own: the native one is drawn with round corners */
+  .pb input[type='checkbox'] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 1.1rem;
+    height: 1.1rem;
+    margin: 0;
+    border: var(--line);
+    border-radius: 0;
+    background: var(--paper);
+    vertical-align: middle;
+    cursor: pointer;
+  }
+
+  .pb input[type='checkbox']:checked {
+    background: var(--ink);
+    box-shadow: inset 0 0 0 3px var(--paper);
+  }
+
+  @media (forced-colors: active) {
+    .pb input[type='checkbox'] {
+      appearance: auto;
+      -webkit-appearance: auto;
+    }
+  }
+
+  .pb[data-ready] .pb__nojs {
+    display: none;
+  }
+
+  .pb__stages table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9375rem;
+  }
+
+  .pb__stages :is(th, td) {
+    padding: 0.4rem 0.75rem 0.4rem 0;
+    border-top: var(--hair);
+    text-align: left;
+    font-weight: var(--regular);
+  }
+
+  .pb__stages thead th {
+    border-top: 0;
+    font-family: var(--font-mono);
+    font-size: var(--fs-small);
+    color: var(--muted);
+  }
+
+  .pb__stages select {
+    width: 4.5rem;
+  }
+
+  .pb__hint {
+    font-family: var(--font-mono);
+    font-size: var(--fs-small);
+    line-height: var(--lh-small);
+    color: var(--muted);
+  }
+
+  .pb__out {
+    display: grid;
+    gap: var(--s2);
+  }
+
+  .pb__out > div {
+    display: grid;
+    gap: 0.2rem;
+    padding-top: var(--s1);
+    border-top: var(--hair);
+  }
+
+  .pb__out dd {
+    font-size: var(--fs-medium);
+    line-height: var(--lh-medium);
+    letter-spacing: var(--track-medium);
+  }
+
+  @media (min-width: 1080px) {
+    .pb {
+      grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+      column-gap: var(--s4);
+    }
+
+    .pb__title,
+    .pb__nojs {
+      grid-column: 1 / -1;
+    }
+  }
+</style>

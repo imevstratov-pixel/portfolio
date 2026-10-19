@@ -2,7 +2,7 @@
 // Full-page screenshots of built pages at 375, 768 and 1280 px.
 //
 //   npm run build && npm run shots -- --out shots/v1 / /services/ /cases/
-//   npm run shots -- --out shots/all              (every route, the case pages too)
+//   npm run shots -- --out shots/all              (every route, the case, service and Задачки pages too)
 //   npm run shots -- --widths 360,375 /           (other widths)
 //
 // Serves dist/ under the base path (BASE, default /portfolio-v2/) with a small
@@ -18,7 +18,7 @@ const ROOT = resolve(import.meta.dirname, '..');
 const DIST = join(ROOT, 'dist');
 const BASE = ('/' + (process.env.BASE || '/portfolio-v2/').replace(/^\/+|\/+$/g, '') + '/').replace(/\/+/g, '/');
 const EXECUTABLE = process.env.CHROMIUM_PATH || '/opt/pw-browsers/chromium';
-const ALL_ROUTES = ['/', '/services/', '/cases/', '/products/', '/free/', '/hire/', '/guide/', '/404.html'];
+const ALL_ROUTES = ['/', '/services/', '/cases/', '/products/', '/free/', '/zadachki/', '/hire/', '/guide/', '/404.html'];
 
 const args = process.argv.slice(2);
 let out = join(ROOT, 'shots');
@@ -34,15 +34,17 @@ if (!existsSync(join(DIST, 'index.html'))) {
   process.exit(1);
 }
 if (!routes.length) {
-  // the case pages /cases/<slug>/ as built
-  const casesDir = join(DIST, 'cases');
-  const casePages = existsSync(casesDir)
-    ? readdirSync(casesDir)
-        .filter((n) => existsSync(join(casesDir, n, 'index.html')))
-        .sort()
-        .map((n) => `/cases/${n}/`)
-    : [];
-  routes.push(...ALL_ROUTES, ...casePages);
+  // the case pages /cases/<slug>/ and the service pages /services/<slug>/ as built
+  const subpages = (dir) => {
+    const at = join(DIST, dir);
+    return existsSync(at)
+      ? readdirSync(at)
+          .filter((n) => existsSync(join(at, n, 'index.html')))
+          .sort()
+          .map((n) => `/${dir}/${n}/`)
+      : [];
+  };
+  routes.push(...ALL_ROUTES, ...subpages('cases'), ...subpages('services'), ...subpages('zadachki'));
 }
 mkdirSync(out, { recursive: true });
 

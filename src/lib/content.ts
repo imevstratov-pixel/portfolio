@@ -12,20 +12,22 @@ export type CaseEntry = CollectionEntry<'cases'>;
 export type ServiceEntry = CollectionEntry<'services'>;
 export type ProductEntry = CollectionEntry<'products'>;
 export type TestimonialEntry = CollectionEntry<'testimonials'>;
+export type ZadachkaEntry = CollectionEntry<'zadachki'>;
 export type SiteData = CollectionEntry<'site'>['data'];
 
 /** A page block. Its fields depend on `type`; see docs/components.md. */
 export type Block = { id: string; type: string; anchor?: string; [key: string]: any };
 export type PageData = PageEntry['data'] & { blocks: Block[]; [key: string]: any };
-export type PageId = 'home' | 'services' | 'cases' | 'products' | 'free' | 'hire' | 'guide' | '404';
+export type PageId = 'home' | 'services' | 'cases' | 'products' | 'free' | 'hire' | 'guide' | 'zadachki' | '404';
 
-const [pageList, siteList, caseList, serviceList, productList, testimonialList] = await Promise.all([
+const [pageList, siteList, caseList, serviceList, productList, testimonialList, zadachkaList] = await Promise.all([
   getCollection('pages'),
   getCollection('site'),
   getCollection('cases'),
   getCollection('services'),
   getCollection('products'),
   getCollection('testimonials'),
+  getCollection('zadachki'),
 ]);
 
 const byId = <T extends { id: string }>(list: T[]) => new Map(list.map((e) => [e.id, e]));
@@ -121,6 +123,19 @@ export function serviceByCodeword(codeword: string): ServiceEntry | undefined {
 export function serviceHref(service: string | ServiceEntry): string {
   const s = typeof service === 'string' ? getService(service) : service;
   return url(`/services/#${s.data.anchor}`);
+}
+
+/**
+ * Services with a page of their own, /services/<slug>/ (SEO plan of 18.10:
+ * the list on /services/ stays, each service also gets its page): all but
+ * the guide, whose page is /guide/.
+ */
+export const pagedServices: ServiceEntry[] = services.filter((s) => s.id !== 'guide');
+
+/** The service's own page: /services/<slug>/, or /guide/ for the guide. */
+export function servicePageHref(service: string | ServiceEntry): string {
+  const s = typeof service === 'string' ? getService(service) : service;
+  return s.id === 'guide' ? url('/guide/') : url(`/services/${s.id}/`);
 }
 
 const endDot = (t: string) => (/[.!?…]$/.test(t.trim()) ? t.trim() : `${t.trim()}.`);
@@ -448,6 +463,22 @@ export function caseSeo(c: string | CaseEntry): { title: string; description: st
   return { title, description };
 }
 
+/* ---------------------------------------------------------------- zadachki */
+
+/** The published «Задачки» in their order (SEO plan of 18.10). */
+export const zadachki: ZadachkaEntry[] = zadachkaList.filter((z) => z.data.visible !== false).sort(byOrder);
+
+/** /zadachki/<slug>/ */
+export function zadachkaHref(z: string | ZadachkaEntry): string {
+  return url(`/zadachki/${typeof z === 'string' ? z : z.id}/`);
+}
+
+/** The published Задачки that lead to a service (its page lists them). */
+export function zadachkiOfService(service: string | ServiceEntry): ZadachkaEntry[] {
+  const id = typeof service === 'string' ? service : service.id;
+  return zadachki.filter((z) => z.data.service === id);
+}
+
 /* ----------------------------------------------------------- content links */
 
 const CASE_BY_ANCHOR = new Map(caseList.map((c) => [c.data.anchor, c]));
@@ -492,7 +523,7 @@ export function linkSegments(
     const href = l.service
       ? opts.servicesPage
         ? `#${getService(l.service).data.anchor}`
-        : serviceHref(l.service)
+        : servicePageHref(l.service)
       : l.case
         ? isPublished(l.case)
           ? caseHref(l.case)
@@ -516,7 +547,7 @@ function validate(): string[] {
   };
   const codewords = new Set(site.telegram.buttons.map((b) => b.codeword));
 
-  for (const id of ['home', 'services', 'cases', 'products', 'free', 'hire', 'guide', '404']) {
+  for (const id of ['home', 'services', 'cases', 'products', 'free', 'hire', 'guide', 'zadachki', '404']) {
     need(PAGES.has(id), `page "${id}" is missing`);
   }
   for (const b of site.telegram.buttons) {
@@ -584,6 +615,13 @@ function validate(): string[] {
     const at = `cases/${c.id}`;
     need(!!serviceByCodeword(c.data.service), `${at}: unknown service codeword "${c.data.service}"`);
     list(c.data.testimonials, TESTIMONIALS, 'testimonial', `${at}.testimonials`);
+  }
+  for (const z of zadachkaList) {
+    const at = `zadachki/${z.id}`;
+    need(SERVICES.has(z.data.service) && z.data.service !== 'guide', `${at}: unknown or page-less service "${z.data.service}"`);
+    const c = z.data.experience?.case;
+    if (c) need(CASES.has(c) && CASES.get(c)!.data.published !== false, `${at}.experience.case: unknown or unpublished case "${c}"`);
+    need(/^\d{4}-\d{2}-\d{2}$/.test(z.data.date), `${at}: date "${z.data.date}" is not YYYY-MM-DD`);
   }
 
   // Anchors must be unique: cases share /cases/, services share /services/, products share /products/.
