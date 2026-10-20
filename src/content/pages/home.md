@@ -157,8 +157,10 @@ blocks:
     hint: Видео с субтитрами. Нажмите, чтобы посмотреть со звуком.
     items:
     - evgenia
+    - liza
     - sasha
     - nastya
+    - vadim
 - id: about
   type: about
   heading: Обо мне

@@ -8,6 +8,7 @@ loop: assets/testimonials/loops/liza.mp4
 poster: assets/testimonials/posters/liza.jpg
 quote: Команда перевыполняла планы по выпуску курсов. Я всегда знала, что Даня защитит команду
 pages:
+- home
 - services
 - cases
 - hire
