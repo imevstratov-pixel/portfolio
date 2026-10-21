@@ -111,12 +111,13 @@ section 7, docs/lab.md).
 | `npm run preview` | Serves `dist/` (Astro 7 may start it in the background; stop with `npx astro preview stop`) |
 | `npm run check` | `astro check`: TypeScript and template types (0 errors expected) |
 | `npm run check-links` | Every internal href/src/poster in `dist/` resolves, every `#anchor` exists on its page, no link leaves the base, no `/portfolio-v2/` literal in `src/`. Absolute URLs count as internal only for the page's own canonical, og:url and og:image; other links to the same host (sibling sites like `/skrizhal/`) are external. Expected pages: every route (/free/ included), one /cases/<slug>/ per published case in `src/content/cases`, one /services/<slug>/ per service but the guide, and /zadachki/ with one /zadachki/<slug>/ per visible Задачка must be built, /cases/ must link to each case page and keep each case anchor, /services/ must link to each service page, /zadachki/ to each Задачка, and no other page may sit under /cases/. `DIST=<dir>` checks a build made with `--outDir` |
-| `npm run leakcheck` | Greps `dist/` for internal markers (see rules). Legacy files copied from the old site are reported, not failed, for `hidden`/`_note`; `--strict` fails on them too. The client bundles `_astro/*.js` are compiled library code (Motion and Embla use `hidden` as code: `document.hidden`, `overflow: hidden`): in them `hidden` fails only as a content status (`status: "hidden"`), every other marker as anywhere. Fails on any file under `dist/media/` that no generated page references (a screenshot waiting for Daniil's OK must stay outside `public/`). Then runs `tools/prodcheck.mjs` (below) |
+| `npm run leakcheck` | Greps `dist/` for internal markers (see rules). Legacy files copied from the old site are reported, not failed, for `hidden`/`_note`; `--strict` fails on them too. The client bundles `_astro/*.js` are compiled library code (Motion and Embla use `hidden` as code: `document.hidden`, `overflow: hidden`): in them `hidden` fails only as a content status (`status: "hidden"`), every other marker as anywhere. Fails on any file under `dist/media/` that no generated page references (a screenshot waiting for Daniil's OK must stay outside `public/`). Unzips every `*.xlsx` and fails on the content markers or `_source`/`_note` in its XML (`hidden` is ordinary OOXML there). Then runs `tools/prodcheck.mjs` (below) |
 | `node tools/prodcheck.mjs [dist]` | Deploy-mode check, run by `leakcheck` with the same `PREVIEW`, `BASE`, `SITE`. Preview: no `mc.yandex.ru` or `data-metrika` anywhere, a robots `noindex` meta on every HTML page (search-engine verification files `google*.html`, `yandex_*.html` from `public/` excepted), robots.txt `Disallow: /` without a sitemap, no sitemap.xml. Production: the Metrika counter and `data-metrika` on every generated page (the work.html redirect excepted), no robots meta except on 404, legacy files byte-identical to `public/`, robots.txt `Allow: /` with `Sitemap: <site><base>sitemap.xml`, sitemap.xml with every indexable generated page and en/ under `<site><base>`, nothing 404, noindex or redirect, no file carrying the staging comment mode (its marker `comment-mode:v1`, `data-comment-mode`, its chunks, `/issues/new`), and no preview-only /lab/ (no `lab/` page, no `_astro` chunk named after a file of `src/components/lab/` or `src/scripts/lab/`, which hold only what /lab/ alone uses; the home page's canvas islands live in `glyphs/`). Preview also, while `astro.config.mjs` registers `commentMode()`: every generated page (redirects excepted) loads the comment mode, and the chunks it loads later exist. Both: every `public/` file is built (old URLs), canonical and og:url are `<site><base><path>`, og:image is absolute and exists, the old home anchors lead to built pages and existing sections |
 | `npm run shots -- --out shots/x / /services/` | Full-page screenshots at 375, 768, 1280 (`--widths 360,375` to change), reports horizontal overflow. Without routes: every page, the built case, service and Задачки pages too. Uses `/opt/pw-browsers/chromium` (override with `CHROMIUM_PATH`) and its own static server under the base path |
 | `npm run verify` | build, check-links, leakcheck |
 | `npm run content` | Re-run the content export (needs `SITE_CONTENT`) |
 | `node tools/build-guide-pdf.mjs [course\|ai] <guide draft .md>` | Run by hand, not part of the build. One engine (`tools/guide-pdf/engine.mjs`: Markdown to A4 PDF in the site's type system, fonts embedded, contents with page numbers from a second pass, page numbers in the footer, bookmarks, clickable full-URL links with UTM tags, tables kept on one page, cover JPEG of page 1, PDF Info) and one config per guide (`tools/guide-pdf/<guide>.mjs`: cover, checks, own blocks, CSS). Without a guide name it builds `course`, as before. **`ai`** — «AI строит быстро. Как сделать, чтобы он строил то, что нужно» (`public/free/ai-stroit-bystro.pdf` and `-cover.jpg`, UTM `utm_source=ai-guide-pdf`): the cover shows the numbers of techniques, errors and templates counted from the draft, and the build stops when «Что внутри» promises other numbers (techniques, errors, cases, templates, exercises); `**Label.**` paragraphs (Ситуация, Как делаю, Симптом, Задача…) become two-column rows with the label in mono; `#### N.` techniques and «Ошибка / Шаблон / Принцип / Упражнение N.» headings get the number or the tag in mono; ```` ```scheme ```` blocks (id, тип, заголовок, данные, подпись) become black-and-white HTML/CSS figures — плитки, столбики (value at the tip, the longest bar at 70% of the track, a range hatched), цикл (six steps as a loop), лестница, путь (a row up to four steps, a column for more), таблица — and a figure drops its title when it repeats the heading above; ```` ```text ```` blocks (templates) are framed mono boxes; arrows → ← ↑ ↓ ↔ are inline SVG (not in the site's font subsets). New page only before chapters 1, 4, 8 and «Что почитать». **`course`** — Run by hand, not part of the build. Builds the free guide «Как разработать онлайн-курс» for /free/: `public/free/kak-razrabotat-onlajn-kurs.pdf` (A4, black and white, Inter Tight and IBM Plex Mono embedded, colours and font stacks from `tokens.css`; cover, contents with page numbers from a second pass, page numbers in the footer, bookmarks, clickable full-URL links, tables kept on one page, a line ending in «:» or «.» kept with the list or table it introduces, bold labels such as «**Логика программы:**» included, and no list leaving its last item alone at the top of a page; the step counts on the cover are counted from the draft: the numbered h3 steps of «Предпродакшн», the first numbered list of «Продакшн» and of «Постпродакшн», and the build stops unless they add up to `TOTAL_STEPS` (21, the «21 шаг» of pages home, services and free)) and `public/free/kak-razrabotat-onlajn-kurs-cover.jpg` (page 1). Reads only the text before «# Для Даниила» of the draft (kept outside the repository), fails on notes or placeholders left, puts the live address for «[адрес сайта]» and UTM tags (`utm_source=guide-pdf`) on links to the site. Prints pages, size, linked addresses and fonts. Needs `/opt/pw-browsers/chromium` (`CHROMIUM_PATH`) and poppler-utils (`pdfinfo`, `pdffonts`, `pdftoppm`). Commit both files; then check «PDF, N страниц» in `pages/free.md` (the build fails when it differs from the file) |
+| `python3 tools/build-matrix-xlsx.py [slug]` | Run by hand, not part of the build (needs openpyxl and PyYAML, e.g. in a virtualenv). The Excel file of a free competency matrix for 1:1 meetings, from the exported `src/content/matrices/<slug>.md` to `public/free/<slug>.xlsx` (the content's `xlsx.file`): sheet «Как пользоваться» first (which column each step fills and the self-check, the steps, the legend, links to the page and the site with `utm_source=matrix-xlsx`), «Матрица» (a row per skill: number, category, grade, skill, ● key, * another role; the marks of the methodologist and the lead and the result after 1:1 as drop-down lists that reject other values, «вычеркнут» only on * rows as on the page; a comment column; the header row and column A frozen, filter, a closed row in grey, a struck one crossed out; printed landscape one page wide with the header on every page), «Итог» (per grade: items left, closed, needed = `INT((4n+4)/5)`, key items, key items open in this grade and below, regular items open below, «засчитан»; the grade reached, or a prompt while «Итог после 1:1» is empty) by the same rule as the page (`src/lib/matrix.ts`; seven test cases agreed 20.10), «Ключевые пункты» (grade, number, item, what to ask to see; by grade like the page). Commit the file with the content change; leakcheck unzips it and checks its XML |
 | `node tools/og.mjs [card ...] [--out dir \| --to file.png]` | Run by hand, not part of the build. Renders the social preview cards of the preview-only page /lab/og/<card>/ (`src/pages/lab/og/[card].astro`) to 1200×630 PNG: serves a preview `dist/` (`DIST=<dir>` for an `--outDir` build) under `BASE`, Chromium from `/opt/pw-browsers` at one device pixel per CSS pixel with greyscale text antialiasing (`--disable-lcd-text`: no coloured pixels on letter edges), waits until every glyph canvas reports `data-state="ready"`, fails on `failed`, a timeout or a missing card. Default: cards a, b, c into `shots/og/`. The site image: `npm run build` (preview), `node tools/og.mjs a --to public/assets/og-portrait.png`, then `npm run verify` in both modes and commit the PNG with the change |
 
 Environment: `BASE` (default `/portfolio-v2/`), `SITE` (default
@@ -872,6 +873,61 @@ readers hear one short summary in a `role=status` line 600 ms after typing
 stops; without JS a line says the example does not recount. Black and
 white.
 
+
+### Free matrices (`pages/free/[slug].astro`, `components/free/MatrixChecker.astro`)
+
+/free/<slug>/ is a free competency matrix of the `matrices` collection (the
+first one, «Матрица компетенций методиста онлайн-курсов», idea of Daniil of
+20.10.2026: his own skills table reworked against the market). The page: «Все
+материалы», the label «Бесплатно · Матрица», the h1, the lead, the date, the
+author and the version; rows like a Задачка (the title left and sticky from
+1080px, the text right at 72ch): «Для кого» (`usesIntro`, `uses`, `self`,
+`learnerNote`), «Чем отличаются грейды» (three cards and `gradesNote`), «Как
+пользоваться» (numbered `steps` with their items and `after`, then
+`howAfter`; a step whose text starts lowercase continues its bold title as
+one sentence, «Отметьте сами по тем же правилам…», any other text follows a
+full stop); the matrix over the full width; rows again: the key items and
+what to ask to see (a table from the key skills' `short` and `evidence`, by
+grade and then in the matrix order), what a general matrix does not cover,
+the custom version and how
+the matrix was made (`custom` and `made`: paragraphs with links through
+`LinkedText`, here the consultation and the cases `ai-competency-model` and
+`staff-c6`); the short contact block of pages/free.md. JSON-LD Article and
+BreadcrumbList (Главная, Бесплатно, the matrix).
+
+`MatrixChecker`: a grade filter (Все грейды, Junior, Middle, Senior: square
+segmented buttons, the chosen one inverted; it hides the other grades'
+groups and categories with none of the shown grade), the legend (● key, *
+another role), then by category and grade every skill with a square checkbox
+(the calculator's style), its number in mono, ● and * with screen-reader
+words; a * item has «Вычеркнуть» (aria-pressed; only * items can be struck
+out, as in the Excel file): struck through, its checkbox off and drawn
+empty even when ticked, out of the count. The summary counts each grade by
+`src/lib/matrix.ts` (`gradeState`: all key items of the grade and below
+closed, at least 80% of the grade's items left after striking out, rounded
+up, at most two regular items of the grades below open; `missingFor` names
+what the next grade lacks) and shows the grade reached, per grade «N из M,
+нужно K» with the key items and «засчитан» on one compact line, what is
+missing for the next grade,
+«Скачать Excel» (the file's size as the second line, goal `download`) and
+«Сбросить отметки» (it asks to confirm when anything is marked), «Отметки
+сохраняются только в этом браузере.» From 1080px wide and 760px tall the
+summary stands right of the list and sticks under the header (no taller than
+the window, it scrolls inside); otherwise it stands above the list, and below
+1080px a black line with the result sticks to the bottom while the list
+scrolls (the boxes keep a bottom scroll margin so keyboard focus is not
+hidden under it). Marks stay in this browser (localStorage
+`matrix:<slug>:v1`, try/catch; a saved strike counts only for a * item);
+without JS the boxes tick, the filter, «Вычеркнуть» and «Сбросить отметки»
+are hidden and a line says the count needs JavaScript; one role=status line
+600 ms after the last change, silent on page load; in forced colors the
+chosen filter segment is drawn in Highlight.
+
+On /free/ a matrix is an item with `page` and `pageLabel` («Открыть
+матрицу», the main button) and the Excel `file` as the second, outlined
+download button; `coverArt: matrix` draws the cover in HTML (three grade
+columns of ticked and empty bars on a framed sheet; its top row clears the
+«new» sticker).
 ### NewBadge (`components/NewBadge.astro`)
 
 ```astro
@@ -1277,6 +1333,25 @@ subject. `template.madeBy` says the
 illustrations are generated. The body: h2 sections in Daniil's words (format:
 site-plan/zadachki/FORMAT.md in the planning folder). pages/zadachki.md holds
 the hub blocks and `template` (the labels and lines of the page frame).
+
+### 5.6a matrices (`matrices`)
+
+One file per free competency matrix, /free/<slug>/ (slug = file name):
+`title` (h1), `seo { title, description }`, `date`, `version`, `lead`,
+`usesIntro`, `uses[]`, `self`, `learnerNote`, `gradesHeading`, `grades[3] {
+name, text }`, `gradesNote`, `howHeading`, `steps[] { title, text, items?,
+after? }`, `howAfter[]`, `matrixHeading`, `legend { star, key }`,
+`categories[] { id, title, skills[] { id («1.3», numbered under the category),
+grade (junior | middle | senior), text, key?, star?, short? and evidence?
+(both required for a key item) } }`, `keyHeading`, `notCoveredHeading`,
+`notCovered[]`, `custom` and `made` (`heading`, `paragraphs[] { text, links[]
+}`), `xlsx { file, label }`, `visible`. The build fails on a repeated skill
+id, a skill numbered under another category, an item both key and *, a key
+item without `short` or `evidence`, a grade without a key item, a link to an
+unknown case. In the annotated source each skill keeps `_source` (where the
+item comes from: Daniil's own table or a market research file); the research
+is in site-plan/matrix/ of the planning folder, the source table stays out of
+the repositories.
 
 ### 5.7 testimonials (5)
 

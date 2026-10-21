@@ -13,6 +13,7 @@ export type ServiceEntry = CollectionEntry<'services'>;
 export type ProductEntry = CollectionEntry<'products'>;
 export type TestimonialEntry = CollectionEntry<'testimonials'>;
 export type ZadachkaEntry = CollectionEntry<'zadachki'>;
+export type MatrixEntry = CollectionEntry<'matrices'>;
 export type SiteData = CollectionEntry<'site'>['data'];
 
 /** A page block. Its fields depend on `type`; see docs/components.md. */
@@ -20,7 +21,7 @@ export type Block = { id: string; type: string; anchor?: string; [key: string]: 
 export type PageData = PageEntry['data'] & { blocks: Block[]; [key: string]: any };
 export type PageId = 'home' | 'services' | 'cases' | 'products' | 'free' | 'hire' | 'guide' | 'zadachki' | '404';
 
-const [pageList, siteList, caseList, serviceList, productList, testimonialList, zadachkaList] = await Promise.all([
+const [pageList, siteList, caseList, serviceList, productList, testimonialList, zadachkaList, matrixList] = await Promise.all([
   getCollection('pages'),
   getCollection('site'),
   getCollection('cases'),
@@ -28,6 +29,7 @@ const [pageList, siteList, caseList, serviceList, productList, testimonialList, 
   getCollection('products'),
   getCollection('testimonials'),
   getCollection('zadachki'),
+  getCollection('matrices'),
 ]);
 
 const byId = <T extends { id: string }>(list: T[]) => new Map(list.map((e) => [e.id, e]));
@@ -479,6 +481,16 @@ export function zadachkiOfService(service: string | ServiceEntry): ZadachkaEntry
   return zadachki.filter((z) => z.data.service === id);
 }
 
+/* ---------------------------------------------------------------- matrices */
+
+/** The published free competency matrices (/free/<slug>/). */
+export const matrices: MatrixEntry[] = matrixList.filter((m) => m.data.visible !== false);
+
+/** /free/<slug>/ */
+export function matrixHref(m: string | MatrixEntry): string {
+  return url(`/free/${typeof m === 'string' ? m : m.id}/`);
+}
+
 /* ----------------------------------------------------------- content links */
 
 const CASE_BY_ANCHOR = new Map(caseList.map((c) => [c.data.anchor, c]));
@@ -622,6 +634,21 @@ function validate(): string[] {
     const c = z.data.experience?.case;
     if (c) need(CASES.has(c) && CASES.get(c)!.data.published !== false, `${at}.experience.case: unknown or unpublished case "${c}"`);
     need(/^\d{4}-\d{2}-\d{2}$/.test(z.data.date), `${at}: date "${z.data.date}" is not YYYY-MM-DD`);
+  }
+  for (const m of matrixList) {
+    const at = `matrices/${m.id}`;
+    const ids = new Set<string>();
+    for (const c of m.data.categories)
+      for (const s of c.skills) {
+        need(!ids.has(s.id), `${at}: skill id "${s.id}" used twice`);
+        ids.add(s.id);
+        need(s.id.startsWith(`${c.id}.`), `${at}: skill "${s.id}" is not numbered under category ${c.id}`);
+        need(!(s.key && s.star), `${at}: skill "${s.id}" is both key and another role's (*)`);
+        if (s.key) need(!!s.short && !!s.evidence, `${at}: key skill "${s.id}" needs "short" and "evidence"`);
+      }
+    for (const g of ['junior', 'middle', 'senior'])
+      need(m.data.categories.some((c) => c.skills.some((s) => s.grade === g && s.key)), `${at}: no key skill in ${g}`);
+    for (const p of [...m.data.custom.paragraphs, ...m.data.made.paragraphs]) list(p.links.filter((l) => l.case).map((l) => l.case!), CASES, 'case', `${at}.links`);
   }
 
   // Anchors must be unique: cases share /cases/, services share /services/, products share /products/.

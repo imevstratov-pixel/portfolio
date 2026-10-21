@@ -1,0 +1,621 @@
+---
+// The interactive matrix of a free competency matrix page (/free/<slug>/):
+// every skill with a square checkbox, by category and grade; a grade filter
+// (Все грейды, Junior, Middle, Senior); another role's items (*) can be
+// struck out with «Вычеркнуть» (then they leave the count); the summary
+// counts each grade by the rule of src/lib/matrix.ts (key items, 80%, at most
+// two regular items open below) and names the grade and what is missing for
+// the next one. From 1080px the summary stands beside the list and, when the
+// window is at least 760px tall, sticks under the header (the result and the
+// grade rows first, the buttons under them; it scrolls inside itself if it
+// still does not fit); below 1080px it stands above the list, and a one-line
+// result sticks to the bottom of the screen while the list scrolls (focused
+// boxes keep clear of it).
+//
+// Marks stay in this browser (localStorage, wrapped in try/catch; the page
+// works without it; only * items can be stored as struck). Without JS the
+// checkboxes still tick, the filter and the buttons are not shown, and a line
+// says the count needs JavaScript. Screen readers hear one short line in a
+// role=status 600 ms after a change (not on load). «Сбросить отметки» asks
+// first when something is ticked.
+//
+//   <MatrixChecker id="matritsa-kompetentsij-metodista" matrix={entry.data} />
+import { GRADES, GRADE_NAME, gradeState, type MatrixSkill } from '../../lib/matrix';
+import { url } from '../../lib/url';
+import { fileSize, formatSize } from '../../lib/media';
+import type { MatrixEntry } from '../../lib/content';
+
+interface Props {
+  id: string;
+  matrix: MatrixEntry['data'];
+}
+
+const { id, matrix: m } = Astro.props;
+const skills: MatrixSkill[] = m.categories.flatMap((c) => c.skills.map((s) => ({ id: s.id, grade: s.grade, key: s.key, star: s.star })));
+const empty = gradeState(skills, new Set(), new Set());
+const xlsxName = m.xlsx.file.split('/').pop();
+const xlsxSize = formatSize(fileSize(m.xlsx.file));
+const fid = (s: string) => `${id}-${s.replace(/\./g, '-')}`;
+---
+
+<div class="mx" data-matrix={id} data-skills={JSON.stringify(skills)} data-show="all">
+  <div class="mx__bar">
+    <fieldset class="mx__filter">
+      <legend class="label">Показать</legend>
+      <div class="mx__filter-options">
+        <label><input type="radio" name={`${id}-show`} value="all" checked /> <span>Все грейды</span></label>
+        {
+          GRADES.map((g) => (
+            <label>
+              <input type="radio" name={`${id}-show`} value={g} /> <span>{GRADE_NAME[g]}</span>
+            </label>
+          ))
+        }
+      </div>
+    </fieldset>
+    <p class="mx__legend">
+      <span><span class="mx__key" aria-hidden="true">●</span> {m.legend.key}</span>
+      <span><span class="mx__star" aria-hidden="true">*</span> {m.legend.star}</span>
+    </p>
+  </div>
+
+  <div class="mx__grid">
+    <aside class="mx__sum" aria-labelledby={`${id}-sum`}>
+      <h3 id={`${id}-sum`} class="label">Итог по отметкам</h3>
+      <p class="mx__result" data-out="result">Отметьте пункты, которые методист умеет и может показать на примере.</p>
+      <dl class="mx__grades">
+        {
+          empty.grades.map((g) => (
+            <div class="mx__grade-row" data-grade-row={g.grade}>
+              <dt>{GRADE_NAME[g.grade]}</dt>
+              <dd>
+                <span data-out={`${g.grade}-count`}>
+                  {g.closed} из {g.total}, нужно {g.need}
+                </span>
+                <span class="mx__grade-meta">
+                  <span data-out={`${g.grade}-keys`}>
+                    ключевые {g.keysClosed} из {g.keys}
+                  </span>
+                  {' · '}
+                  <span class="mx__grade-status" data-out={`${g.grade}-status`}>
+                    не засчитан
+                  </span>
+                </span>
+              </dd>
+            </div>
+          ))
+        }
+      </dl>
+      <p class="mx__next" data-out="next"></p>
+      <p class="mx__nojs">Подсчёт грейда работает с включённым JavaScript.</p>
+      <div class="mx__actions">
+        <a class="btn btn--primary" href={url(m.xlsx.file)} download={xlsxName} data-goal="download">
+          <span class="btn__label">{m.xlsx.label}</span>
+          <span class="btn__caption">{xlsxSize}</span>
+        </a>
+        <button type="button" class="btn mx__reset" data-reset>Сбросить отметки</button>
+      </div>
+      <p class="mx__privacy">Отметки сохраняются только в этом браузере.</p>
+    </aside>
+
+    <div class="mx__list">
+      {
+        m.categories.map((c) => (
+          <section class="mx__cat" aria-labelledby={`${id}-cat-${c.id}`}>
+            <h3 id={`${id}-cat-${c.id}`} class="mx__cat-title">
+              {c.id}. {c.title}
+            </h3>
+            {GRADES.map((g) => {
+              const list = c.skills.filter((s) => s.grade === g);
+              return (
+                list.length > 0 && (
+                  <div class="mx__group" data-grade={g}>
+                    <p class="label mx__grade" id={`${id}-cat-${c.id}-${g}`}>
+                      {GRADE_NAME[g]}
+                    </p>
+                    <ul class="mx__skills" role="list" aria-labelledby={`${id}-cat-${c.id} ${id}-cat-${c.id}-${g}`}>
+                      {list.map((s) => (
+                        <li class="mx__skill" data-id={s.id}>
+                          <input type="checkbox" id={fid(s.id)} value={s.id} />
+                          <label for={fid(s.id)}>
+                            <span class="mx__id">{s.id}.</span> {s.text}
+                            {s.key && (
+                              <span class="mx__mark">
+                                <span class="mx__key" aria-hidden="true">
+                                  ●
+                                </span>
+                                <span class="sr-only">ключевой пункт</span>
+                              </span>
+                            )}
+                            {s.star && (
+                              <span class="mx__mark">
+                                <span class="mx__star" aria-hidden="true">
+                                  *
+                                </span>
+                                <span class="sr-only">в части команд делает другая роль</span>
+                              </span>
+                            )}
+                          </label>
+                          {s.star && (
+                            <button type="button" class="mx__strike" data-strike={s.id} aria-pressed="false" aria-label={`Вычеркнуть пункт ${s.id}: его делает другая роль`}>
+                              Вычеркнуть
+                            </button>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )
+              );
+            })}
+          </section>
+        ))
+      }
+      <p class="mx__mini" aria-hidden="true" data-out="mini">Отметьте пункты: итог над списком</p>
+    </div>
+  </div>
+  <p class="sr-only" role="status" data-out="status"></p>
+</div>
+
+<script>
+  import { GRADE_NAME, gradeState, missingFor, plural, type Grade, type MatrixSkill } from '../../lib/matrix';
+
+  for (const root of document.querySelectorAll<HTMLElement>('.mx[data-matrix]')) {
+    const id = root.dataset.matrix!;
+    const skills: MatrixSkill[] = JSON.parse(root.dataset.skills || '[]');
+    const storeKey = `matrix:${id}:v1`;
+    const boxes = new Map<string, HTMLInputElement>();
+    for (const b of root.querySelectorAll<HTMLInputElement>('.mx__skill input[type=checkbox]')) boxes.set(b.value, b);
+    const strikes = [...root.querySelectorAll<HTMLButtonElement>('[data-strike]')];
+    const struck = new Set<string>();
+    const out = (name: string, text: string) => {
+      const el = root.querySelector<HTMLElement>(`[data-out="${name}"]`);
+      if (el && el.textContent !== text) el.textContent = text;
+    };
+
+    // restore the marks of this browser (a convenience: any failure leaves the page empty)
+    try {
+      const saved = JSON.parse(localStorage.getItem(storeKey) || 'null');
+      if (saved && Array.isArray(saved.checked))
+        for (const s of saved.checked) {
+          const b = boxes.get(s);
+          if (b) b.checked = true;
+        }
+      const stars = new Set(skills.filter((k) => k.star).map((k) => k.id));
+      if (saved && Array.isArray(saved.struck)) for (const s of saved.struck) if (stars.has(s)) struck.add(s);
+    } catch {
+      /* no storage: start empty */
+    }
+
+    const save = () => {
+      try {
+        const checked = [...boxes].filter(([, b]) => b.checked).map(([s]) => s);
+        localStorage.setItem(storeKey, JSON.stringify({ checked, struck: [...struck] }));
+      } catch {
+        /* no storage */
+      }
+    };
+
+    let timer = 0;
+    const recount = (announce = true) => {
+      for (const btn of strikes) {
+        const s = btn.dataset.strike!;
+        const on = struck.has(s);
+        btn.setAttribute('aria-pressed', String(on));
+        btn.closest('.mx__skill')?.classList.toggle('is-struck', on);
+        const b = boxes.get(s);
+        if (b) b.disabled = on;
+      }
+      const checked = new Set([...boxes].filter(([s, b]) => b.checked && !struck.has(s)).map(([s]) => s));
+      const st = gradeState(skills, checked, struck);
+      for (const g of st.grades) {
+        out(`${g.grade}-count`, `${g.closed} из ${g.total}, нужно ${g.need}`);
+        out(`${g.grade}-keys`, `ключевые ${g.keysClosed} из ${g.keys}`);
+        out(`${g.grade}-status`, g.counted ? 'засчитан' : 'не засчитан');
+        root.querySelector(`[data-grade-row="${g.grade}"]`)?.classList.toggle('is-counted', g.counted);
+      }
+      const any = checked.size > 0;
+      const result = st.result
+        ? `Грейд по отметкам: ${GRADE_NAME[st.result]}.`
+        : any
+          ? 'Junior пока не засчитан: это уровень стажёра или ассистента.'
+          : 'Отметьте пункты, которые методист умеет и может показать на примере.';
+      out('result', result);
+      const missing = st.next ? missingFor(st.next) : [];
+      out('next', st.next && any ? `Чтобы засчитать ${GRADE_NAME[st.next.grade]}, закройте ${missing.join('; ')}.` : st.result === 'senior' ? 'Засчитаны все три грейда.' : '');
+      const total = skills.length - struck.size;
+      out('mini', any ? `${st.result ? GRADE_NAME[st.result] : 'Грейд не засчитан'} · отмечено ${checked.size} из ${total}` : 'Отметьте пункты: итог над списком');
+      if (!announce) return;
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => out('status', `${result} Отмечено ${checked.size} ${plural(checked.size, 'пункт', 'пункта', 'пунктов')} из ${total}.`), 600);
+    };
+
+    root.addEventListener('change', (e) => {
+      const t = e.target as HTMLInputElement;
+      if (t.type === 'radio') {
+        root.dataset.show = t.value as Grade | 'all';
+        return;
+      }
+      if (t.type === 'checkbox') {
+        save();
+        recount();
+      }
+    });
+    for (const btn of strikes)
+      btn.addEventListener('click', () => {
+        const s = btn.dataset.strike!;
+        if (struck.has(s)) struck.delete(s);
+        else struck.add(s);
+        save();
+        recount();
+      });
+    root.querySelector('[data-reset]')?.addEventListener('click', () => {
+      const any = [...boxes.values()].some((b) => b.checked) || struck.size > 0;
+      if (any && !window.confirm('Сбросить все отметки на этой странице?')) return;
+      for (const b of boxes.values()) b.checked = false;
+      struck.clear();
+      save();
+      recount();
+    });
+    // the browser may restore the chosen filter on back/forward: follow it
+    root.dataset.show = root.querySelector<HTMLInputElement>('.mx__filter input:checked')?.value ?? 'all';
+    root.dataset.ready = '';
+    recount(false);
+  }
+</script>
+
+<style>
+  .mx {
+    display: grid;
+    gap: var(--s3);
+  }
+
+  .mx__bar {
+    display: grid;
+    gap: var(--s2);
+  }
+
+  .mx__filter {
+    border: 0;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: var(--s1);
+  }
+
+  .mx__filter-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  /* the grade filter: square segmented buttons, the chosen one inverted */
+  .mx__filter label {
+    position: relative;
+    cursor: pointer;
+  }
+
+  .mx__filter input {
+    position: absolute;
+    opacity: 0;
+    inset: 0;
+    margin: 0;
+    cursor: pointer;
+  }
+
+  .mx__filter label span {
+    display: inline-block;
+    padding: 0.4rem 0.8rem;
+    border: var(--line);
+    font-size: 0.9375rem;
+  }
+
+  .mx__filter input:checked + span {
+    background: var(--ink);
+    color: var(--paper);
+  }
+
+  .mx__filter input:focus-visible + span {
+    outline: 2px solid var(--ink);
+    outline-offset: 2px;
+  }
+
+  @media (forced-colors: active) {
+    .mx__filter input:checked + span {
+      forced-color-adjust: none;
+      background: Highlight;
+      color: HighlightText;
+    }
+  }
+
+  .mx__legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem var(--s3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-small);
+    line-height: var(--lh-small);
+  }
+
+  .mx__key,
+  .mx__star {
+    font-family: var(--font-sans);
+    font-weight: var(--bold);
+  }
+
+  .mx__grid {
+    display: grid;
+    gap: var(--s3);
+    align-items: start;
+  }
+
+  /* the summary */
+  .mx__sum {
+    display: grid;
+    gap: var(--s2);
+    padding: var(--s2);
+    border: var(--line);
+    background: var(--paper);
+  }
+
+  .mx__result {
+    font-size: var(--fs-medium);
+    font-weight: var(--bold);
+    line-height: var(--lh-medium);
+    letter-spacing: var(--track-medium);
+  }
+
+  .mx__grades {
+    display: grid;
+    margin: 0;
+  }
+
+  .mx__grade-row {
+    display: grid;
+    grid-template-columns: 5rem minmax(0, 1fr);
+    gap: var(--s1);
+    padding: 0.5rem 0;
+    border-top: var(--hair);
+  }
+
+  .mx__grade-row dt {
+    font-weight: var(--bold);
+  }
+
+  .mx__grade-row dd {
+    margin: 0;
+    display: grid;
+    gap: 0.1rem;
+    font-size: 0.9375rem;
+  }
+
+  .mx__grade-meta {
+    font-family: var(--font-mono);
+    font-size: var(--fs-small);
+    color: var(--muted);
+  }
+
+  .mx__grade-row.is-counted .mx__grade-status {
+    color: var(--ink);
+    font-weight: var(--bold);
+  }
+
+  .mx__next,
+  .mx__privacy,
+  .mx__nojs {
+    font-size: 0.9375rem;
+    line-height: 1.4;
+  }
+
+  .mx__privacy,
+  .mx__nojs {
+    font-family: var(--font-mono);
+    font-size: var(--fs-small);
+    line-height: var(--lh-small);
+    color: var(--muted);
+  }
+
+  .mx[data-ready] .mx__nojs {
+    display: none;
+  }
+
+  /* without JS the filter and the buttons would do nothing */
+  .mx:not([data-ready]) :is(.mx__filter, .mx__strike, .mx__reset) {
+    display: none;
+  }
+
+  .mx__next:empty {
+    display: none;
+  }
+
+  .mx__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s1);
+    align-items: stretch;
+  }
+
+  /* the list */
+  .mx__list {
+    display: grid;
+    gap: var(--s4);
+    min-width: 0;
+  }
+
+  .mx__cat {
+    display: grid;
+    gap: var(--s2);
+    border-top: var(--line);
+    padding-top: var(--s2);
+  }
+
+  .mx__cat-title {
+    font-size: var(--fs-medium);
+    line-height: var(--lh-medium);
+    letter-spacing: var(--track-medium);
+  }
+
+  .mx__group {
+    display: grid;
+    gap: var(--s1);
+  }
+
+  .mx[data-show='junior'] .mx__group:not([data-grade='junior']),
+  .mx[data-show='middle'] .mx__group:not([data-grade='middle']),
+  .mx[data-show='senior'] .mx__group:not([data-grade='senior']) {
+    display: none;
+  }
+
+  /* a category with nothing of the shown grade */
+  .mx[data-show='junior'] .mx__cat:not(:has([data-grade='junior'])),
+  .mx[data-show='middle'] .mx__cat:not(:has([data-grade='middle'])),
+  .mx[data-show='senior'] .mx__cat:not(:has([data-grade='senior'])) {
+    display: none;
+  }
+
+  .mx__skills {
+    display: grid;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .mx__skill {
+    display: grid;
+    grid-template-columns: 1.4rem minmax(0, 1fr);
+    gap: 0.25rem var(--s1);
+    align-items: start;
+    padding: 0.6rem 0;
+    border-top: var(--hair);
+  }
+
+  .mx__skill label {
+    line-height: 1.45;
+    cursor: pointer;
+  }
+
+  .mx__id {
+    font-family: var(--font-mono);
+    font-size: var(--fs-small);
+    color: var(--muted);
+  }
+
+  .mx__mark {
+    margin-left: 0.25rem;
+  }
+
+  .mx__strike {
+    grid-column: 2;
+    justify-self: start;
+    padding: 0.15rem 0.5rem;
+    border: var(--hair);
+    background: var(--paper);
+    color: var(--ink);
+    font: inherit;
+    font-family: var(--font-mono);
+    font-size: var(--fs-small);
+    cursor: pointer;
+  }
+
+  .mx__strike[aria-pressed='true'] {
+    background: var(--ink);
+    color: var(--paper);
+    border-color: var(--ink);
+  }
+
+  .mx__skill.is-struck label {
+    text-decoration: line-through;
+    color: var(--muted);
+  }
+
+  .mx__skill input[type='checkbox'] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 1.1rem;
+    height: 1.1rem;
+    margin: 0.2rem 0 0;
+    border: var(--line);
+    border-radius: 0;
+    background: var(--paper);
+    cursor: pointer;
+  }
+
+  .mx__skill input[type='checkbox']:checked {
+    background: var(--ink);
+    box-shadow: inset 0 0 0 3px var(--paper);
+  }
+
+  .mx__skill input[type='checkbox']:disabled {
+    border-color: var(--rule);
+    cursor: default;
+  }
+
+  /* a struck item is out of the count: its box looks empty even if ticked */
+  .mx__skill.is-struck input[type='checkbox']:checked {
+    background: var(--paper);
+    box-shadow: none;
+  }
+
+  @media (forced-colors: active) {
+    .mx__skill input[type='checkbox'] {
+      appearance: auto;
+      -webkit-appearance: auto;
+    }
+  }
+
+  /* phones and tablets: the result sticks to the bottom while the list scrolls */
+  .mx__mini {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    padding: 0.6rem var(--s2);
+    background: var(--ink);
+    color: var(--paper);
+    font-size: 0.9375rem;
+    font-weight: var(--bold);
+  }
+
+  .mx:not([data-ready]) .mx__mini {
+    display: none;
+  }
+
+  /* a box or button reached by Tab stays clear of the sticky line */
+  @media (max-width: 1079.98px) {
+    .mx__skill :is(input, .mx__strike) {
+      scroll-margin-bottom: 4.5rem;
+    }
+  }
+
+  @media (min-width: 1080px) {
+    .mx__grid {
+      grid-template-columns: minmax(0, 1fr) 20rem;
+      column-gap: var(--gap);
+    }
+
+    .mx__list {
+      grid-column: 1;
+      grid-row: 1;
+    }
+
+    .mx__sum {
+      grid-column: 2;
+      grid-row: 1;
+    }
+
+    .mx__mini {
+      display: none;
+    }
+  }
+
+  /* sticky only where it fits: a laptop window of 1366×768 leaves about
+     650px under the browser bars; inside it scrolls if a long «Чтобы
+     засчитать…» line still makes it taller */
+  @media (min-width: 1080px) and (min-height: 760px) {
+    .mx__sum {
+      position: sticky;
+      top: calc(var(--header-h) + var(--s2));
+      max-height: calc(100dvh - var(--header-h) - 2 * var(--s2));
+      overflow-y: auto;
+    }
+  }
+</style>

@@ -1,7 +1,7 @@
 // Content collections. The files in src/content are produced by the export
 // script (see docs/components.md) and are never edited by hand.
 //
-// Typed collections (cases, services, products, testimonials, zadachki) describe the
+// Typed collections (cases, services, products, testimonials, zadachki, matrices) describe the
 // fields the components read; unknown extra fields are kept (loose objects),
 // so a new field in the content does not silently disappear.
 // pages and site vary per page, so only their common skeleton is typed.
@@ -310,4 +310,60 @@ const zadachki = defineCollection({
   }),
 });
 
-export const collections = { pages, site, cases, services, products, testimonials, zadachki };
+// A free competency matrix on /free/<slug>/ (slug = file name): skills by
+// category and grade, each one observable action checked yes/no; `key`
+// items are required for the grade, `star` items may belong to another role
+// in a team (struck out before counting). Prose around it (grades, how to
+// use, what it does not cover, the custom version, how it was made) is data
+// too, so links go through LinkedText. The Excel file for 1:1 meetings is
+// built from the same file (tools/build-matrix-xlsx.py).
+const textLink = z.looseObject({ label: str, service: optStr, case: optStr, href: optStr });
+const linkedPara = z.looseObject({ text: str, links: z.array(textLink).default([]) });
+const matrices = defineCollection({
+  loader: loader('matrices'),
+  schema: z.looseObject({
+    title: str,
+    seo: z.looseObject({ title: str, description: str }),
+    date: str,
+    version: optStr,
+    lead: str,
+    usesIntro: optStr,
+    uses: z.array(str).default([]),
+    self: optStr,
+    learnerNote: optStr,
+    gradesHeading: str,
+    grades: z.array(z.looseObject({ name: str, text: str })).length(3),
+    gradesNote: optStr,
+    howHeading: str,
+    steps: z.array(z.looseObject({ title: str, text: str, items: z.array(str).optional(), after: optStr })),
+    howAfter: z.array(str).default([]),
+    matrixHeading: str,
+    legend: z.looseObject({ star: str, key: str }),
+    categories: z.array(
+      z.looseObject({
+        id: str,
+        title: str,
+        skills: z.array(
+          z.looseObject({
+            id: str,
+            grade: z.enum(['junior', 'middle', 'senior']),
+            text: str,
+            key: z.boolean().optional(),
+            star: z.boolean().optional(),
+            short: optStr, // key items: a short name for the evidence table
+            evidence: optStr, // key items: what to ask to see
+          }),
+        ),
+      }),
+    ),
+    keyHeading: str,
+    notCoveredHeading: str,
+    notCovered: z.array(str).default([]),
+    custom: z.looseObject({ heading: str, paragraphs: z.array(linkedPara) }),
+    made: z.looseObject({ heading: str, paragraphs: z.array(linkedPara) }),
+    xlsx: z.looseObject({ file: str, label: str }),
+    visible: z.boolean().default(true),
+  }),
+});
+
+export const collections = { pages, site, cases, services, products, testimonials, zadachki, matrices };

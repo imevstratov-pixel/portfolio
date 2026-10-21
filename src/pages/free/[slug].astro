@@ -1,0 +1,382 @@
+---
+// /free/<slug>/: a free competency matrix (the matrices collection; the
+// first one: «Матрица компетенций методиста онлайн-курсов», idea of Daniil of
+// 20.10.2026, built from his own skills table and a market review). «Все
+// материалы» back to /free/, the label, the h1, the lead and the date; rows
+// (the row title left from 1080px, sticky; the text right): who it is for,
+// how the grades differ, how to use it; then the interactive matrix over the
+// full width (MatrixChecker: tick the skills, the grade is counted on the
+// page, «Скачать Excel» for 1:1 meetings); then rows again: the key items and
+// what to ask to see (a table), what a general matrix does not cover, the
+// custom version (linked to the competency model of the consultation) and how
+// the matrix was made (linked to the Eduson Academy case). The short contact
+// block of pages/free.md closes the page. JSON-LD: Article with the author,
+// BreadcrumbList.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ContactShort from '../../components/ContactShort.astro';
+import LinkedText from '../../components/LinkedText.astro';
+import MatrixChecker from '../../components/free/MatrixChecker.astro';
+import { findBlock, getPage, matrices, matrixHref, site, type MatrixEntry } from '../../lib/content';
+import { GRADES, GRADE_NAME } from '../../lib/matrix';
+import { url } from '../../lib/url';
+
+export function getStaticPaths() {
+  return matrices.map((m) => ({ params: { slug: m.id }, props: { entry: m } }));
+}
+
+interface Props {
+  entry: MatrixEntry;
+}
+
+const { entry } = Astro.props;
+const d = entry.data;
+const page = getPage('free');
+const contact = findBlock(page, 'contact');
+const where = `matrices/${entry.id}`;
+// the key items by grade, then in the order of the matrix
+const keyItems = d.categories
+  .flatMap((c) => c.skills.filter((s) => s.key))
+  .map((s, i) => ({ s, i }))
+  .sort((a, b) => GRADES.indexOf(a.s.grade) - GRADES.indexOf(b.s.grade) || a.i - b.i)
+  .map((x) => x.s);
+// «Отметьте сами по тем же правилам…»: a step whose text starts lowercase
+// continues its title as one sentence; any other text follows a full stop
+const joins = (text: string) => /^\p{Ll}/u.test(text);
+
+const MONTHS = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+const [y, mo, day] = d.date.split('-').map(Number);
+const dateText = `${day} ${MONTHS[mo - 1]} ${y}`;
+
+const abs = (path: string) => new URL(path, Astro.site).href;
+const pageUrl = abs(matrixHref(entry));
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: d.title,
+    description: d.seo.description,
+    inLanguage: 'ru',
+    datePublished: d.date,
+    url: pageUrl,
+    mainEntityOfPage: pageUrl,
+    author: { '@type': 'Person', name: site.site.name, url: abs(url('/hire/')) },
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Главная', item: abs(url('/')) },
+      { '@type': 'ListItem', position: 2, name: 'Бесплатно', item: abs(url('/free/')) },
+      { '@type': 'ListItem', position: 3, name: d.title, item: pageUrl },
+    ],
+  },
+];
+const ld = JSON.stringify(jsonLd).replace(/</g, '\\u003c');
+---
+
+<BaseLayout page={page} title={d.seo.title} description={d.seo.description} current="/free/">
+  <script is:inline type="application/ld+json" slot="head" set:html={ld} />
+  <article class="mxp" aria-labelledby="mxp-title">
+    <div class="wrap">
+      <p class="mxp__back">
+        <a href={url('/free/')}>Все материалы</a>
+      </p>
+
+      <header class="mxp__head">
+        <p class="label">Бесплатно · Матрица</p>
+        <h1 id="mxp-title" class="mxp__title t-large">{d.title}</h1>
+        <p class="mxp__lead">{d.lead}</p>
+        <p class="mxp__meta label">
+          <time datetime={d.date}>{dateText}</time> · <a href={url('/hire/')}>{site.site.name}</a>
+          {d.version && <> · {d.version.replace(/\.$/, '')}</>}
+        </p>
+      </header>
+
+      <section class="mxp-row" aria-labelledby="mxp-for">
+        <h2 id="mxp-for" class="mxp-row__title t-medium">Для кого</h2>
+        <div class="mxp-row__body">
+          {d.usesIntro && <p>{d.usesIntro}</p>}
+          {
+            d.uses.length > 0 && (
+              <ul class="list-dash" role="list">
+                {d.uses.map((u) => (
+                  <li>{u}</li>
+                ))}
+              </ul>
+            )
+          }
+          {d.self && <p>{d.self}</p>}
+          {d.learnerNote && <p class="mxp__small">{d.learnerNote}</p>}
+        </div>
+      </section>
+
+      <section class="mxp-row" aria-labelledby="mxp-grades">
+        <h2 id="mxp-grades" class="mxp-row__title t-medium">{d.gradesHeading}</h2>
+        <div class="mxp-row__body">
+          <ul class="mxp__grades" role="list">
+            {
+              d.grades.map((g) => (
+                <li class="mxp__grade">
+                  <p class="mxp__grade-name">{g.name}</p>
+                  <p>{g.text}</p>
+                </li>
+              ))
+            }
+          </ul>
+          {d.gradesNote && <p>{d.gradesNote}</p>}
+        </div>
+      </section>
+
+      <section class="mxp-row" aria-labelledby="mxp-how">
+        <h2 id="mxp-how" class="mxp-row__title t-medium">{d.howHeading}</h2>
+        <div class="mxp-row__body">
+          <ol class="mxp__steps" role="list">
+            {
+              d.steps.map((s, i) => (
+                <li class="mxp__step">
+                  <span class="mxp__step-n" aria-hidden="true">
+                    {i + 1}
+                  </span>
+                  <div class="mxp__step-body">
+                    <p>
+                      <strong>{`${s.title}${joins(s.text) ? '' : '.'}`}</strong> {s.text}
+                    </p>
+                    {s.items && (
+                      <ul class="list-dash" role="list">
+                        {s.items.map((x) => (
+                          <li>{x}</li>
+                        ))}
+                      </ul>
+                    )}
+                    {s.after && <p>{s.after}</p>}
+                  </div>
+                </li>
+              ))
+            }
+          </ol>
+          {d.howAfter.map((p) => <p>{p}</p>)}
+        </div>
+      </section>
+
+      <section class="mxp__matrix" aria-labelledby="mxp-matrix">
+        <h2 id="mxp-matrix" class="t-medium">{d.matrixHeading}</h2>
+        <MatrixChecker id={entry.id} matrix={d} />
+      </section>
+
+      <section class="mxp-row" aria-labelledby="mxp-key">
+        <h2 id="mxp-key" class="mxp-row__title t-medium">{d.keyHeading}</h2>
+        <div class="mxp-row__body">
+          <figure class="mxp__table">
+            <figcaption class="label">По грейдам, номера как в матрице</figcaption>
+            <div class="prose">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Грейд</th>
+                    <th>Пункт</th>
+                    <th>Что попросить показать</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {
+                    keyItems.map((s) => (
+                      <tr>
+                        <td>{GRADE_NAME[s.grade]}</td>
+                        <td>
+                          {s.id}. {s.short}
+                        </td>
+                        <td>{s.evidence}</td>
+                      </tr>
+                    ))
+                  }
+                </tbody>
+              </table>
+            </div>
+          </figure>
+        </div>
+      </section>
+
+      <section class="mxp-row" aria-labelledby="mxp-not">
+        <h2 id="mxp-not" class="mxp-row__title t-medium">{d.notCoveredHeading}</h2>
+        <div class="mxp-row__body">
+          <ul class="list-dash" role="list">
+            {
+              d.notCovered.map((x) => (
+                <li>{x}</li>
+              ))
+            }
+          </ul>
+        </div>
+      </section>
+
+      <section class="mxp-row" aria-labelledby="mxp-custom">
+        <h2 id="mxp-custom" class="mxp-row__title t-medium">{d.custom.heading}</h2>
+        <div class="mxp-row__body">
+          {
+            d.custom.paragraphs.map((p) => (
+              <p>
+                <LinkedText text={p.text} links={p.links} where={`${where}.custom`} />
+              </p>
+            ))
+          }
+        </div>
+      </section>
+
+      <section class="mxp-row" aria-labelledby="mxp-made">
+        <h2 id="mxp-made" class="mxp-row__title t-medium">{d.made.heading}</h2>
+        <div class="mxp-row__body">
+          {
+            d.made.paragraphs.map((p) => (
+              <p>
+                <LinkedText text={p.text} links={p.links} where={`${where}.made`} />
+              </p>
+            ))
+          }
+        </div>
+      </section>
+    </div>
+  </article>
+  {contact && <ContactShort block={contact} />}
+</BaseLayout>
+
+<style>
+  .mxp {
+    --measure: 72ch;
+    padding-top: var(--s3);
+  }
+
+  .mxp__back {
+    font-size: 0.9375rem;
+  }
+
+  .mxp__head {
+    margin-top: var(--s3);
+    display: grid;
+    gap: var(--s2);
+  }
+
+  .mxp__title {
+    max-width: 22em;
+  }
+
+  .mxp__lead {
+    max-width: 36em;
+    font-size: var(--fs-medium);
+    line-height: 1.4;
+    letter-spacing: var(--track-medium);
+  }
+
+  /* rows: the title above the text on phones and tablets; from 1080px the
+     title in columns 1–3 (sticky under the header), the text in 4–12 */
+  .mxp-row {
+    margin-top: var(--s4);
+    padding-top: var(--s2);
+    border-top: var(--line);
+    display: grid;
+    gap: var(--s2);
+  }
+
+  .mxp-row__body {
+    display: grid;
+    gap: var(--s2);
+    align-content: start;
+    min-width: 0;
+  }
+
+  .mxp-row__body > :is(p, ul, ol):not(.mxp__grades) {
+    max-width: var(--measure);
+  }
+
+  .mxp__small {
+    font-size: 0.9375rem;
+    color: var(--muted);
+  }
+
+  .mxp__grades {
+    display: grid;
+    gap: var(--s2);
+    list-style: none;
+    padding: 0;
+  }
+
+  .mxp__grade {
+    display: grid;
+    gap: 0.35rem;
+    align-content: start;
+    padding: var(--s1) var(--s2) var(--s2);
+    border-top: var(--line);
+  }
+
+  .mxp__grade-name {
+    font-size: var(--fs-medium);
+    font-weight: var(--bold);
+  }
+
+  .mxp__steps {
+    display: grid;
+    gap: var(--s2);
+    list-style: none;
+    padding: 0;
+  }
+
+  .mxp__step {
+    display: grid;
+    grid-template-columns: 1.75rem minmax(0, 1fr);
+    gap: var(--s1);
+  }
+
+  .mxp__step-n {
+    font-family: var(--font-mono);
+    font-size: var(--fs-small);
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  .mxp__step-body {
+    display: grid;
+    gap: 0.6rem;
+    max-width: var(--measure);
+  }
+
+  .mxp__matrix {
+    margin-top: var(--s5);
+    padding-top: var(--s2);
+    border-top: var(--line);
+    display: grid;
+    gap: var(--s3);
+  }
+
+  .mxp__table {
+    display: grid;
+    gap: var(--s1);
+  }
+
+  .mxp__meta a {
+    color: inherit;
+  }
+
+  @media (min-width: 720px) {
+    .mxp__grades {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 1080px) {
+    .mxp-row {
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      column-gap: var(--gap);
+    }
+
+    .mxp-row__title {
+      grid-column: 1 / span 3;
+      align-self: start;
+      position: sticky;
+      top: calc(var(--header-h) + var(--s2));
+      padding-right: var(--s2);
+    }
+
+    .mxp-row__body {
+      grid-column: 4 / span 9;
+    }
+  }
+</style>

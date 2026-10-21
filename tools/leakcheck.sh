@@ -11,6 +11,9 @@
 #
 # Fails on files under dist/media/ that no generated page references.
 #
+# The Excel files (*.xlsx) are unzipped and their XML checked for the content
+# markers and the annotated source's keys (_source, _note).
+#
 # Greps dist/ for: _note _todo _draft hidden «МЕСТО ДЛЯ» seller-ai-course
 # studio-expert university-curator.
 # - Everything the build generates (Astro pages, _astro/ assets, work.html,
@@ -77,6 +80,18 @@ if [ "${#legacy[@]}" -gt 0 ] && hits "$CONTENT" "${legacy[@]}"; then
   echo "leakcheck: content markers found in copied legacy files (above)" >&2
   fail=1
 fi
+# The Excel files of the free matrices (tools/build-matrix-xlsx.py) are zipped
+# XML, which grep -I skips as binary: their unzipped XML must contain none of
+# the content markers and no keys of the annotated source (_source, _note;
+# the links' utm_source is fine).
+# "hidden" is ordinary OOXML there and is not checked.
+mapfile -t books < <(find . -type f -name '*.xlsx' | sort)
+for b in "${books[@]}"; do
+  if unzip -p "$b" | LC_ALL=C grep -a -o -P ".{0,40}($CONTENT|(?<!utm)_source|_note).{0,40}"; then
+    echo "leakcheck: internal markers found in $b (above)" >&2
+    fail=1
+  fi
+done
 # Every file under media/ (screenshots and videos prepared for this site) must
 # be referenced by a generated page. A file nothing links to is most likely one
 # that waits for Daniil's OK (status: "hidden" in the content) and must not be
@@ -107,7 +122,7 @@ if [ -n "$soft" ]; then
   fi
 fi
 
-echo "leakcheck: ${#generated[@]} generated files, ${#bundles[@]} client bundles, ${#legacy[@]} legacy files checked"
+echo "leakcheck: ${#generated[@]} generated files, ${#bundles[@]} client bundles, ${#books[@]} Excel files, ${#legacy[@]} legacy files checked"
 if [ "$fail" = 1 ]; then exit 1; fi
 echo "OK: no internal notes in dist/"
 

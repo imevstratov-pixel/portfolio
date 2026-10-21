@@ -19,7 +19,8 @@
 //
 // Expected pages: the routes of the site (/, /services/, /cases/, /products/,
 // /free/, /zadachki/, /hire/, /guide/, 404), one page /zadachki/<slug>/ for
-// every visible Задачка (each linked from /zadachki/), one page /cases/<slug>/ for every published case
+// every visible Задачка (each linked from /zadachki/), one page /free/<slug>/
+// for every visible free matrix (each linked from /free/), one page /cases/<slug>/ for every published case
 // in src/content/cases (slug = file name, decision 17 of 14.10) and one page
 // /services/<slug>/ for every service but the guide (SEO plan of 18.10), each
 // linked from /services/, must exist;
@@ -214,14 +215,17 @@ const pagedServices = readdirSync(SERVICES_DIR)
   .filter((f) => f.endsWith('.md'))
   .map((f) => f.replace(/\.md$/, ''))
   .filter((slug) => slug !== 'guide');
-// every visible Задачка has a page /zadachki/<slug>/, linked from /zadachki/
-const ZADACHKI_DIR = join(ROOT, 'src', 'content', 'zadachki');
-const zadachki = existsSync(ZADACHKI_DIR)
-  ? readdirSync(ZADACHKI_DIR)
-      .filter((f) => f.endsWith('.md'))
-      .filter((f) => !/^visible:\s*false\s*$/m.test(readFileSync(join(ZADACHKI_DIR, f), 'utf8').split(/^---$/m)[1] ?? ''))
-      .map((f) => f.replace(/\.md$/, ''))
-  : [];
+// every visible Задачка has a page /zadachki/<slug>/, linked from /zadachki/;
+// every visible free matrix a page /free/<slug>/, linked from /free/
+const visibleSlugs = (dir) =>
+  existsSync(dir)
+    ? readdirSync(dir)
+        .filter((f) => f.endsWith('.md'))
+        .filter((f) => !/^visible:\s*false\s*$/m.test(readFileSync(join(dir, f), 'utf8').split(/^---$/m)[1] ?? ''))
+        .map((f) => f.replace(/\.md$/, ''))
+    : [];
+const zadachki = visibleSlugs(join(ROOT, 'src', 'content', 'zadachki'));
+const matrices = visibleSlugs(join(ROOT, 'src', 'content', 'matrices'));
 const expected = [
   '',
   'services/',
@@ -235,6 +239,7 @@ const expected = [
   ...pagedServices.map((slug) => `services/${slug}/`),
   'zadachki/',
   ...zadachki.map((slug) => `zadachki/${slug}/`),
+  ...matrices.map((slug) => `free/${slug}/`),
 ];
 for (const route of expected) {
   if (!fileFor(BASE + route)) errors.push(`expected page ${BASE}${route} was not built`);
@@ -251,6 +256,13 @@ if (zadachkiIndex) {
   const { html } = page(zadachkiIndex);
   for (const slug of zadachki) {
     if (!html.includes(`href="${BASE}zadachki/${slug}/"`)) err(zadachkiIndex, `no link to ${BASE}zadachki/${slug}/`);
+  }
+}
+const freeIndex = fileFor(BASE + 'free/');
+if (freeIndex) {
+  const { html } = page(freeIndex);
+  for (const slug of matrices) {
+    if (!html.includes(`href="${BASE}free/${slug}/"`)) err(freeIndex, `no link to ${BASE}free/${slug}/`);
   }
 }
 const casesIndex = fileFor(BASE + 'cases/');
@@ -271,7 +283,7 @@ if (casesIndex) {
 
 const astroPages = htmlFiles.filter((f) => page(f).astro).length;
 console.log(
-  `check-links: ${htmlFiles.length} HTML files (${astroPages} Astro pages, ${publishedCases.length} case, ${pagedServices.length} service and ${zadachki.length} Задачки pages expected), ${checked} internal links, base ${BASE}`,
+  `check-links: ${htmlFiles.length} HTML files (${astroPages} Astro pages, ${publishedCases.length} case, ${pagedServices.length} service, ${zadachki.length} Задачки and ${matrices.length} matrix pages expected), ${checked} internal links, base ${BASE}`,
 );
 if (errors.length) {
   console.error(`\n${errors.length} problem(s):\n  ` + errors.join('\n  '));

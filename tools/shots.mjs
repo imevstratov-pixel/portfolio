@@ -44,7 +44,7 @@ if (!routes.length) {
           .map((n) => `/${dir}/${n}/`)
       : [];
   };
-  routes.push(...ALL_ROUTES, ...subpages('cases'), ...subpages('services'), ...subpages('zadachki'));
+  routes.push(...ALL_ROUTES, ...subpages('cases'), ...subpages('services'), ...subpages('zadachki'), ...subpages('free'));
 }
 mkdirSync(out, { recursive: true });
 

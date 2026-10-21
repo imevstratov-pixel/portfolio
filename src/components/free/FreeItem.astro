@@ -15,6 +15,12 @@
 // `isNew: true` puts the «new» sticker (NewBadge) on the top-left corner of
 // the item, over the corner of the cover.
 //
+// A material that is a page on the site (a competency matrix, /free/<slug>/)
+// has `page` and `pageLabel`: the main button opens the page, the file (an
+// Excel table) is a second, outlined download button, and the cover link
+// opens the page too. `coverArt: matrix` draws the cover in HTML (a small grid
+// of ticked and empty squares, decorative) when there is no cover image.
+//
 // Layout: an ink line on top. Phones: the cover at half the width, then the
 // text. From 720px 12 columns: the cover in 1-4, the text in 6-12; from
 // 1080px the cover in 1-3, the text in 5-11.
@@ -39,6 +45,9 @@ export type FreeItemData = {
   downloadLabel: string;
   discuss?: { text: string; links?: TextLink[] };
   isNew?: boolean;
+  page?: string;
+  pageLabel?: string;
+  coverArt?: 'matrix';
 };
 
 interface Props {
@@ -66,14 +75,46 @@ if (/\.pdf$/i.test(item.file) && item.format) {
 }
 const inside = visible(item.inside ?? []);
 const cover = item.cover?.src ? item.cover : undefined;
+const art = !cover && item.coverArt === 'matrix';
+if (item.page && !item.pageLabel) throw new Error(`${where}: "page" needs "pageLabel"`);
+const fileType = /\.xlsx$/i.test(item.file)
+  ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+  : /\.pdf$/i.test(item.file)
+    ? 'application/pdf'
+    : undefined;
+// the matrix art: 9 rows of 3 squares, a fixed pattern of ticked ones
+const ART = ['110', '111', '100', '110', '111', '010', '110', '100', '111'];
 ---
 
-<article id={id} class:list={['free', cover && 'free--cover']} aria-labelledby={`${id}-title`}>
+<article id={id} class:list={['free', (cover || art) && 'free--cover']} aria-labelledby={`${id}-title`}>
   {item.isNew && <NewBadge class="free__new" />}
   {
-    cover && (
-      <a class="free__cover" href={url(item.file)} download={fileName} tabindex="-1" aria-hidden="true" data-goal="download">
-        <Media type="image" src={cover.src} alt={cover.alt} loading={first ? 'eager' : 'lazy'} />
+    cover &&
+      (item.page ? (
+        <a class="free__cover" href={url(item.page)} tabindex="-1" aria-hidden="true">
+          <Media type="image" src={cover.src} alt={cover.alt} loading={first ? 'eager' : 'lazy'} />
+        </a>
+      ) : (
+        <a class="free__cover" href={url(item.file)} download={fileName} tabindex="-1" aria-hidden="true" data-goal="download">
+          <Media type="image" src={cover.src} alt={cover.alt} loading={first ? 'eager' : 'lazy'} />
+        </a>
+      ))
+  }
+  {
+    art && (
+      <a class="free__cover free__art" href={url(item.page ?? item.file)} tabindex="-1" aria-hidden="true">
+        <span class="free__art-head">
+          <span>J</span>
+          <span>M</span>
+          <span>S</span>
+        </span>
+        {ART.map((row) => (
+          <span class="free__art-row">
+            {[...row].map((c) => (
+              <span class:list={['free__art-cell', c === '1' && 'is-on']} />
+            ))}
+          </span>
+        ))}
       </a>
     )
   }
@@ -97,10 +138,19 @@ const cover = item.cover?.src ? item.cover : undefined;
     }
     <div class="free__get">
       {item.format && <p class="label free__format">{item.format}</p>}
-      <a class="btn btn--primary" href={url(item.file)} download={fileName} type="application/pdf" data-goal="download">
-        <span class="btn__label">{item.downloadLabel}</span>
-        <span class="btn__caption">{size}</span>
-      </a>
+      <div class="free__buttons">
+        {
+          item.page && (
+            <a class="btn btn--primary" href={url(item.page)}>
+              <span class="btn__label">{item.pageLabel}</span>
+            </a>
+          )
+        }
+        <a class:list={['btn', !item.page && 'btn--primary']} href={url(item.file)} download={fileName} type={fileType} data-goal="download">
+          <span class="btn__label">{item.downloadLabel}</span>
+          <span class="btn__caption">{size}</span>
+        </a>
+      </div>
     </div>
     {
       item.discuss?.text && (
@@ -187,6 +237,55 @@ const cover = item.cover?.src ? item.cover : undefined;
 
   .free__discuss {
     max-width: var(--measure);
+  }
+
+  .free__buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s1);
+    align-items: stretch;
+  }
+
+  /* the drawn matrix cover: a framed sheet with three grade columns of
+     squares, some of them ticked (ink) */
+  .free__art {
+    display: grid;
+    gap: 0.45rem;
+    align-content: start;
+    aspect-ratio: 1 / 1.414;
+    /* the top clears the «new» sticker on the corner */
+    padding: max(14%, 3.25rem) 14% 10%;
+    text-decoration: none;
+    background-image: none;
+    color: var(--ink);
+    outline: var(--hair);
+    outline-offset: -1px;
+    background: var(--paper);
+  }
+
+  .free__art-head,
+  .free__art-row {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.45rem;
+  }
+
+  .free__art-head {
+    margin-bottom: 0.3rem;
+    font-family: var(--font-mono);
+    font-size: var(--fs-small);
+    text-align: center;
+  }
+
+  .free__art-cell {
+    display: block;
+    aspect-ratio: 2 / 1;
+    border: var(--line);
+  }
+
+  .free__art-cell.is-on {
+    background: var(--ink);
+    box-shadow: inset 0 0 0 3px var(--paper);
   }
 
   @media (min-width: 720px) {
