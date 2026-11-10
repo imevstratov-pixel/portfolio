@@ -17,6 +17,7 @@ import ContactShort from '../../components/ContactShort.astro';
 import LinkedText from '../../components/LinkedText.astro';
 import MatrixChecker from '../../components/free/MatrixChecker.astro';
 import { findBlock, getPage, matrices, matrixHref, site, type MatrixEntry } from '../../lib/content';
+import { ldJson, person } from '../../lib/person';
 import { GRADES, GRADE_NAME } from '../../lib/matrix';
 import { url } from '../../lib/url';
 
@@ -59,7 +60,7 @@ const jsonLd = [
     datePublished: d.date,
     url: pageUrl,
     mainEntityOfPage: pageUrl,
-    author: { '@type': 'Person', name: site.site.name, url: abs(url('/hire/')) },
+    author: person(Astro.site),
   },
   {
     '@context': 'https://schema.org',
@@ -71,7 +72,7 @@ const jsonLd = [
     ],
   },
 ];
-const ld = JSON.stringify(jsonLd).replace(/</g, '\\u003c');
+const ld = ldJson(jsonLd);
 ---
 
 <BaseLayout page={page} title={d.seo.title} description={d.seo.description} current="/free/">

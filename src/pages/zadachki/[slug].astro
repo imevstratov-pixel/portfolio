@@ -46,6 +46,7 @@ import {
   zadachki,
   type ZadachkaEntry,
 } from '../../lib/content';
+import { ldJson, person } from '../../lib/person';
 import { url } from '../../lib/url';
 
 export function getStaticPaths() {
@@ -137,7 +138,7 @@ const jsonLd = [
     dateModified: d.updated ?? d.date,
     url: pageUrl,
     mainEntityOfPage: pageUrl,
-    author: { '@type': 'Person', name: site.site.name, url: abs(url('/hire/')) },
+    author: person(Astro.site),
     isPartOf: { '@type': 'CollectionPage', name: 'Задачки', url: abs(url('/zadachki/')) },
   },
   {
@@ -150,7 +151,7 @@ const jsonLd = [
     ],
   },
 ];
-const ld = JSON.stringify(jsonLd).replace(/</g, '\\u003c');
+const ld = ldJson(jsonLd);
 ---
 
 <BaseLayout page={page} title={d.title} description={d.description} current="/zadachki/">

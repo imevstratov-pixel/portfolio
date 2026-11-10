@@ -323,7 +323,9 @@ head (title, description, canonical, OG with absolute image URL and size,
 `og:image:alt` and `twitter:image:alt` from `site.ogImageAlt`, or from
 `seo.ogImageAlt` when the page has its own image,
 robots in preview and for `seo.noindex`, fonts, Metrika in production; on
-the home page first of all the old-anchor script `LegacyAnchors`),
+the home page first of all the old-anchor script `LegacyAnchors`, and
+`hreflang` ru, en and x-default links to itself and `/en/`, which links
+back the same way in `public/en/index.html`),
 `Header`, `<main id="main">`, `Footer`, the client script.
 Font preloads: Inter Tight 400 and 700, Cyrillic and Latin, on every page
 (the Latin subset holds the space, digits and punctuation, so Russian text
@@ -344,9 +346,12 @@ page links, «Написать» (primary small button). Sticky first row; on ph
 tablets (below 880px, where the five links, the name and «Написать» no longer
 fit one row) the links form a second row that scrolls away: one row from
 360px (narrower gaps under 420px, 14px type under 388px), a 320px screen
-wraps. Footer: Telegram and email as text,
-all footer links (incl. «Работодателям» with goal `hire`, «English» to `/en/`),
-«Сделано вместе с Claude», «© {year} Даниил Евстратов».
+wraps. Footer: Telegram, email and LinkedIn as text (Telegram and LinkedIn
+with `rel="me noopener"`; LinkedIn from `site.contacts.linkedin`, shown only
+when set), all footer links (incl. «Работодателям» with goal `hire`,
+«English» to `/en/`), «Сделано вместе с Claude», «© {year} Даниил (Данил)
+Евстратов» (SEO plan of 21.10: «Данил» as visible text, also in the /hire/
+facts row «Имя»; Yandex reads no Person markup).
 
 ### Section
 
@@ -770,7 +775,8 @@ Prototypes B and C of /lab/, now on the home page with the lab's default
 settings: the phrase drawn in glyphs over its real text (the h1 stays the
 text for search engines and screen readers and sets the box), and the photo
 in one bit in a box of the photo's ratio (the `<img>` stays the fallback and
-the box carries the alt). A lens under the pointer or a finger, nothing
+carries the alt, so search engines read it; at opacity 0 under the canvas it
+stays in the accessibility tree, the canvas is aria-hidden). A lens under the pointer or a finger, nothing
 moves by itself, static with reduced motion, the plain text or photo under
 forced colours and without JS, no layout shift, no frames off screen or in
 a background tab, the canvas built in short tasks. Props, behaviour, costs
@@ -836,7 +842,7 @@ has the paragraph `[[widget]]` (plain text: the export drops HTML comments;
 the build fails when the h2 or the marker is missing); then «Когда звать специалиста» (the service's h1 linked to its
 page, `ServiceTerms show="note"`, the verb button), the experience line (a
 real published case, linked), «Ещё задачки», `template.madeBy` and the
-short contact block. JSON-LD Article (author Person → /hire/) and
+short contact block. JSON-LD Article (author: the site's Person, `src/lib/person.ts`) and
 BreadcrumbList. Service pages list their Задачки under «Задачки по теме»
 (one more `ServicePart` row, label h2). The body marker `[[widget]]` must
 appear exactly once with `widget: "payback"` and never without it (the build
@@ -1237,8 +1243,9 @@ Every page: `seo { title, description, ogImage?, noindex? }`, `blocks[]`
 
 ### 5.2 site (`site`)
 
-`site { name, lang, ogImage, ogImageAlt? }`, `contacts { telegram { handle, url, text }, email }`,
-`header { name, links[], cta }` (links: Услуги, Кейсы, Мои продукты, Бесплатно, Задачки), `footer { contacts { telegramLabel, telegramText, emailLabel, emailText }, links[], legend?, madeWith, copyright }` (`legend`: the line «Подчёркнуто как в школе: …» with `[слова|член]` tokens, `Parsed inline`),
+`site { name, lang, ogImage, ogImageAlt? }`, `contacts { telegram { handle, url, text }, email, linkedin? { url, text } }`,
+`person? { jobTitle, alternateName[], image?, sameAs[] }` (schema.org Person, `src/lib/person.ts`: one entity `<site>/#person` with the name, the other spellings «Данил Евстратов», «Daniil Evstratov», «Danil Evstratov», the photo and only Daniil's own profiles; WebSite + Person on `/`, ProfilePage on `/hire/`, author of Задачки and free matrices, provider of services),
+`header { name, links[], cta }` (links: Услуги, Кейсы, Мои продукты, Бесплатно, Задачки), `footer { contacts { telegramLabel, telegramText, emailLabel, emailText, linkedinLabel?, linkedinText? }, links[], legend?, madeWith, copyright }` (`legend`: the line «Подчёркнуто как в школе: …» with `[слова|член]` tokens, `Parsed inline`),
 `telegram { plainButton, copiedLabel, copiedMs, singleHint, gridHint, buttons[{ codeword, caption, template, service? }], productTemplate }`,
 `email { line, short, mailto { subject, body }, defaultSubject }`,
 `work { howWeStart { heading, steps[{ title, text }], consultationNote, prepare, workload { text } }, price, payment, languages }`.

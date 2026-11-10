@@ -1,0 +1,16 @@
+---
+import { url } from '../../lib/url';
+
+interface Props {
+  id: string;
+  offer: { title: string; text: string; links: { label: string; href: string }[] };
+}
+const { id, offer } = Astro.props;
+---
+<aside class="fg-service" aria-labelledby={`offer-${id}`}>
+  <h2 id={`offer-${id}`}>{offer.title}</h2>
+  <div class="fg-service__copy">
+    <p>{offer.text}</p>
+    <ul role="list">{offer.links.map((link) => <li><a href={url(link.href)}>{link.label}</a></li>)}</ul>
+  </div>
+</aside>

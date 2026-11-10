@@ -1,0 +1,166 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import ContactShort from '../../../components/ContactShort.astro';
+import AsciiHeadline from '../../../components/glyphs/AsciiHeadline.astro';
+import DitherPortrait from '../../../components/glyphs/DitherPortrait.astro';
+import GuideReturn from '../../../components/free/GuideReturn.astro';
+import GuideService from '../../../components/free/GuideService.astro';
+import { getPage, findBlock } from '../../../lib/content';
+import { person, ldJson } from '../../../lib/person';
+import { url, absoluteUrl } from '../../../lib/url';
+import d from '../../../content/frameworks/guide.json';
+import '../../../styles/framework-guide.css';
+
+const page = getPage('free');
+const contact = findBlock(page, 'contact');
+const frameworkById = new Map(d.frameworks.map((f) => [f.id, f]));
+const pageUrl = absoluteUrl(`/free/${d.slug}/`, Astro.site);
+const ld = ldJson([
+  { '@context':'https://schema.org', '@type':'Article', headline:d.title, description:d.description,
+    inLanguage:'ru', datePublished:d.date, dateModified:d.date, url:pageUrl,
+    mainEntityOfPage:pageUrl, author:person(Astro.site) },
+  { '@context':'https://schema.org', '@type':'BreadcrumbList', itemListElement:[
+    { '@type':'ListItem', position:1, name:d.back, item:absoluteUrl('/free/',Astro.site) },
+    { '@type':'ListItem', position:2, name:d.title, item:pageUrl }
+  ] }
+]);
+---
+<BaseLayout page={page} title={`${d.title} — ${d.author}`} description={d.description} current="/free/">
+  <script is:inline type="application/ld+json" slot="head" set:html={ld} />
+  <article class="fg wrap" aria-labelledby="fg-title" data-framework-guide>
+    <p class="fg-back"><a href={url('/free/')}>{d.back}</a></p>
+    <header class="fg-hero">
+      <div class="fg-hero__title">
+        <p class="label">{d.label}</p>
+        <AsciiHeadline text={d.title} as="h1" id="fg-title" size="var(--fs-huge)" width="12em" density={15} halo={false} />
+      </div>
+      <div class="fg-hero__copy">
+        <p class="fg-subtitle">{d.subtitle}</p>
+        <p>{d.lead}</p>
+        <p class="fg-small">{d.audience}</p>
+      </div>
+      <figure class="fg-hero__image">
+        <DitherPortrait src={d.heroImage.src} alt={d.heroImage.alt} algo="bayer" pixel={2} lens="fine" loading="eager" />
+        <figcaption class="label">{d.heroImage.caption}</figcaption>
+      </figure>
+      <nav class="fg-hero__nav" aria-label={d.label}>
+        {d.navigation.map((link) => <a href={`#${link.id}`}>{link.label}</a>)}
+        <a class="btn" href={url(d.catalogue.file)} download data-goal="download">{d.download}</a>
+      </nav>
+    </header>
+
+    <section class="fg-row" aria-labelledby="fg-start">
+      <h2 id="fg-start">{d.intro.title}</h2>
+      <div class="fg-prose">
+        {d.intro.paragraphs.map((p) => <p>{p}</p>)}
+        <p class="fg-small">{d.intro.exampleDisclaimer}</p>
+      </div>
+      <ol class="fg-path" role="list">
+        {d.intro.steps.map((step,i) => <li><span class="label">0{i+1}</span><h3>{step.title}</h3><p>{step.text}</p></li>)}
+      </ol>
+    </section>
+
+    <section class="fg-section" id="tier-list" aria-labelledby="fg-tier">
+      <div class="fg-section__intro"><h2 id="fg-tier">{d.tierTitle}</h2><div class="fg-prose"><p>{d.tierLead}</p><p class="fg-small">{d.tierCaveat}</p><p class="label">{d.tierInstruction}</p></div></div>
+      <div class="fg-tiers">
+        {d.tiers.map((tier) => <section class={`fg-tier fg-tier--${tier.id}`} aria-labelledby={`tier-${tier.id}`}>
+          <div class="fg-tier__rank" aria-hidden="true">{tier.id}</div>
+          <div class="fg-tier__body">
+            <h3 id={`tier-${tier.id}`}><span class="sr-only">{tier.id}. </span>{tier.name}</h3>
+            <p class="fg-small">{tier.text}</p>
+            <ul role="list" class="fg-tier__links">{d.frameworks.filter((f) => f.tier === tier.id).map((f) => <li><a href={`#method-${f.id}`} data-framework-link>{f.name}<span class="label">{f.alias}</span></a></li>)}</ul>
+          </div>
+        </section>)}
+      </div>
+      <p class="fg-after">{d.tierContext}</p>
+    </section>
+
+    <section class="fg-section" id="stacks" aria-labelledby="fg-stacks">
+      <div class="fg-section__intro"><h2 id="fg-stacks">{d.stacksTitle}</h2><p>{d.stacksLead}</p></div>
+      <div class="fg-stack-layout" data-stack-selector>
+        <nav class="fg-stack-menu" aria-label={d.stacksTitle}>
+          {d.stacks.map((stack) => <a href={`#stack-${stack.id}`} data-stack-choice={stack.id}>{stack.name}</a>)}
+        </nav>
+        <div class="fg-stack-panels">
+          {d.stacks.map((stack) => <section class="fg-stack" id={`stack-${stack.id}`} data-stack-panel={stack.id} aria-labelledby={`stack-title-${stack.id}`}>
+            <h3 id={`stack-title-${stack.id}`} tabindex="-1">{stack.name}</h3>
+            <p class="fg-subtitle">{stack.scenario}</p>
+            <p><strong>{d.stackLabels.goal}.</strong> {stack.goal}</p>
+            <div class="fg-stack-recommendation">
+              <h4>{d.stackLabels.frameworks}</h4>
+              <p class="fg-small">{d.stackLabels.recommendation}</p>
+              <ul role="list" class="fg-stack-methods">{stack.recommendation.core.map((item) => <li><a href={`#method-${item.framework}`} data-framework-link>{frameworkById.get(item.framework)?.alias.split(' / ')[0]}</a><p>{item.role}</p></li>)}</ul>
+              {stack.recommendation.optional.length > 0 && <div class="fg-stack-optional">
+                <h5>{d.stackLabels.optional}</h5>
+                <ul role="list" class="fg-stack-methods">{stack.recommendation.optional.map((item) => <li><a href={`#method-${item.framework}`} data-framework-link>{frameworkById.get(item.framework)?.alias.split(' / ')[0]}</a><p>{item.role}</p></li>)}</ul>
+              </div>}
+            </div>
+            <h4>{d.stackLabels.steps}</h4>
+            <ol class="fg-stack-steps" role="list">{stack.steps.map((step,i) => <li><span class="label">0{i+1}</span><div><h5>{step.title}</h5><p>{step.text}</p><p class="fg-deliverable">{step.artifact}</p></div></li>)}</ol>
+            <p class="fg-stack-check"><strong>{d.stackLabels.check}.</strong> {stack.check}</p>
+            <p class="fg-small"><strong>{d.stackLabels.limit}.</strong> {stack.limit}</p>
+          </section>)}
+        </div>
+      </div>
+    </section>
+
+    <GuideService id="consulting" offer={d.serviceOffers.consulting} />
+
+    <section class="fg-section" id="frameworks" aria-labelledby="fg-frameworks">
+      <div class="fg-section__intro"><h2 id="fg-frameworks">{d.frameworksTitle}</h2><p>{d.frameworksLead}</p></div>
+      <div class="fg-search" data-guide-controls>
+        <label>{d.frameworkLabels.search}<input type="search" data-framework-search placeholder={d.frameworkLabels.searchPlaceholder} autocomplete="off" /></label>
+        <label><span class="sr-only">{d.frameworkLabels.all}</span><select data-framework-tier><option value="">{d.frameworkLabels.all}</option>{d.tiers.map((tier) => <option value={tier.id}>{tier.id} — {tier.name}</option>)}</select></label>
+        <button type="button" class="btn" data-framework-clear>{d.frameworkLabels.clear}</button>
+        <p class="label" data-framework-count data-label={d.frameworkLabels.count} aria-live="polite"></p>
+      </div>
+      <p class="fg-empty" data-framework-empty>{d.frameworkLabels.empty}</p>
+      <div class="fg-frameworks">
+        {d.frameworks.map((f) => <details class="fg-method" id={`method-${f.id}`} data-method data-tier={f.tier}>
+          <summary><span class="fg-method__tier">{f.tier}</span><span><span class="fg-method__name">{f.name}</span><span class="fg-method__alias label">{f.alias}</span></span><span class="fg-method__toggle" aria-hidden="true"></span></summary>
+          <div class="fg-method__body">
+            <p class="fg-method__definition">{f.definition}</p>
+            <p>{f.example}</p>
+            <h3>{d.frameworkLabels.apply}</h3>
+            <ol>{f.steps.map((step) => <li>{step}</li>)}</ol>
+            <dl class="fg-method__facts"><div><dt>{d.frameworkLabels.strength}</dt><dd>{f.strength}</dd></div><div><dt>{d.frameworkLabels.limit}</dt><dd>{f.limit}</dd></div><div><dt>{d.frameworkLabels.artifact}</dt><dd>{f.artifact}</dd></div></dl>
+            {f.sourceIds?.length > 0 && <p class="fg-small">{d.frameworkLabels.source}: {f.sourceIds.map((id,i) => <><a href={`#source-${id}`}>{d.sources.find((s) => s.id === id)?.title}</a>{i < f.sourceIds.length - 1 ? '; ' : ''}</>)}</p>}
+          </div>
+        </details>)}
+      </div>
+    </section>
+
+    <section class="fg-row" aria-labelledby="fg-sequence">
+      <h2 id="fg-sequence">{d.sequence.title}</h2>
+      <div class="fg-prose"><p>{d.sequence.lead}</p>{d.sequence.items.map((item) => <div><h3>{item.name}</h3><p>{item.text}</p></div>)}<p>{d.sequence.after}</p></div>
+    </section>
+    <figure class="fg-figure">
+      <DitherPortrait src={d.practiceImage.src} alt={d.practiceImage.alt} algo="bayer" pixel={2} lens="fine" />
+      <figcaption class="label">{d.practiceImage.caption}</figcaption>
+    </figure>
+
+    <GuideService id="audit" offer={d.serviceOffers.audit} />
+
+    <section class="fg-row" id="worksheet" aria-labelledby="fg-worksheet">
+      <div><h2 id="fg-worksheet">{d.worksheet.title}</h2><p class="fg-after">{d.worksheet.lead}</p><p class="fg-small fg-after">{d.worksheet.privacy}</p></div>
+      <form class="fg-workbook ym-hide-content" data-workbook data-filename={d.worksheet.filename} data-title={d.title} data-saved={d.worksheet.saved} data-unavailable={d.worksheet.unavailable} data-downloaded={d.worksheet.downloaded} data-empty={d.worksheet.empty} data-cleared={d.worksheet.cleared}>
+        {d.worksheet.fields.map((field,i) => <label><span><span class="label">0{i+1}</span> {field.label}</span><textarea class="ym-disable-keys" name={field.id} rows="3" placeholder={field.placeholder}></textarea></label>)}
+        <div class="fg-workbook__actions" data-guide-controls><button type="button" class="btn btn--primary" data-plan-save>{d.worksheet.save}</button><button type="button" class="btn" data-plan-reset>{d.worksheet.reset}</button></div>
+        <p role="status" class="fg-small" data-plan-status></p>
+      </form>
+      <p class="fg-closing">{d.worksheet.closing}</p>
+    </section>
+
+    <GuideService id="build" offer={d.serviceOffers.build} />
+
+    <section class="fg-row fg-sources" aria-labelledby="fg-sources">
+      <div><h2 id="fg-sources">{d.sourcesTitle}</h2><p class="fg-after">{d.sourcesLead}</p><p class="label fg-after">{d.updated}</p><a class="btn fg-after" href={url(d.catalogue.file)} download data-goal="download">{d.download}</a></div>
+      <details class="fg-source-disclosure"><summary>{d.sourcesToggle}</summary><ol class="fg-source-list">{d.sources.map((source) => <li id={`source-${source.id}`}><a href={source.url}>{source.title}</a><p class="label">{source.type}</p><p>{source.supports}</p><p class="fg-small">{source.limit}</p></li>)}</ol></details>
+    </section>
+  </article>
+  <GuideReturn label={d.returnToTiers} />
+  {contact && <ContactShort block={contact} />}
+</BaseLayout>
+<script>
+  import '../../../scripts/framework-guide.ts';
+</script>

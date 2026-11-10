@@ -1,5 +1,6 @@
 ---
-// Site footer: Telegram and email as text, links to every page (incl.
+// Site footer: Telegram, email and LinkedIn as text (the profiles with
+// rel="me": the site and the profile are the same person), links to every page (incl.
 // «Работодателям» and «English»), «Сделано вместе с Claude», year.
 // The Telegram link here only opens the chat (no message template).
 // Under them the legend of the underlines (decision 1 of 15.10, content
@@ -21,6 +22,7 @@ const goalFor = (href: string) => (href === '/hire/' ? 'hire' : undefined);
 // typography only: a dash stays on the line of the word before it
 const legendRaw = (f as Record<string, unknown>).legend;
 const legend = typeof legendRaw === 'string' ? legendRaw.replace(/ ([—–]) /g, '\u00a0$1 ') : '';
+const linkedin = site.contacts.linkedin;
 ---
 
 <footer class="site-footer">
@@ -29,12 +31,20 @@ const legend = typeof legendRaw === 'string' ? legendRaw.replace(/ ([—–]) /g
     <div class="site-footer__contacts col-5 lg-col-4">
       <p>
         <span class="label">{f.contacts.telegramLabel}</span>{' '}
-        <a href={site.contacts.telegram.url} target="_blank" rel="noopener" data-goal="telegram">{f.contacts.telegramText}</a>
+        <a href={site.contacts.telegram.url} target="_blank" rel="me noopener" data-goal="telegram">{f.contacts.telegramText}</a>
       </p>
       <p>
         <span class="label">{f.contacts.emailLabel}</span>{' '}
         <a href={mailtoHref()} data-goal="email">{f.contacts.emailText}</a>
       </p>
+      {
+        linkedin && (
+          <p>
+            <span class="label">{f.contacts.linkedinLabel ?? 'LinkedIn'}</span>{' '}
+            <a href={linkedin.url} target="_blank" rel="me noopener">{f.contacts.linkedinText ?? linkedin.text}</a>
+          </p>
+        )
+      }
     </div>
     <nav class="site-footer__nav col-7 lg-col-5" aria-label="Все страницы">
       <ul class="site-footer__links" role="list">

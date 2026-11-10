@@ -16,7 +16,9 @@
     "shots": "node tools/shots.mjs",
     "leakcheck": "bash tools/leakcheck.sh",
     "verify": "npm run build && npm run check-links && npm run leakcheck",
-    "content": "python3 -I \"$SITE_CONTENT/tools/export_public.py\" \"$SITE_CONTENT/src/content\" src/content"
+    "content": "python3 -I \"$SITE_CONTENT/tools/export_public.py\" \"$SITE_CONTENT/src/content\" src/content && node tools/export-framework-guide.mjs",
+    "content:frameworks": "node tools/export-framework-guide.mjs",
+    "pdf:frameworks": "node tools/build-framework-pdf.mjs"
   },
   "dependencies": {
     "@astrojs/markdown-satteri": "^0.4.3",
@@ -31,6 +33,8 @@
     "@astrojs/check": "^0.9.10",
     "@types/node": "^22.20.5",
     "playwright": "^1.64.0",
-    "typescript": "^6.0.3"
+    "sharp": "^0.35.5",
+    "typescript": "^6.0.3",
+    "yaml": "^2.9.1"
   }
 }

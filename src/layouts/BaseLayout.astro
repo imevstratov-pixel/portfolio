@@ -77,6 +77,9 @@ const ogAlt: string | undefined =
 // no canonical for pages that must never be indexed (404)
 const canonical = seo.noindex === true ? undefined : new URL(Astro.url.pathname, Astro.site).href;
 const isHome = Astro.url.pathname === url('/');
+// the Russian home and the English page (public/en/index.html) point at each
+// other, so search engines show each language its own page
+const enHref = new URL(url('/en/'), Astro.site).href;
 
 const pageHeader: Record<string, any> = page?.header ?? {};
 const header: HeaderData = Astro.props.header ?? {
@@ -99,6 +102,15 @@ const header: HeaderData = Astro.props.header ?? {
     {description && <meta name="description" content={description} />}
     {noindex && <meta name="robots" content="noindex,nofollow" />}
     {canonical && <link rel="canonical" href={canonical} />}
+    {
+      isHome && canonical && (
+        <>
+          <link rel="alternate" hreflang="ru" href={canonical} />
+          <link rel="alternate" hreflang="en" href={enHref} />
+          <link rel="alternate" hreflang="x-default" href={canonical} />
+        </>
+      )
+    }
     <meta name="generator" content={Astro.generator} />
     <meta name="format-detection" content="telephone=no" />
     <link

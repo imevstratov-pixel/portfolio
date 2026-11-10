@@ -36,8 +36,9 @@ phrase come from the content (pages/home.md: `about.portrait`, `about.photo`,
 reads); the selfie in the lift mirror (`about.photo`) hides the face behind
 the phone and its flash and is a placeholder until a frontal photo exists
 (the page says so). The «Фото» group switches between them, each whole or
-closer (`data-src`, `data-crop` and the `aria-label` at once; the island
-loads the picture and takes its ratio).
+closer (`data-src`, `data-crop` and the picture's alt at once: `aria-label`
+on the ASCII portrait's box, `data-alt` on the dither portrait, whose script
+puts it on the `<img>`; the island loads the picture and takes its ratio).
 `LabControls.astro` renders the option buttons: toggle buttons
 (`aria-pressed`) in named groups that set a data attribute on their
 prototype (an option may set more attributes: its third item); each island
@@ -112,10 +113,12 @@ with the numbers.
 - **No layout shift:** the portraits are boxes with the photo's (or the
   crop's) aspect ratio from the build; the headline's height is the real
   text's.
-- **Accessibility:** the canvases are `aria-hidden`. The portraits are
-  `role="img"` with the photo's alt; the `<img>` inside is the pixel source and
-  the fallback without JS (with scripts on it is transparent, so the colour
-  photo never flashes). The headline keeps its real text in the DOM (any
+- **Accessibility:** the canvases are `aria-hidden`. The dither portrait's
+  `<img>` carries the photo's alt (search engines read image alts; SEO plan of
+  21.10), the ASCII portrait is `role="img"` with the alt; the `<img>` inside
+  is the pixel source and the fallback without JS (with scripts on it is
+  transparent, so the colour photo never flashes, and it stays in the
+  accessibility tree). The headline keeps its real text in the DOM (any
   element via `as`, `h1` in a first screen): screen readers and search
   engines read it, it can be selected, and without JS it is a plain headline.
 - **leakcheck:** the scripts never contain the word it greps for; page
@@ -201,7 +204,7 @@ under forced colours.
 (`pixel={2}`, `algo="atkinson"`, `lens="fine"`, `mode="ink"`), the whole
 photo in its own 4:5 box (the same column and box as the plain photo had,
 no layout shift), lazy. The `<img>` stays the pixel source and the fallback
-(no JS, forced colours: the greyscale photo); the box carries the alt. The
+(no JS, forced colours: the greyscale photo) and carries the alt. The
 selfie in the lift mirror reads poorly in one bit: the face is behind the
 phone and its flash, so the picture is a hand, a head with headphones and a
 bright spot on a diagonal lift wall. Daniil chose his photo, so it stays;

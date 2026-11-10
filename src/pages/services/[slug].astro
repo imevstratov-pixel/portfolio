@@ -17,6 +17,7 @@ import ServicePart from '../../components/services/ServicePart.astro';
 import LeadMagnet from '../../components/LeadMagnet.astro';
 import ContactBlock from '../../components/ContactBlock.astro';
 import { findBlock, getPage, pagedServices, serviceHref, site, zadachkaHref, zadachkiOfService, type ServiceEntry } from '../../lib/content';
+import { ldJson, person } from '../../lib/person';
 import { url } from '../../lib/url';
 
 export function getStaticPaths() {
@@ -66,12 +67,7 @@ const offer = priceFields
       ...(d.price?.note?.trim() ? { description: d.price.note.trim() } : {}),
     }
   : null;
-const person = {
-  '@type': 'Person',
-  name: site.site.name,
-  url: abs(url('/')),
-  jobTitle: 'Методолог образовательных продуктов',
-};
+const provider = person(Astro.site);
 const jsonLd = [
   {
     '@context': 'https://schema.org',
@@ -80,7 +76,7 @@ const jsonLd = [
     serviceType: d.title,
     description,
     url: pageUrl,
-    provider: person,
+    provider,
     areaServed: { '@type': 'Country', name: 'Россия' },
     availableChannel: { '@type': 'ServiceChannel', serviceUrl: pageUrl },
     ...(offer ? { offers: offer } : {}),
@@ -95,7 +91,7 @@ const jsonLd = [
     ],
   },
 ];
-const ld = JSON.stringify(jsonLd).replace(/</g, '\\u003c');
+const ld = ldJson(jsonLd);
 ---
 
 <BaseLayout page={page} title={title} description={description} current="/services/">

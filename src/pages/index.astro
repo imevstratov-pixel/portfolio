@@ -2,7 +2,8 @@
 // Home page (/): the blocks of pages/home.md, in their content order, each
 // drawn by its own component in src/components/home (the contact block uses
 // the shared ContactBlock). The order and the visibility rules follow
-// render_home() in the texts renderer (build_texts.py).
+// render_home() in the texts renderer (build_texts.py). JSON-LD: WebSite and
+// the Person of the site (src/lib/person.ts).
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ContactBlock from '../components/ContactBlock.astro';
 import Hero from '../components/home/Hero.astro';
@@ -15,8 +16,10 @@ import Testimonials from '../components/home/Testimonials.astro';
 import About from '../components/home/About.astro';
 import LeadMagnet from '../components/LeadMagnet.astro';
 import { getPage, pageBlocks } from '../lib/content';
+import { ldJson, personGraph } from '../lib/person';
 
 const page = getPage('home');
+const ld = ldJson(personGraph(Astro.site));
 
 // block type in the content -> component
 const views = {
@@ -41,5 +44,6 @@ const blocks = pageBlocks(page).map((block) => {
 ---
 
 <BaseLayout page={page} current="/">
+  <script is:inline type="application/ld+json" slot="head" set:html={ld} />
   {blocks.map(({ block, View }) => <View block={block} />)}
 </BaseLayout>

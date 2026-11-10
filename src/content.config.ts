@@ -68,7 +68,17 @@ const site = defineCollection({
     contacts: z.looseObject({
       telegram: z.looseObject({ handle: str, url: str, text: str }),
       email: str,
+      linkedin: z.looseObject({ url: str, text: str }).optional(),
     }),
+    // schema.org Person on /, /hire/ and as the author of articles (src/lib/person.ts)
+    person: z
+      .looseObject({
+        jobTitle: str,
+        alternateName: z.array(str).default([]),
+        image: optStr,
+        sameAs: z.array(str).default([]),
+      })
+      .optional(),
     header: z.looseObject({
       name: z.looseObject({ label: str, href: str }),
       links: z.array(z.looseObject({ label: str, href: str })),
@@ -80,6 +90,8 @@ const site = defineCollection({
         telegramText: str,
         emailLabel: str,
         emailText: str,
+        linkedinLabel: optStr,
+        linkedinText: optStr,
       }),
       links: z.array(z.looseObject({ label: str, href: str })),
       madeWith: str,

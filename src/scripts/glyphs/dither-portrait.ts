@@ -14,6 +14,7 @@
 //   data-crop   "x y w h", fractions of the photo
 //   data-src    another picture (same origin): the <img> loads it and the box
 //               takes its ratio (the lab's «Фото» buttons)
+//   data-alt    the alt of that picture (the <img> carries the alt)
 
 import { colours, falloff, isForced, isReduced, Lens, luminance, ready, rgb, toneMap, unlessForced, watchInView, watchSize, whenNear } from './core';
 
@@ -128,6 +129,7 @@ function setup(root: HTMLElement): void {
   const build = async () => {
     const ds = root.dataset;
     if (ds.src && img.getAttribute('src') !== ds.src) img.src = ds.src;
+    if (ds.alt !== undefined && img.alt !== ds.alt) img.alt = ds.alt;
     await ready(img);
     const crop = ds.crop ? ds.crop.split(/[\s,]+/).map(Number) : null;
     {
@@ -247,7 +249,7 @@ function setup(root: HTMLElement): void {
       watchSize(root, later);
       new MutationObserver(later).observe(root, {
         attributes: true,
-        attributeFilter: ['data-mode', 'data-pixel', 'data-algo', 'data-lens', 'data-gamma', 'data-crop', 'data-src'],
+        attributeFilter: ['data-mode', 'data-pixel', 'data-algo', 'data-lens', 'data-gamma', 'data-crop', 'data-src', 'data-alt'],
       });
     }),
   );

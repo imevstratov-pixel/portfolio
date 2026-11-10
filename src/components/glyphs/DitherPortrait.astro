@@ -9,7 +9,9 @@
 //   <DitherPortrait src={photo.src} alt={photo.alt} pixel={3} algo="bayer" lens="grey" />
 //
 // Fixed aspect ratio before any script runs (no layout shift); the <img> is
-// the pixel source and the fallback without JS, the box is role="img".
+// the pixel source and the fallback without JS, and it carries the alt text
+// (search engines read image alts; the img stays in the accessibility tree
+// at opacity 0 while the canvas, aria-hidden, shows the dither).
 // Script: src/scripts/glyphs/dither-portrait.ts (bundled only where used).
 import { url } from '../../lib/url';
 import { imageSize } from '../../lib/media';
@@ -65,8 +67,6 @@ const style = [`--dither-ratio: ${ratio}`, w && `--dither-w: ${w}`, crop && `--d
 <div
   class:list={['dither-portrait', className]}
   id={id}
-  role="img"
-  aria-label={alt}
   style={style}
   data-dither-portrait
   data-mode={mode}
@@ -76,7 +76,7 @@ const style = [`--dither-ratio: ${ratio}`, w && `--dither-w: ${w}`, crop && `--d
   data-gamma={gamma}
   data-crop={crop?.join(' ')}
 >
-  <img src={url(src)} alt="" width={size.width} height={size.height} loading={loading} decoding="async" />
+  <img src={url(src)} alt={alt} width={size.width} height={size.height} loading={loading} decoding="async" />
   <canvas aria-hidden="true"></canvas>
 </div>
 

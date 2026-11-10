@@ -10,6 +10,25 @@ blocks:
 - id: items
   type: free-items
   items:
+  - id: kak-sdelat-produkt-kotoryj-uchit
+    anchor: kak-sdelat-produkt-kotoryj-uchit
+    isNew: true
+    kind: Гайд и тир-лист
+    title: Как сделать продукт, который учит
+    text: Для экспертов, основателей и продуктовых команд, которые хотят сделать курс, учебного бота, гайд или приложение. Опыт в образовании не нужен.
+    insideLabel: Что внутри
+    inside:
+      - тир-лист методологических подходов с объяснениями, примерами и ограничениями;
+      - 7 сборок для разных продуктов — от текстового гайда до обучения внутри SaaS;
+      - "шаблон основы своего продукта: результат, проверка, практика и поддержка."
+    format: Интерактивная страница и PDF, 35 страниц
+    page: /free/kak-sdelat-produkt-kotoryj-uchit/
+    pageLabel: Открыть гайд
+    file: /free/kak-sdelat-produkt-kotoryj-uchit.pdf
+    downloadLabel: Скачать PDF
+    cover:
+      src: /free/kak-sdelat-produkt-kotoryj-uchit-cover.jpg
+      alt: Обложка гайда «Как сделать продукт, который учит»
   - id: matritsa-kompetentsij-metodista
     anchor: matritsa-kompetentsij-metodista
     isNew: true

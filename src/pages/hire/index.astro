@@ -5,6 +5,7 @@
 // Blocks render in content order, by type, as render_hire() in the texts
 // renderer: first screen, «Коротко», «Цифры», «Опыт» with the staff cases,
 // «Что говорят коллеги», «Как я работаю в команде», «Обсудить роль».
+// JSON-LD: ProfilePage about the Person of the site (src/lib/person.ts).
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Section from '../../components/Section.astro';
 import Numbers from '../../components/Numbers.astro';
@@ -16,12 +17,15 @@ import HireTestimonials from '../../components/hire/HireTestimonials.astro';
 import Team from '../../components/hire/Team.astro';
 import { getPage, pageBlocks, visible } from '../../lib/content';
 import type { NumberItem } from '../../lib/types';
+import { ldJson, profilePageLd } from '../../lib/person';
 
 const page = getPage('hire');
 const blocks = pageBlocks(page);
+const ld = ldJson(profilePageLd(Astro.site, new URL(Astro.url.pathname, Astro.site).href));
 ---
 
 <BaseLayout page={page} current="/hire/">
+  <script is:inline type="application/ld+json" slot="head" set:html={ld} />
   {
     blocks.map((b) => {
       switch (b.type) {

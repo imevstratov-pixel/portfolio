@@ -1,6 +1,6 @@
 ---
 seo:
-  title: Даниил Евстратов, Senior Learning Experience Designer
+  title: Даниил Евстратов — методолог образовательных продуктов (Senior LXD)
   description: Опыт по местам работы, цифры, кейсы из штата и видеоотзывы коллег. Резюме в PDF на русском и английском.
 header:
   name:
@@ -47,6 +47,8 @@ blocks:
   anchor: facts
   heading: Коротко
   rows:
+  - label: Имя
+    value: Даниил (Данил) Евстратов.
   - label: Уровень
     value: Senior-методист и Senior LXD, тимлид методистов.
   - label: Опыт

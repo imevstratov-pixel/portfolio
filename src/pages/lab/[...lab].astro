@@ -39,19 +39,21 @@ const SELFIE: Pic | null = about.photo?.src
   ? { id: 'selfie', src: about.photo.src, alt: about.photo.alt, crop: [0.1, 0.12, 0.72, 0.62] }
   : null;
 const pics = [PORTRAIT, SELFIE].filter((p): p is Pic => !!p);
-const photoGroup: LabGroup = {
+// the ASCII portrait (A) is a role="img" box named by aria-label; the dither
+// portrait (C) names its <img> (data-alt, set by its script)
+const photoGroupFor = (altAttr: 'aria-label' | 'data-alt'): LabGroup => ({
   attr: 'photo',
   label: 'Фото',
   value: PORTRAIT.id,
   options: pics.flatMap((p) => {
     const name = p === PORTRAIT ? 'Портрет' : 'Селфи';
-    const set = (crop: number[]) => ({ 'data-src': url(p.src), 'data-crop': crop.join(' '), 'aria-label': p.alt });
+    const set = (crop: number[]) => ({ 'data-src': url(p.src), 'data-crop': crop.join(' '), [altAttr]: p.alt });
     return [
       [p.id, name, set(p.crop)],
       [`${p.id}-full`, `${name} целиком`, set([0, 0, 1, 1])],
     ] as LabGroup['options'];
   }),
-};
+});
 const shimmerGroup: LabGroup = {
   attr: 'shimmer',
   label: 'Мерцание в покое',
@@ -60,7 +62,7 @@ const shimmerGroup: LabGroup = {
 };
 const controls: Record<string, LabGroup[]> = {
   'lab-a': [
-    photoGroup,
+    photoGroupFor('aria-label'),
     { attr: 'mode', label: 'Цвет', value: 'ink', options: [['ink', 'Чёрным по белому'], ['inverse', 'Белым по чёрному']] },
     { attr: 'cols', label: 'Символов в строке', value: '96', options: [['64', '64'], ['96', '96'], ['128', '128']] },
     shimmerGroup,
@@ -73,7 +75,7 @@ const controls: Record<string, LabGroup[]> = {
     shimmerGroup,
   ],
   'lab-c': [
-    photoGroup,
+    photoGroupFor('data-alt'),
     { attr: 'mode', label: 'Цвет', value: 'ink', options: [['ink', 'Чёрным по белому'], ['inverse', 'Негатив']] },
     { attr: 'algo', label: 'Растр', value: 'atkinson', options: [['atkinson', 'Аткинсон'], ['bayer', 'Байер']] },
     { attr: 'pixel', label: 'Пиксель', value: '2', options: [['2', '2 px'], ['3', '3 px'], ['4', '4 px']] },

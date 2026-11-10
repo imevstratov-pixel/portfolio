@@ -10,6 +10,21 @@ contacts:
     url: https://t.me/evstratovdanil
     text: '@evstratovdanil'
   email: imevstratov@gmail.com
+  linkedin:
+    url: https://www.linkedin.com/in/evstratovdanil/
+    text: evstratovdanil
+person:
+  jobTitle: Методолог образовательных продуктов
+  alternateName:
+  - Данил Евстратов
+  - Daniil Evstratov
+  - Danil Evstratov
+  image: media/about/daniil.jpg
+  sameAs:
+  - https://www.linkedin.com/in/evstratovdanil/
+  - https://t.me/evstratovdanil
+  - https://github.com/imevstratov-pixel
+  - https://evstrd.itch.io/
 header:
   name:
     label: Даниил Евстратов
@@ -34,6 +49,8 @@ footer:
     telegramText: '@evstratovdanil'
     emailLabel: Почта
     emailText: imevstratov@gmail.com
+    linkedinLabel: LinkedIn
+    linkedinText: evstratovdanil
   links:
   - label: Главная
     href: /
@@ -55,7 +72,7 @@ footer:
     href: /en/
   legend: 'Подчёркнуто как в школе: [подлежащее|подлежащее] — главное, [сказуемое|сказуемое] — кнопки, [дополнение|дополнение] — ссылки, [определение|определение] — под курсором, [обстоятельство|обстоятельство] — сроки и цены. А говорили, в жизни не пригодится.'
   madeWith: Сделано вместе с Claude
-  copyright: © {year} Даниил Евстратов
+  copyright: © {year} Даниил (Данил) Евстратов
 telegram:
   plainButton: Написать в Telegram
   copiedLabel: Скопировал, вставьте в чат

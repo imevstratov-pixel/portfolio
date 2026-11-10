@@ -1,0 +1,117 @@
+---
+interface Props {
+  label: string;
+  target?: string;
+}
+
+const { label, target = 'tier-list' } = Astro.props;
+---
+
+<a class="guide-return btn" href={`#${target}`} data-guide-return data-target={target}>
+  {label}
+</a>
+
+<style>
+  .guide-return {
+    margin: var(--s3) var(--gutter);
+    font-size: 0.9375rem;
+  }
+
+  .guide-return[data-floating] {
+    position: fixed;
+    z-index: 30;
+    left: max(var(--gutter), env(safe-area-inset-left));
+    bottom: max(var(--s2), env(safe-area-inset-bottom));
+    display: none;
+    max-width: calc(100vw - var(--gutter) - var(--gutter));
+    margin: 0;
+  }
+
+  .guide-return[data-floating].is-visible {
+    display: inline-flex;
+  }
+
+  @media (max-width: 719px) {
+    .guide-return[data-floating] {
+      bottom: calc(4.75rem + env(safe-area-inset-bottom));
+    }
+  }
+
+  @media print {
+    .guide-return {
+      display: none !important;
+    }
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLAnchorElement>('[data-guide-return]').forEach((link) => {
+    const board = document.getElementById(link.dataset.target ?? 'tier-list');
+    if (!board) return;
+
+    const contact = document.getElementById('contact');
+    let origin: HTMLAnchorElement | null = null;
+    let frame = 0;
+
+    // Stable destinations also make a copied return address meaningful.
+    board.querySelectorAll<HTMLAnchorElement>('[data-framework-link]').forEach((choice) => {
+      if (!choice.id) choice.id = `guide-tier-${choice.hash.slice(1)}`;
+    });
+
+    function update() {
+      frame = 0;
+      const pastBoard = board!.getBoundingClientRect().bottom <= 0;
+      const beforeContact = !contact || contact.getBoundingClientRect().top > window.innerHeight;
+      // A focused control stays available until focus moves elsewhere.
+      link.classList.toggle('is-visible', (pastBoard && beforeContact) || document.activeElement === link);
+    }
+
+    function schedule() {
+      if (!frame) frame = requestAnimationFrame(update);
+    }
+
+    function ordinaryClick(event: MouseEvent) {
+      return event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey;
+    }
+
+    board.addEventListener('click', (event) => {
+      if (!ordinaryClick(event) || !(event.target instanceof Element)) return;
+      const choice = event.target.closest<HTMLAnchorElement>('[data-framework-link]');
+      if (!choice || !board.contains(choice) || !choice.hash.startsWith('#method-')) return;
+      origin = choice;
+      link.hash = choice.id;
+    });
+
+    link.addEventListener('click', (event) => {
+      if (!ordinaryClick(event)) return;
+      event.preventDefault();
+
+      const destination = origin?.isConnected ? origin : board;
+      const focusTarget = destination === board ? board.querySelector<HTMLElement>('h2') ?? board : destination;
+      const addedTabindex = !focusTarget.hasAttribute('tabindex') && !(focusTarget instanceof HTMLAnchorElement);
+      if (addedTabindex) {
+        focusTarget.setAttribute('tabindex', '-1');
+        focusTarget.addEventListener('blur', () => focusTarget.removeAttribute('tabindex'), { once: true });
+      }
+
+      // Native history remains usable; framework-guide.ts ignores this hash.
+      location.hash = destination.id;
+      requestAnimationFrame(() => {
+        destination.scrollIntoView({ block: destination === board ? 'start' : 'center', behavior: 'auto' });
+        focusTarget.focus({ preventScroll: true });
+        schedule();
+      });
+    });
+
+    link.addEventListener('blur', schedule);
+    window.addEventListener('scroll', schedule, { passive: true });
+    window.addEventListener('resize', schedule);
+    window.addEventListener('hashchange', schedule);
+    window.addEventListener('load', schedule, { once: true });
+    const content = board.closest('[data-framework-guide]') ?? board;
+    new ResizeObserver(schedule).observe(content);
+
+    link.dataset.floating = 'true';
+    update();
+  });
+</script>
