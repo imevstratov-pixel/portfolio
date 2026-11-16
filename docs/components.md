@@ -24,6 +24,8 @@ section 7, docs/lab.md).
   `export_public.py`). Labels that the texts renderer adds itself (for example
   «Срок:» before a service duration) are the only exceptions, and they are
   already built into the components.
+  The authored overlays in `content-source/` are exported after the main
+  content: the framework guide and the home tarot copy (`npm run content:tarot`).
 - **Do not rewrite texts.** Show them exactly as in the content, including
   non-breaking spaces, «», — and the double space in the mother's quote. Smart
   punctuation is off in the markdown pipeline.
@@ -52,6 +54,9 @@ section 7, docs/lab.md).
   pointer or a finger and stand still otherwise, still with reduced motion;
   their shimmer at rest stays off (an opt-in for comparison on /lab/ only,
   docs/lab.md).
+  The home tarot (16.11) is an explicit playful exception: one staggered
+  deal on load, hover lift, click flips and a final reveal. It never loops;
+  reduced motion makes every change instant, including when enabled mid-flip.
 - **No arrows and no middle dots** anywhere (buttons, labels, lists): use a dash,
   «и», a comma or a step number.
 - **The output must pass `npm run leakcheck`.** It greps the built site for
@@ -1186,6 +1191,27 @@ Every page: `seo { title, description, ogImage?, noindex? }`, `blocks[]`
 (`{ id, type, anchor?, … }`), optional `header`. Blocks per page:
 
 **home**
+- `components/home/Tarot.astro` sits between the name/role and h1. Copy comes
+  from `content-source/home/tarot.json`, exported to `src/content/home/tarot.json`
+  by `tools/export-home-tarot.mjs`. The fixed spread is The Magician,
+  The Emperor, The Sun. Generated raster illustrations in ASCII style and
+  their common back live in `public/assets/tarot/`; the content owns their
+  image paths. Cards show only the illustration and English title, without
+  numbers or explanatory captions. Images have explicit dimensions and use
+  `object-fit: contain` inside a separate bounded picture wrapper; titles
+  have their own 24–40px track and a 5–9px gap. Intrinsic image sizing cannot
+  push the artwork into the title. Cards rest level in one horizontal row;
+  the entrance and hover lift have no rotation (only the click flip rotates).
+  The 1024×1536 WebP assets have 384px-wide siblings, selected with `srcset`
+  and `sizes` so the small cards do not download the full-resolution files.
+  `TarotFrame.astro` adds a shared double contour, geometric corner ornaments
+  and small star/diamond accents to both faces. Its decorative SVG stays
+  inside the card, ignores pointer events and uses non-scaling strokes.
+  `src/scripts/tarot.ts` reuses `motion-lite` for the deal, two-stage flip,
+  spring return and final message. Native buttons support click, touch,
+  Enter and Space; the live message appears only after all flips complete.
+  Without JS, disabled backs accompany a readable fallback. No persistence,
+  replay loop, sound or additional dependencies.
 - `hero` (hero): `name`, `role`, `headline` (the h1, drawn in glyphs: `AsciiHeadline`), `headlineParse?` (not drawn since decision 6 of 15.10; the export drops it), `lead`, `button { label, href }` (plain chat link), `email`, `availability`, `numbers[{ value, label, source }]`, `numbersNote`
 - `clients` (names): `lines[{ label, names[], note? }]`, `link { label, case }` (to `caseHref`)
 - `services` (services): `heading`, `lead`, `showDuration`, `main[{ service, line }]`, `moreHeading`, `more[{ service, line, href? }]`, `linkLabel` (each row also shows the price line and the service's verb `button`)

@@ -1,5 +1,5 @@
 ---
-// Home first screen (block "hero"): name and role, the h1 in the huge size
+// Home hero: name and role, the fixed ASCII tarot spread, then the huge h1
 // across the page, the lead in a narrow column with the Telegram button and
 // the email beside it, the availability line, then the four numbers in a row
 // (2 by 2 on phones) with their source note.
@@ -16,6 +16,7 @@
 // with the next word («и не скамит»), typography only.
 import Button from '../Button.astro';
 import AsciiHeadline from '../glyphs/AsciiHeadline.astro';
+import Tarot from './Tarot.astro';
 import EmailLine from '../EmailLine.astro';
 import Numbers from '../Numbers.astro';
 import { visible, type Block } from '../../lib/content';
@@ -52,6 +53,7 @@ const headline = String(b.headline ?? '').replace(/(?<![А-Яа-яЁёA-Za-z0-9]
         )
       }
     </p>
+    <Tarot />
     {
       headline && (
         <div class="hero__title">

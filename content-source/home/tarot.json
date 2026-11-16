@@ -1,0 +1,14 @@
+{
+  "label": "Шуточный расклад на хороший проект",
+  "idleHint": "Расклад на хороший проект",
+  "hints": ["Откройте три карты", "Откройте ещё две карты", "Откройте ещё одну карту"],
+  "completeHint": "Расклад готов",
+  "message": "Сегодня хороший день, чтобы нанять Данила.",
+  "fallback": "The Magician, The Emperor, The Sun. Сегодня хороший день, чтобы нанять Данила.",
+  "backImage": "/assets/tarot/back-ascii.webp",
+  "cards": [
+    {"id":"magician","name":"The Magician","image":"/assets/tarot/magician-ascii.webp","openLabel":"Открыть первую карту","openedLabel":"The Magician. Карта открыта."},
+    {"id":"emperor","name":"The Emperor","image":"/assets/tarot/emperor-ascii.webp","openLabel":"Открыть вторую карту","openedLabel":"The Emperor. Карта открыта."},
+    {"id":"sun","name":"The Sun","image":"/assets/tarot/sun-ascii.webp","openLabel":"Открыть третью карту","openedLabel":"The Sun. Карта открыта."}
+  ]
+}

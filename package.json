@@ -16,7 +16,8 @@
     "shots": "node tools/shots.mjs",
     "leakcheck": "bash tools/leakcheck.sh",
     "verify": "npm run build && npm run check-links && npm run leakcheck",
-    "content": "python3 -I \"$SITE_CONTENT/tools/export_public.py\" \"$SITE_CONTENT/src/content\" src/content && node tools/export-framework-guide.mjs",
+    "content": "python3 -I \"$SITE_CONTENT/tools/export_public.py\" \"$SITE_CONTENT/src/content\" src/content && node tools/export-framework-guide.mjs && node tools/export-home-tarot.mjs",
+    "content:tarot": "node tools/export-home-tarot.mjs",
     "content:frameworks": "node tools/export-framework-guide.mjs",
     "pdf:frameworks": "node tools/build-framework-pdf.mjs"
   },

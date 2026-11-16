@@ -1,0 +1,105 @@
+---
+import { url } from '../../lib/url';
+import d from '../../content/home/tarot.json';
+import TarotFrame from './TarotFrame.astro';
+const sources = (path: string) => `${url(path.replace('.webp', '-384.webp'))} 384w, ${url(path)} 1024w`;
+---
+
+<div class="tarot" data-tarot role="group" aria-label={d.label}
+  data-hints={JSON.stringify(d.hints)} data-complete-hint={d.completeHint} data-message={d.message}>
+  <p class="tarot__hint label" data-tarot-hint>{d.idleHint}</p>
+  <div class="tarot__table">
+    {d.cards.map((card) => (
+      <div class="tarot__slot">
+        <div class="tarot__deal" data-tarot-deal>
+          <button class="tarot__card" type="button" disabled data-tarot-card
+            data-opened-label={card.openedLabel}
+            aria-label={card.openLabel} aria-pressed="false">
+            <span class="tarot__lift" data-tarot-lift>
+              <span class="tarot__flip" data-tarot-flip>
+                <span class="tarot__back" aria-hidden="true">
+                  <span class="tarot__back-inset">
+                    <img src={url(d.backImage)} srcset={sources(d.backImage)} sizes="(max-width: 600px) 92px, 168px" class="tarot__art" alt="" width="1024" height="1536" loading="eager" decoding="async" draggable="false" />
+                  </span>
+                </span>
+                <span class="tarot__front" aria-hidden="true">
+                  <span class="tarot__picture">
+                    <img src={url(card.image)} srcset={sources(card.image)} sizes="(max-width: 600px) 92px, 168px" class="tarot__art" alt="" width="1024" height="1536" loading="eager" decoding="async" draggable="false" />
+                  </span>
+                  <span class="tarot__name" lang="en">{card.name}</span>
+                </span>
+                <TarotFrame />
+              </span>
+            </span>
+          </button>
+        </div>
+      </div>
+    ))}
+  </div>
+  <div class="tarot__reading">
+    <p class="tarot__message" data-tarot-message role="status" aria-live="polite" aria-atomic="true"></p>
+  </div>
+  <noscript><p class="tarot__fallback">{d.fallback}</p></noscript>
+</div>
+
+<style>
+  .tarot {
+    --card-width: clamp(92px, 18vw, 168px);
+    --card-height: calc(var(--card-width) * 1.6);
+    margin-block: var(--s3) var(--s1);
+    display: grid;
+    justify-items: center;
+    color: var(--ink);
+  }
+  .tarot__hint { color: var(--muted); text-align: center; min-height: 1.5em; }
+  .tarot__table {
+    display: flex;
+    justify-content: center;
+    gap: clamp(9px, 2.2vw, 32px);
+    padding: 24px 14px 18px;
+    isolation: isolate;
+  }
+  .tarot__slot { width: var(--card-width); }
+  .tarot__slot:has(:focus-visible), .tarot__slot:has(.is-hovered) { z-index: 3; }
+  .tarot__deal { width: 100%; }
+  .tarot__card {
+    display: block; width: 100%; height: var(--card-height); position: relative;
+    padding: 0; border: 0; background: transparent; color: inherit;
+    border-radius: 0; touch-action: manipulation; outline-offset: 7px;
+  }
+  .tarot__card:disabled { opacity: 1; cursor: default; }
+  .tarot__card[aria-disabled='true'] { cursor: default; }
+  .tarot__lift, .tarot__flip { display: block; position: relative; width: 100%; height: 100%; }
+  .tarot__lift { transform: translateY(0); }
+  .tarot__flip { transform: perspective(750px) rotateY(0deg); }
+  .tarot__back, .tarot__front {
+    position: absolute; inset: 0; background: var(--paper);
+    padding: clamp(7px, 1.15vw, 11px); box-sizing: border-box;
+  }
+  .tarot__back { display: flex; }
+  .tarot__back-inset { display: grid; place-items: center; width: 100%; }
+  .tarot__back .tarot__art { width: 94%; height: 94%; }
+  .tarot__front { display: none; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) clamp(24px, 3.5vw, 40px); justify-items: center; gap: clamp(5px, 0.8vw, 9px); }
+  .tarot__card[data-face] .tarot__front { display: grid; }
+  .tarot__card[data-face] .tarot__back { display: none; }
+  .tarot__art { display: block; width: 100%; height: 100%; min-width: 0; min-height: 0; object-fit: contain; }
+  /* The image's intrinsic ratio cannot enlarge its grid track into the title. */
+  .tarot__picture { display: block; position: relative; width: 100%; min-height: 0; align-self: stretch; overflow: clip; }
+  .tarot__picture .tarot__art { position: absolute; inset: 0; }
+  .tarot__name { display: grid; place-items: center; width: 100%; min-height: 0; font-size: clamp(10px, 1.5vw, 17px); font-weight: var(--bold); line-height: 1.1; text-align: center; text-wrap: balance; }
+  .tarot__reading { min-height: 4.8rem; max-width: 36rem; display: grid; place-items: center; }
+  .tarot__message { font-size: clamp(1.25rem, 2.6vw, 1.875rem); font-weight: var(--bold); line-height: 1.2; text-align: center; text-wrap: balance; }
+  .tarot__fallback { max-width: var(--measure); margin-top: var(--s2); }
+  @media (max-width: 359px) {
+    .tarot { --card-width: 82px; }
+    .tarot__table { gap: 6px; padding-inline: 5px; }
+  }
+  @media (forced-colors: active) {
+    .tarot__back, .tarot__front { background: Canvas; color: CanvasText; border-color: CanvasText; }
+  }
+  @media print { .tarot { display: none; } }
+</style>
+
+<script>
+  import '../../scripts/tarot';
+</script>
